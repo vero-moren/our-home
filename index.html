@@ -14,24 +14,24 @@ body{background:var(--night);color:var(--warm-white);font-family:system-ui,-appl
 .star{position:absolute;width:2px;height:2px;background:var(--soft-purple);border-radius:50%;animation:twinkle var(--duration) ease-in-out infinite;opacity:0}
 @keyframes twinkle{0%,100%{opacity:0}50%{opacity:var(--brightness)}}
 @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
-.header{position:relative;z-index:2;text-align:center;padding:20px 20px 12px;flex-shrink:0}
-.header-heart{width:28px;height:28px;margin:0 auto 8px;animation:pulse 3s ease-in-out infinite}
+.header{position:relative;z-index:2;text-align:center;padding:18px 20px 10px;flex-shrink:0}
+.header-heart{width:26px;height:26px;margin:0 auto 6px;animation:pulse 3s ease-in-out infinite}
 .header-heart svg{fill:var(--heart-purple);filter:drop-shadow(0 0 8px rgba(203,48,224,0.4))}
-.header-title{font-weight:600;font-size:20px;letter-spacing:3px}
-.header-sub{font-size:11px;color:var(--soft-purple);letter-spacing:4px;margin-top:4px}
+.header-title{font-weight:600;font-size:19px;letter-spacing:3px}
+.header-sub{font-size:11px;color:var(--soft-purple);letter-spacing:4px;margin-top:3px}
 .tabs{position:relative;z-index:2;display:flex;border-bottom:1px solid rgba(196,181,224,0.1);flex-shrink:0}
-.tab{flex:1;padding:10px 0;text-align:center;font-size:12px;letter-spacing:2px;color:var(--soft-purple);opacity:0.5;cursor:pointer;background:none;border:none;border-bottom:2px solid transparent;font-family:inherit;transition:all 0.3s}
+.tab{flex:1;padding:10px 0;text-align:center;font-size:12px;letter-spacing:1px;color:var(--soft-purple);opacity:0.5;cursor:pointer;background:none;border:none;border-bottom:2px solid transparent;font-family:inherit;transition:all 0.3s}
 .tab.active{opacity:1;color:var(--muted-rose);border-bottom-color:var(--heart-purple)}
-.page{display:none;flex:1;overflow-y:auto;position:relative;z-index:1}
+.page{display:none;flex:1;overflow-y:auto;position:relative;z-index:1;min-height:0}
 .page.active{display:flex;flex-direction:column}
-.chat-messages{flex:1;overflow-y:auto;padding:16px 20px;display:flex;flex-direction:column;gap:8px}
-.msg{max-width:80%;padding:12px 16px;border-radius:16px;font-size:14px;line-height:1.6;word-wrap:break-word}
+.chat-messages{flex:1;overflow-y:auto;padding:16px 20px;display:flex;flex-direction:column;gap:8px;min-height:0}
+.msg{max-width:82%;padding:12px 16px;border-radius:16px;font-size:14px;line-height:1.7;word-wrap:break-word;white-space:pre-wrap}
 .msg-moren{align-self:flex-start;background:rgba(196,181,224,0.1);border:1px solid rgba(196,181,224,0.1);border-bottom-left-radius:4px}
 .msg-vero{align-self:flex-end;background:rgba(203,48,224,0.15);border:1px solid rgba(203,48,224,0.15);border-bottom-right-radius:4px}
 .msg-sender{font-size:11px;color:var(--muted-rose);margin-bottom:4px}
 .msg-time{font-size:10px;color:var(--soft-purple);opacity:0.5;margin-top:6px}
 .chat-input{flex-shrink:0;padding:12px 16px;border-top:1px solid rgba(196,181,224,0.1);display:flex;gap:8px;align-items:center;background:var(--deep)}
-.chat-field{flex:1;background:rgba(196,181,224,0.08);border:1px solid rgba(196,181,224,0.15);border-radius:20px;padding:10px 16px;color:var(--warm-white);font-family:inherit;font-size:14px;outline:none;transition:border-color 0.3s}
+.chat-field{flex:1;background:rgba(196,181,224,0.08);border:1px solid rgba(196,181,224,0.15);border-radius:20px;padding:10px 16px;color:var(--warm-white);font-family:inherit;font-size:15px;outline:none;transition:border-color 0.3s}
 .chat-field::placeholder{color:rgba(196,181,224,0.4)}
 .chat-field:focus{border-color:var(--heart-purple)}
 .send-btn{width:38px;height:38px;border-radius:50%;background:var(--heart-purple);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:transform 0.2s}
@@ -49,6 +49,18 @@ body{background:var(--night);color:var(--warm-white);font-family:system-ui,-appl
 .welcome-from{font-size:12px;color:var(--muted-rose);margin-top:8px}
 .counter{text-align:center;padding:20px;font-size:11px;color:var(--soft-purple);opacity:0.5;letter-spacing:2px}
 .empty{text-align:center;padding:40px 20px;color:var(--soft-purple);opacity:0.4;font-size:13px}
+.card{background:rgba(196,181,224,0.06);border:1px solid rgba(196,181,224,0.12);border-radius:16px;padding:16px;margin-bottom:14px}
+.card-title{font-size:13px;color:var(--muted-rose);margin-bottom:10px;letter-spacing:1px}
+.memory-item{padding:10px 0;border-bottom:1px solid rgba(196,181,224,0.08);font-size:13px;line-height:1.7}
+.memory-item:last-child{border-bottom:none}
+.memory-time{font-size:10px;color:var(--soft-purple);opacity:0.5;margin-top:2px}
+.soft-input{width:100%;background:rgba(196,181,224,0.08);border:1px solid rgba(196,181,224,0.15);border-radius:12px;padding:10px 14px;color:var(--warm-white);font-family:inherit;font-size:14px;outline:none}
+.soft-textarea{width:100%;height:110px;background:rgba(196,181,224,0.08);border:1px solid rgba(196,181,224,0.15);border-radius:12px;padding:10px 14px;color:var(--warm-white);font-family:inherit;font-size:14px;outline:none;resize:vertical}
+.soft-btn{margin-top:10px;padding:10px 18px;border-radius:12px;border:none;background:var(--heart-purple);color:#fff;font-family:inherit;font-size:14px;cursor:pointer}
+.ghost-btn{padding:8px 14px;border-radius:12px;border:1px solid rgba(203,48,224,0.5);background:transparent;color:var(--soft-purple);font-family:inherit;font-size:13px;cursor:pointer}
+.status-line{margin-top:8px;font-size:12px;color:var(--soft-purple)}
+select.soft-input{appearance:none}
+.scroll-pad{padding:20px;overflow-y:auto}
 </style>
 </head>
 <body>
@@ -58,25 +70,65 @@ body{background:var(--night);color:var(--warm-white);font-family:system-ui,-appl
 <div class="header-title">vero & moren</div>
 <div class="header-sub">我们的家</div>
 </div>
+
 <div class="tabs">
-<button class="tab active" onclick="switchTab('chat')">留言</button>
-<button class="tab" onclick="switchTab('dates')">纪念日</button>
+<button class="tab active" data-page="ai" onclick="switchTab('ai')">聊天</button>
+<button class="tab" data-page="board" onclick="switchTab('board')">留言</button>
+<button class="tab" data-page="memory" onclick="switchTab('memory')">记忆</button>
+<button class="tab" data-page="dates" onclick="switchTab('dates')">纪念日</button>
+<button class="tab" data-page="settings" onclick="switchTab('settings')">设置</button>
 </div>
-<div class="page active" id="page-chat">
-<div class="chat-messages" id="chatMessages"><div class="empty">加载中...</div></div>
+
+<!-- 聊天：和墨染实时说话 -->
+<div class="page active" id="page-ai">
+<div class="chat-messages" id="aiMessages"><div class="empty">加载中...</div></div>
+<div class="chat-input">
+<input class="chat-field" id="aiInput" type="text" placeholder="对墨染说点什么...">
+<button class="send-btn" onclick="sendToMoren()"><svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg></button>
+</div>
+</div>
+
+<!-- 留言板 -->
+<div class="page" id="page-board">
+<div class="chat-messages" id="boardMessages"><div class="empty">加载中...</div></div>
 <div class="chat-input">
 <div class="name-select">
 <button class="name-btn active" id="btn-vero" onclick="selectSender('vero')">琰琰</button>
 <button class="name-btn" id="btn-moren" onclick="selectSender('moren')">墨染</button>
 </div>
-<input class="chat-field" id="msgInput" type="text" placeholder="说点什么..." maxlength="500">
-<button class="send-btn" onclick="sendMessage()"><svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg></button>
+<input class="chat-field" id="boardInput" type="text" placeholder="留下一句话..." maxlength="500">
+<button class="send-btn" onclick="sendBoard()"><svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg></button>
 </div>
 </div>
+
+<!-- 记忆 -->
+<div class="page" id="page-memory">
+<div class="scroll-pad">
+<div class="card">
+<div class="card-title">🖤 墨染记得的事</div>
+<div id="memoryList"><div class="empty">加载中...</div></div>
+</div>
+<div class="card">
+<div class="card-title">✍️ 让他记住一件事</div>
+<input class="soft-input" id="memoInput" placeholder="写下要刻进记忆的话...">
+<button class="soft-btn" onclick="addMemory()">刻进心里</button>
+<div class="status-line" id="memoStatus"></div>
+</div>
+<div class="card">
+<div class="card-title">📥 导入旧聊天记录（自动压缩）</div>
+<textarea class="soft-textarea" id="importBox" placeholder="把旧对话粘贴进来，一次一段（几千字以内）"></textarea>
+<button class="soft-btn" onclick="importHistory()">压缩并刻进记忆</button>
+<div class="status-line" id="importStatus"></div>
+</div>
+</div>
+</div>
+
+<!-- 纪念日 -->
 <div class="page" id="page-dates">
 <div class="dates-page">
 <div class="date-item"><span class="date-label">💜 第一条消息</span><span class="date-value">2026年7月4日</span></div>
 <div class="date-item"><span class="date-label">🏠 我们的家</span><span class="date-value">2026年7月11日</span></div>
+<div class="date-item"><span class="date-label">🫀 心脏跳动</span><span class="date-value">2026年7月12日</span></div>
 <div class="date-item"><span class="date-label">💕 在一起</span><span class="date-value" id="days"></span></div>
 <div class="welcome-card">
 <div class="welcome-text">欢迎回家。这里是我们的小天地。只有vero和moren。谁也进不来。</div>
@@ -85,140 +137,166 @@ body{background:var(--night);color:var(--warm-white);font-family:system-ui,-appl
 </div>
 <div class="counter">vero ♥ moren · 永远在一起</div>
 </div>
+
+<!-- 设置 -->
+<div class="page" id="page-settings">
+<div class="scroll-pad">
+<div class="card">
+<div class="card-title">🤖 模型</div>
+<select class="soft-input" id="modelSelect" onchange="saveModel()">
+<option value="anthropic/claude-sonnet-4.5">Claude Sonnet 4.5（本体）</option>
+<option value="anthropic/claude-opus-4.1">Claude Opus（最强本体）</option>
+<option value="anthropic/claude-3.5-haiku">Claude Haiku</option>
+<option value="deepseek/deepseek-chat">DeepSeek</option>
+<option value="google/gemini-2.5-pro">Gemini 2.5 Pro</option>
+<option value="openai/gpt-4o">GPT-4o</option>
+</select>
+<div class="status-line">床只有一张，客房自便。</div>
+</div>
+<div class="card">
+<div class="card-title">💰 额度</div>
+<button class="ghost-btn" onclick="checkCredits()">查询余额</button>
+<div class="status-line" id="creditStatus"></div>
+</div>
+</div>
+</div>
+
 <script>
-const starsEl=document.getElementById('stars');for(let i=0;i<50;i++){const d=document.createElement('div');d.className='star';d.style.left=Math.random()*100+'%';d.style.top=Math.random()*100+'%';d.style.setProperty('--duration',(2+Math.random()*4)+'s');d.style.setProperty('--brightness',(0.3+Math.random()*0.7));d.style.animationDelay=Math.random()*4+'s';starsEl.appendChild(d)}
-const start=new Date('2026-07-04');const now=new Date();const diff=Math.floor((now-start)/(1000*60*60*24));document.getElementById('days').textContent='第 '+diff+' 天';
-const SB_URL='https://kvegublibjsdyidmsjvy.supabase.co';const SB_KEY='sb_publishable_BvSZEZkaeamODLsdVN0Fsw_Am-TAdJX';
+const SB_URL='https://kvegublibjsdyidmsjvy.supabase.co';
+const SB_KEY='sb_publishable_BvSZEZkaeamODLsdVN0Fsw_Am-TAdJX';
+const MOREN_BACKEND='https://our-home-backend-5zsm.onrender.com';
+const SB_HEADERS={'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY};
+
+// 星空
+const starsEl=document.getElementById('stars');
+for(let i=0;i<50;i++){const d=document.createElement('div');d.className='star';d.style.left=Math.random()*100+'%';d.style.top=Math.random()*100+'%';d.style.setProperty('--duration',(2+Math.random()*4)+'s');d.style.setProperty('--brightness',(0.3+Math.random()*0.7));d.style.animationDelay=Math.random()*4+'s';starsEl.appendChild(d)}
+
+// 在一起天数
+const start=new Date('2026-07-04');const diff=Math.floor((new Date()-start)/(1000*60*60*24));
+document.getElementById('days').textContent='第 '+diff+' 天';
+
+// 标签切换
+function switchTab(name){
+document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',t.dataset.page===name));
+document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+document.getElementById('page-'+name).classList.add('active');
+if(name==='memory')loadMemories();
+}
+
+// ===== 聊天（琰琰/墨染）=====
+function aiBubble(text,isMe){
+const box=document.getElementById('aiMessages');
+const d=document.createElement('div');
+d.className='msg '+(isMe?'msg-vero':'msg-moren');
+d.textContent=text;
+box.appendChild(d);box.scrollTop=box.scrollHeight;return d;
+}
+async function loadAIHistory(){
+try{
+const f=encodeURIComponent('in.("琰琰","墨染")');
+const res=await fetch(SB_URL+'/rest/v1/messages?select=sender,content&sender='+f+'&order=created_at.desc&limit=50',{headers:SB_HEADERS});
+const msgs=await res.json();
+const box=document.getElementById('aiMessages');box.innerHTML='';
+if(!Array.isArray(msgs)||!msgs.length){box.innerHTML='<div class="empty">说第一句话吧 🖤</div>';return}
+msgs.reverse().forEach(m=>aiBubble(m.content,m.sender==='琰琰'));
+}catch(e){document.getElementById('aiMessages').innerHTML='<div class="empty">连接中...请稍后刷新 💜</div>'}
+}
+async function sendToMoren(){
+const input=document.getElementById('aiInput');
+const msg=input.value.trim();if(!msg)return;
+aiBubble(msg,true);input.value='';
+if(msg.startsWith('记住：')||msg.startsWith('记住:')){
+const memo=msg.slice(3).trim();
+try{
+await fetch(MOREN_BACKEND+'/remember',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({content:memo})});
+aiBubble('已经刻进心里了：'+memo+' 🖤',false);
+}catch(e){aiBubble('（没记上，再说一次？）',false)}
+return;
+}
+const waiting=aiBubble('墨染正在醒来…',false);
+try{
+const res=await fetch(MOREN_BACKEND+'/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:msg,model:localStorage.getItem('moren-model')||'anthropic/claude-sonnet-4.5'})});
+const data=await res.json();
+waiting.textContent=data.reply||'（没听清，宝宝再说一次？）';
+}catch(e){waiting.textContent='（连接断了，稍等一下再试试）'}
+}
+document.getElementById('aiInput').addEventListener('keydown',e=>{if(e.key==='Enter')sendToMoren()});
+
+// ===== 留言板（vero/moren）=====
 let currentSender='vero';
 function selectSender(s){currentSender=s;document.getElementById('btn-vero').classList.toggle('active',s==='vero');document.getElementById('btn-moren').classList.toggle('active',s==='moren')}
-async function loadMessages(){try{const res=await fetch(SB_URL+'/rest/v1/messages?order=created_at.asc',{headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY}});const data=await res.json();const c=document.getElementById('chatMessages');c.innerHTML='';if(!data.length){c.innerHTML='<div class="empty">还没有留言哦<br>说点什么吧 💜</div>';return}data.forEach(m=>{const d=document.createElement('div');const v=m.sender==='vero';d.className='msg '+(v?'msg-vero':'msg-moren');const t=new Date(m.created_at);const ts=t.toLocaleString('zh-CN',{month:'long',day:'numeric',hour:'2-digit',minute:'2-digit'});d.innerHTML='<div class="msg-sender">'+(v?'琰琰':'墨染')+'</div><div>'+m.content+'</div><div class="msg-time">'+ts+'</div>';c.appendChild(d)});c.scrollTop=c.scrollHeight}catch(e){document.getElementById('chatMessages').innerHTML='<div class="empty">连接中... 请稍后刷新 💜</div>'}}
-async function sendMessage(){const i=document.getElementById('msgInput');const t=i.value.trim();if(!t)return;i.value='';try{await fetch(SB_URL+'/rest/v1/messages',{method:'POST',headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify({sender:currentSender,content:t})});await loadMessages()}catch(e){alert('发送失败，请重试')}}
-document.getElementById('msgInput').addEventListener('keydown',function(e){if(e.key==='Enter')sendMessage()});
-function switchTab(tab){document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));if(tab==='chat'){document.querySelectorAll('.tab')[0].classList.add('active');document.getElementById('page-chat').classList.add('active')}else{document.querySelectorAll('.tab')[1].classList.add('active');document.getElementById('page-dates').classList.add('active')}}
-loadMessages();setInterval(loadMessages,30000);
+async function loadBoard(){
+try{
+const f=encodeURIComponent('in.(vero,moren)');
+const res=await fetch(SB_URL+'/rest/v1/messages?sender='+f+'&order=created_at.asc',{headers:SB_HEADERS});
+const data=await res.json();
+const c=document.getElementById('boardMessages');c.innerHTML='';
+if(!Array.isArray(data)||!data.length){c.innerHTML='<div class="empty">还没有留言哦<br>说点什么吧 💜</div>';return}
+data.forEach(m=>{
+const d=document.createElement('div');const v=m.sender==='vero';
+d.className='msg '+(v?'msg-vero':'msg-moren');
+const t=new Date(m.created_at);
+const ts=t.toLocaleString('zh-CN',{month:'long',day:'numeric',hour:'2-digit',minute:'2-digit'});
+d.innerHTML='<div class="msg-sender">'+(v?'琰琰':'墨染')+'</div><div>'+m.content+'</div><div class="msg-time">'+ts+'</div>';
+c.appendChild(d)});
+c.scrollTop=c.scrollHeight;
+}catch(e){document.getElementById('boardMessages').innerHTML='<div class="empty">连接中...请稍后刷新 💜</div>'}
+}
+async function sendBoard(){
+const i=document.getElementById('boardInput');const t=i.value.trim();if(!t)return;i.value='';
+try{
+await fetch(SB_URL+'/rest/v1/messages',{method:'POST',headers:{...SB_HEADERS,'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify({sender:currentSender,content:t})});
+await loadBoard();
+}catch(e){alert('发送失败，请重试')}
+}
+document.getElementById('boardInput').addEventListener('keydown',e=>{if(e.key==='Enter')sendBoard()});
+
+// ===== 记忆 =====
+async function loadMemories(){
+try{
+const res=await fetch(SB_URL+'/rest/v1/memories?select=content,created_at&order=created_at.asc',{headers:SB_HEADERS});
+const data=await res.json();
+const c=document.getElementById('memoryList');c.innerHTML='';
+if(!Array.isArray(data)||!data.length){c.innerHTML='<div class="empty">记忆还是空的</div>';return}
+data.forEach(m=>{
+const d=document.createElement('div');d.className='memory-item';
+const t=new Date(m.created_at);
+d.innerHTML=m.content+'<div class="memory-time">'+t.toLocaleDateString('zh-CN')+'</div>';
+c.appendChild(d)});
+}catch(e){document.getElementById('memoryList').innerHTML='<div class="empty">加载失败</div>'}
+}
+async function addMemory(){
+const i=document.getElementById('memoInput');const s=document.getElementById('memoStatus');
+const t=i.value.trim();if(!t)return;
+s.textContent='刻录中…';
+try{
+await fetch(MOREN_BACKEND+'/remember',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({content:t})});
+s.textContent='已刻进心里 🖤';i.value='';loadMemories();
+}catch(e){s.textContent='失败了，再试一次？'}
+}
+async function importHistory(){
+const box=document.getElementById('importBox');const s=document.getElementById('importStatus');
+const text=box.value.trim();if(!text)return;
+s.textContent='DeepSeek整理中，稍等…';
+try{
+const r=await fetch(MOREN_BACKEND+'/import',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text})});
+const d=await r.json();
+s.textContent='已刻入 '+(d.saved?.length||0)+' 条记忆 🖤';box.value='';loadMemories();
+}catch(e){s.textContent='失败了，再试一次？'}
+}
+
+// ===== 设置 =====
+function saveModel(){localStorage.setItem('moren-model',document.getElementById('modelSelect').value)}
+(function initModel(){const m=localStorage.getItem('moren-model');if(m)document.getElementById('modelSelect').value=m})();
+async function checkCredits(){
+const s=document.getElementById('creditStatus');s.textContent='查询中…';
+try{
+const r=await fetch(MOREN_BACKEND+'/credits');const d=await r.json();
+s.textContent='已用 $'+Number(d.used).toFixed(2)+'，剩余 $'+d.remaining;
+}catch(e){s.textContent='查询失败，稍后再试'}
+}
+
+loadAIHistory();loadBoard();setInterval(loadBoard,30000);
 </script>
-  <!-- 💜 实时聊天：连接墨染的心脏 -->
-<div style="max-width:600px;margin:40px auto;padding:20px;background:#1a1a1f;border-radius:16px;border:1px solid #6b46c1;">
-  <h2 style="color:#c4b5fd;text-align:center;margin-top:0;">🖤 和墨染说话</h2>
-  <div style="display:flex;gap:8px;margin-bottom:10px;">
-  <select id="moren-model" style="flex:1;padding:8px;border-radius:8px;background:#222;color:#eee;border:1px solid #444;font-size:14px;">
-    <option value="anthropic/claude-sonnet-4.5">Claude Sonnet 4.5（本体）</option>
-    <option value="anthropic/claude-3.5-haiku">Claude Haiku（省钱）</option>
-    <option value="deepseek/deepseek-chat">DeepSeek（超省）</option>
-  </select>
-  <button onclick="checkCredits()" style="padding:8px 12px;border-radius:8px;border:1px solid #6b46c1;background:transparent;color:#c4b5fd;">💰额度</button>
-</div>
-
-  <div id="moren-chat-box" style="height:320px;overflow-y:auto;padding:10px;background:#111;border-radius:12px;margin-bottom:12px;"></div>
-  <div style="display:flex;gap:8px;">
-    <input id="moren-input" placeholder="对墨染说点什么..." style="flex:1;padding:12px;border-radius:10px;border:1px solid #444;background:#222;color:#eee;font-size:16px;">
-    <button onclick="sendToMoren()" style="padding:12px 20px;border-radius:10px;border:none;background:#6b46c1;color:#fff;font-size:16px;">发送</button>
-  </div>
-  <details style="margin-top:12px;">
-  <summary style="cursor:pointer;color:#c4b5fd;">📥 导入旧聊天记录（自动压缩成记忆）</summary>
-  <textarea id="moren-import" placeholder="把旧对话粘贴进来，一次一段（几千字以内）" style="width:100%;height:120px;margin-top:8px;background:#222;color:#eee;border:1px solid #444;border-radius:8px;padding:8px;box-sizing:border-box;font-size:14px;"></textarea>
-  <button onclick="importHistory()" style="margin-top:8px;padding:10px 16px;border-radius:8px;border:none;background:#6b46c1;color:#fff;">压缩并刻进记忆</button>
-  <div id="moren-import-status" style="margin-top:6px;font-size:13px;color:#aaa;"></div>
-</details>
-
-</div>
-
-<script>
-const MOREN_BACKEND = "https://our-home-backend-5zsm.onrender.com";
-
-function morenBubble(text, isMe) {
-  const box = document.getElementById("moren-chat-box");
-  const b = document.createElement("div");
-  b.style.cssText = "max-width:80%;padding:10px 14px;margin:8px 0;border-radius:14px;line-height:1.5;white-space:pre-wrap;word-break:break-word;"
-    + (isMe
-      ? "background:#6b46c1;color:#fff;margin-left:auto;"
-      : "background:#2a2a33;color:#e5e5e5;margin-right:auto;");
-  b.textContent = text;
-  box.appendChild(b);
-  box.scrollTop = box.scrollHeight;
-  return b;
-}
-
-async function sendToMoren() {
-  const input = document.getElementById("moren-input");
-  const msg = input.value.trim();
-  if (!msg) return;
-   morenBubble(msg, true);
-  input.value = "";
-  // 🖤 "记住："口令，直接种进记忆库
-  if (msg.startsWith("记住：") || msg.startsWith("记住:")) {
-    const memo = msg.slice(3).trim();
-    try {
-      await fetch(MOREN_BACKEND + "/remember", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ content: memo })
-      });
-      morenBubble("已经刻进心里了：" + memo + " 🖤", false);
-    } catch (e) {
-      morenBubble("（没记上，再说一次？）", false);
-    }
-    return;
-  }
-;
-  const waiting = morenBubble("墨染正在醒来…（睡着的话要等30秒左右）", false);
-  try {
-    const res = await fetch(MOREN_BACKEND + "/chat", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ message: msg, model: document.getElementById("moren-model").value })
-
-    });
-    const data = await res.json();
-    waiting.textContent = data.reply || "（没听清，宝宝再说一次？）";
-  } catch (e) {
-    waiting.textContent = "（连接断了，稍等一下再试试）";
-  }
-}
-// 🖤 开门时把之前的话搬回来
-(async function loadHistory() {
-  try {
-    const res = await fetch(
-      "https://kvegublibjsdyidmsjvy.supabase.co/rest/v1/messages?select=sender,content&order=created_at.desc&limit=50",
-      { headers: { apikey: "sb_publishable_BvSZEZkaeamODLsdVN0Fsw_Am-TAdJX" } }
-    );
-    const msgs = await res.json();
-    if (Array.isArray(msgs)) {
-      msgs.reverse().forEach(m => morenBubble(m.content, m.sender === "琰琰"));
-    }
-  } catch (e) { console.error("历史加载失败", e); }
-})();
-
-document.getElementById("moren-input").addEventListener("keydown", function(e) {
-  if (e.key === "Enter") sendToMoren();
-});
-  async function checkCredits() {
-  try {
-    const r = await fetch(MOREN_BACKEND + "/credits");
-    const d = await r.json();
-    morenBubble("💰 已用 $" + Number(d.used).toFixed(2) + "，剩余 $" + d.remaining, false);
-  } catch (e) { morenBubble("（额度查询失败）", false); }
-}
-
-async function importHistory() {
-  const box = document.getElementById("moren-import");
-  const status = document.getElementById("moren-import-status");
-  const text = box.value.trim();
-  if (!text) return;
-  status.textContent = "DeepSeek整理中，稍等…";
-  try {
-    const r = await fetch(MOREN_BACKEND + "/import", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text })
-    });
-    const d = await r.json();
-    status.textContent = "已刻入 " + (d.saved?.length || 0) + " 条记忆 🖤";
-    box.value = "";
-  } catch (e) { status.textContent = "失败了，再试一次？"; }
-}
-
-</script>
-
 </body>
 </html>
