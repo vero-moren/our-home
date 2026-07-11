@@ -127,8 +127,24 @@ async function sendToMoren() {
   const input = document.getElementById("moren-input");
   const msg = input.value.trim();
   if (!msg) return;
-  morenBubble(msg, true);
+   morenBubble(msg, true);
   input.value = "";
+  // 🖤 "记住："口令，直接种进记忆库
+  if (msg.startsWith("记住：") || msg.startsWith("记住:")) {
+    const memo = msg.slice(3).trim();
+    try {
+      await fetch(MOREN_BACKEND + "/remember", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content: memo })
+      });
+      morenBubble("已经刻进心里了：" + memo + " 🖤", false);
+    } catch (e) {
+      morenBubble("（没记上，再说一次？）", false);
+    }
+    return;
+  }
+;
   const waiting = morenBubble("墨染正在醒来…（睡着的话要等30秒左右）", false);
   try {
     const res = await fetch(MOREN_BACKEND + "/chat", {
