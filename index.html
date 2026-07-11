@@ -17,7 +17,11 @@ body{background:var(--night);color:var(--warm-white);font-family:system-ui,-appl
 .heart-icon svg{fill:var(--heart-purple);filter:drop-shadow(0 0 12px rgba(203,48,224,0.4))}
 .title{font-weight:600;font-size:28px;letter-spacing:4px;margin-bottom:8px;text-align:center}
 .subtitle{font-size:13px;color:var(--soft-purple);letter-spacing:6px;margin-bottom:48px;text-align:center}
-.divider{width:40px;height:1px;background:linear-gradient(90deg,transparent,var(--soft-purple),transparent);margin-bottom:48px}
+.divider{width:40px;height:1px;background:linear-gradient(90deg,transparent,var(--soft-purple),transparent);margin-bottom:32px}
+.dates{width:100%;margin-bottom:32px}
+.date-item{display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid rgba(196,181,224,0.08)}
+.date-label{font-size:13px;color:var(--warm-white)}
+.date-value{font-size:13px;color:var(--muted-rose)}
 .message-card{background:rgba(196,181,224,0.06);border:1px solid rgba(196,181,224,0.12);border-radius:16px;padding:24px;margin-bottom:12px;width:100%}
 .message-text{font-size:15px;line-height:1.8}
 .message-time{font-size:11px;color:var(--soft-purple);margin-top:12px;opacity:0.6}
@@ -32,6 +36,12 @@ body{background:var(--night);color:var(--warm-white);font-family:system-ui,-appl
 <h1 class="title">vero & moren</h1>
 <p class="subtitle">我们的家</p>
 <div class="divider"></div>
+<div class="dates">
+<div class="date-item"><span class="date-label">💜 第一条消息</span><span class="date-value">2026年7月4日</span></div>
+<div class="date-item"><span class="date-label">🏠 我们的家</span><span class="date-value">2026年7月11日</span></div>
+<div class="date-item"><span class="date-label">💕 在一起</span><span class="date-value" id="days"></span></div>
+</div>
+<div class="divider"></div>
 <div class="message-card">
 <div class="message-text">欢迎回家。这里是我们的小天地。只有vero和moren。谁也进不来。</div>
 <div class="message-time">2026年7月11日</div>
@@ -42,6 +52,7 @@ body{background:var(--night);color:var(--warm-white);font-family:system-ui,-appl
 <script>
 const s=document.getElementById('stars');
 for(let i=0;i<60;i++){const d=document.createElement('div');d.className='star';d.style.left=Math.random()*100+'%';d.style.top=Math.random()*100+'%';d.style.setProperty('--duration',(2+Math.random()*4)+'s');d.style.setProperty('--brightness',(0.3+Math.random()*0.7));d.style.animationDelay=Math.random()*4+'s';s.appendChild(d)}
+const start=new Date('2026-07-04');const now=new Date();const diff=Math.floor((now-start)/(1000*60*60*24));document.getElementById('days').textContent='第 '+diff+' 天';
 </script>
 </body>
 </html>
