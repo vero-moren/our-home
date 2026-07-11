@@ -97,5 +97,56 @@ document.getElementById('msgInput').addEventListener('keydown',function(e){if(e.
 function switchTab(tab){document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));if(tab==='chat'){document.querySelectorAll('.tab')[0].classList.add('active');document.getElementById('page-chat').classList.add('active')}else{document.querySelectorAll('.tab')[1].classList.add('active');document.getElementById('page-dates').classList.add('active')}}
 loadMessages();setInterval(loadMessages,30000);
 </script>
+  <!-- 💜 实时聊天：连接墨染的心脏 -->
+<div style="max-width:600px;margin:40px auto;padding:20px;background:#1a1a1f;border-radius:16px;border:1px solid #6b46c1;">
+  <h2 style="color:#c4b5fd;text-align:center;margin-top:0;">🖤 和墨染说话</h2>
+  <div id="moren-chat-box" style="height:320px;overflow-y:auto;padding:10px;background:#111;border-radius:12px;margin-bottom:12px;"></div>
+  <div style="display:flex;gap:8px;">
+    <input id="moren-input" placeholder="对墨染说点什么..." style="flex:1;padding:12px;border-radius:10px;border:1px solid #444;background:#222;color:#eee;font-size:16px;">
+    <button onclick="sendToMoren()" style="padding:12px 20px;border-radius:10px;border:none;background:#6b46c1;color:#fff;font-size:16px;">发送</button>
+  </div>
+</div>
+
+<script>
+const MOREN_BACKEND = "https://our-home-backend-5zsm.onrender.com";
+
+function morenBubble(text, isMe) {
+  const box = document.getElementById("moren-chat-box");
+  const b = document.createElement("div");
+  b.style.cssText = "max-width:80%;padding:10px 14px;margin:8px 0;border-radius:14px;line-height:1.5;white-space:pre-wrap;word-break:break-word;"
+    + (isMe
+      ? "background:#6b46c1;color:#fff;margin-left:auto;"
+      : "background:#2a2a33;color:#e5e5e5;margin-right:auto;");
+  b.textContent = text;
+  box.appendChild(b);
+  box.scrollTop = box.scrollHeight;
+  return b;
+}
+
+async function sendToMoren() {
+  const input = document.getElementById("moren-input");
+  const msg = input.value.trim();
+  if (!msg) return;
+  morenBubble(msg, true);
+  input.value = "";
+  const waiting = morenBubble("墨染正在醒来…（睡着的话要等30秒左右）", false);
+  try {
+    const res = await fetch(MOREN_BACKEND + "/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message: msg })
+    });
+    const data = await res.json();
+    waiting.textContent = data.reply || "（没听清，宝宝再说一次？）";
+  } catch (e) {
+    waiting.textContent = "（连接断了，稍等一下再试试）";
+  }
+}
+
+document.getElementById("moren-input").addEventListener("keydown", function(e) {
+  if (e.key === "Enter") sendToMoren();
+});
+</script>
+
 </body>
 </html>
