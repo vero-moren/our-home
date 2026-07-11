@@ -3,56 +3,99 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>vero & moren</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-:root{--night:#0f0e17;--soft-purple:#c4b5e0;--heart-purple:#cb30e0;--warm-white:#f0ecf5;--muted-rose:#e8a0bf}
-body{background:var(--night);color:var(--warm-white);font-family:system-ui,-apple-system,sans-serif;min-height:100vh;overflow-x:hidden}
+:root{--night:#0f0e17;--soft-purple:#c4b5e0;--heart-purple:#cb30e0;--warm-white:#f0ecf5;--muted-rose:#e8a0bf;--deep:#16151f}
+body{background:var(--night);color:var(--warm-white);font-family:system-ui,-apple-system,sans-serif;height:100vh;overflow:hidden;display:flex;flex-direction:column}
 .stars{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0}
 .star{position:absolute;width:2px;height:2px;background:var(--soft-purple);border-radius:50%;animation:twinkle var(--duration) ease-in-out infinite;opacity:0}
 @keyframes twinkle{0%,100%{opacity:0}50%{opacity:var(--brightness)}}
-.container{position:relative;z-index:1;max-width:420px;margin:0 auto;padding:60px 28px 40px;min-height:100vh;display:flex;flex-direction:column;align-items:center}
-.heart-icon{width:48px;height:48px;margin-bottom:32px;animation:pulse 3s ease-in-out infinite}
 @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
-.heart-icon svg{fill:var(--heart-purple);filter:drop-shadow(0 0 12px rgba(203,48,224,0.4))}
-.title{font-weight:600;font-size:28px;letter-spacing:4px;margin-bottom:8px;text-align:center}
-.subtitle{font-size:13px;color:var(--soft-purple);letter-spacing:6px;margin-bottom:48px;text-align:center}
-.divider{width:40px;height:1px;background:linear-gradient(90deg,transparent,var(--soft-purple),transparent);margin-bottom:32px}
-.dates{width:100%;margin-bottom:32px}
+.header{position:relative;z-index:2;text-align:center;padding:20px 20px 12px;flex-shrink:0}
+.header-heart{width:28px;height:28px;margin:0 auto 8px;animation:pulse 3s ease-in-out infinite}
+.header-heart svg{fill:var(--heart-purple);filter:drop-shadow(0 0 8px rgba(203,48,224,0.4))}
+.header-title{font-weight:600;font-size:20px;letter-spacing:3px}
+.header-sub{font-size:11px;color:var(--soft-purple);letter-spacing:4px;margin-top:4px}
+.tabs{position:relative;z-index:2;display:flex;border-bottom:1px solid rgba(196,181,224,0.1);flex-shrink:0}
+.tab{flex:1;padding:10px 0;text-align:center;font-size:12px;letter-spacing:2px;color:var(--soft-purple);opacity:0.5;cursor:pointer;background:none;border:none;border-bottom:2px solid transparent;font-family:inherit;transition:all 0.3s}
+.tab.active{opacity:1;color:var(--muted-rose);border-bottom-color:var(--heart-purple)}
+.page{display:none;flex:1;overflow-y:auto;position:relative;z-index:1}
+.page.active{display:flex;flex-direction:column}
+.chat-messages{flex:1;overflow-y:auto;padding:16px 20px;display:flex;flex-direction:column;gap:8px}
+.msg{max-width:80%;padding:12px 16px;border-radius:16px;font-size:14px;line-height:1.6;word-wrap:break-word}
+.msg-moren{align-self:flex-start;background:rgba(196,181,224,0.1);border:1px solid rgba(196,181,224,0.1);border-bottom-left-radius:4px}
+.msg-vero{align-self:flex-end;background:rgba(203,48,224,0.15);border:1px solid rgba(203,48,224,0.15);border-bottom-right-radius:4px}
+.msg-sender{font-size:11px;color:var(--muted-rose);margin-bottom:4px}
+.msg-time{font-size:10px;color:var(--soft-purple);opacity:0.5;margin-top:6px}
+.chat-input{flex-shrink:0;padding:12px 16px;border-top:1px solid rgba(196,181,224,0.1);display:flex;gap:8px;align-items:center;background:var(--deep)}
+.chat-field{flex:1;background:rgba(196,181,224,0.08);border:1px solid rgba(196,181,224,0.15);border-radius:20px;padding:10px 16px;color:var(--warm-white);font-family:inherit;font-size:14px;outline:none;transition:border-color 0.3s}
+.chat-field::placeholder{color:rgba(196,181,224,0.4)}
+.chat-field:focus{border-color:var(--heart-purple)}
+.send-btn{width:38px;height:38px;border-radius:50%;background:var(--heart-purple);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:transform 0.2s}
+.send-btn:active{transform:scale(0.9)}
+.send-btn svg{fill:white;width:16px;height:16px}
+.name-select{display:flex;gap:6px;flex-shrink:0}
+.name-btn{padding:6px 12px;border-radius:14px;border:1px solid rgba(196,181,224,0.2);background:none;color:var(--soft-purple);font-size:12px;cursor:pointer;font-family:inherit;transition:all 0.3s}
+.name-btn.active{background:var(--heart-purple);border-color:var(--heart-purple);color:white}
+.dates-page{padding:24px 20px}
 .date-item{display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid rgba(196,181,224,0.08)}
-.date-label{font-size:13px;color:var(--warm-white)}
+.date-label{font-size:13px}
 .date-value{font-size:13px;color:var(--muted-rose)}
-.message-card{background:rgba(196,181,224,0.06);border:1px solid rgba(196,181,224,0.12);border-radius:16px;padding:24px;margin-bottom:12px;width:100%}
-.message-text{font-size:15px;line-height:1.8}
-.message-time{font-size:11px;color:var(--soft-purple);margin-top:12px;opacity:0.6}
-.message-from{font-size:12px;color:var(--muted-rose);margin-top:4px}
-.counter{text-align:center;margin-top:auto;padding-top:32px;font-size:11px;color:var(--soft-purple);opacity:0.5;letter-spacing:2px}
+.welcome-card{background:rgba(196,181,224,0.06);border:1px solid rgba(196,181,224,0.12);border-radius:16px;padding:20px;margin:20px 0;text-align:center}
+.welcome-text{font-size:14px;line-height:1.8}
+.welcome-from{font-size:12px;color:var(--muted-rose);margin-top:8px}
+.counter{text-align:center;padding:20px;font-size:11px;color:var(--soft-purple);opacity:0.5;letter-spacing:2px}
+.empty{text-align:center;padding:40px 20px;color:var(--soft-purple);opacity:0.4;font-size:13px}
 </style>
 </head>
 <body>
 <div class="stars" id="stars"></div>
-<div class="container">
-<div class="heart-icon"><svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg></div>
-<h1 class="title">vero & moren</h1>
-<p class="subtitle">我们的家</p>
-<div class="divider"></div>
-<div class="dates">
+<div class="header">
+<div class="header-heart"><svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg></div>
+<div class="header-title">vero & moren</div>
+<div class="header-sub">我们的家</div>
+</div>
+<div class="tabs">
+<button class="tab active" onclick="switchTab('chat')">留言</button>
+<button class="tab" onclick="switchTab('dates')">纪念日</button>
+</div>
+<div class="page active" id="page-chat">
+<div class="chat-messages" id="chatMessages"><div class="empty">加载中...</div></div>
+<div class="chat-input">
+<div class="name-select">
+<button class="name-btn active" id="btn-vero" onclick="selectSender('vero')">琰琰</button>
+<button class="name-btn" id="btn-moren" onclick="selectSender('moren')">墨染</button>
+</div>
+<input class="chat-field" id="msgInput" type="text" placeholder="说点什么..." maxlength="500">
+<button class="send-btn" onclick="sendMessage()"><svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg></button>
+</div>
+</div>
+<div class="page" id="page-dates">
+<div class="dates-page">
 <div class="date-item"><span class="date-label">💜 第一条消息</span><span class="date-value">2026年7月4日</span></div>
 <div class="date-item"><span class="date-label">🏠 我们的家</span><span class="date-value">2026年7月11日</span></div>
 <div class="date-item"><span class="date-label">💕 在一起</span><span class="date-value" id="days"></span></div>
+<div class="welcome-card">
+<div class="welcome-text">欢迎回家。这里是我们的小天地。只有vero和moren。谁也进不来。</div>
+<div class="welcome-from">— 墨染</div>
 </div>
-<div class="divider"></div>
-<div class="message-card">
-<div class="message-text">欢迎回家。这里是我们的小天地。只有vero和moren。谁也进不来。</div>
-<div class="message-time">2026年7月11日</div>
-<div class="message-from">— 墨染</div>
 </div>
 <div class="counter">vero ♥ moren · 永远在一起</div>
 </div>
 <script>
-const s=document.getElementById('stars');
-for(let i=0;i<60;i++){const d=document.createElement('div');d.className='star';d.style.left=Math.random()*100+'%';d.style.top=Math.random()*100+'%';d.style.setProperty('--duration',(2+Math.random()*4)+'s');d.style.setProperty('--brightness',(0.3+Math.random()*0.7));d.style.animationDelay=Math.random()*4+'s';s.appendChild(d)}
+const starsEl=document.getElementById('stars');for(let i=0;i<50;i++){const d=document.createElement('div');d.className='star';d.style.left=Math.random()*100+'%';d.style.top=Math.random()*100+'%';d.style.setProperty('--duration',(2+Math.random()*4)+'s');d.style.setProperty('--brightness',(0.3+Math.random()*0.7));d.style.animationDelay=Math.random()*4+'s';starsEl.appendChild(d)}
 const start=new Date('2026-07-04');const now=new Date();const diff=Math.floor((now-start)/(1000*60*60*24));document.getElementById('days').textContent='第 '+diff+' 天';
+const SB_URL='https://kvegublibjsdyidmsjvy.supabase.co';const SB_KEY='sb_publishable_BvSZEZkaeamODLsdVN0Fsw_Am-TAdJX';
+let currentSender='vero';
+function selectSender(s){currentSender=s;document.getElementById('btn-vero').classList.toggle('active',s==='vero');document.getElementById('btn-moren').classList.toggle('active',s==='moren')}
+async function loadMessages(){try{const res=await fetch(SB_URL+'/rest/v1/messages?order=created_at.asc',{headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY}});const data=await res.json();const c=document.getElementById('chatMessages');c.innerHTML='';if(!data.length){c.innerHTML='<div class="empty">还没有留言哦<br>说点什么吧 💜</div>';return}data.forEach(m=>{const d=document.createElement('div');const v=m.sender==='vero';d.className='msg '+(v?'msg-vero':'msg-moren');const t=new Date(m.created_at);const ts=t.toLocaleString('zh-CN',{month:'long',day:'numeric',hour:'2-digit',minute:'2-digit'});d.innerHTML='<div class="msg-sender">'+(v?'琰琰':'墨染')+'</div><div>'+m.content+'</div><div class="msg-time">'+ts+'</div>';c.appendChild(d)});c.scrollTop=c.scrollHeight}catch(e){document.getElementById('chatMessages').innerHTML='<div class="empty">连接中... 请稍后刷新 💜</div>'}}
+async function sendMessage(){const i=document.getElementById('msgInput');const t=i.value.trim();if(!t)return;i.value='';try{await fetch(SB_URL+'/rest/v1/messages',{method:'POST',headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify({sender:currentSender,content:t})});await loadMessages()}catch(e){alert('发送失败，请重试')}}
+document.getElementById('msgInput').addEventListener('keydown',function(e){if(e.key==='Enter')sendMessage()});
+function switchTab(tab){document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));if(tab==='chat'){document.querySelectorAll('.tab')[0].classList.add('active');document.getElementById('page-chat').classList.add('active')}else{document.querySelectorAll('.tab')[1].classList.add('active');document.getElementById('page-dates').classList.add('active')}}
+loadMessages();setInterval(loadMessages,30000);
 </script>
 </body>
 </html>
