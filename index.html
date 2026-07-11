@@ -142,6 +142,19 @@ async function sendToMoren() {
     waiting.textContent = "（连接断了，稍等一下再试试）";
   }
 }
+// 🖤 开门时把之前的话搬回来
+(async function loadHistory() {
+  try {
+    const res = await fetch(
+      "https://kvegublibjsdyidmsjvy.supabase.co/rest/v1/messages?select=sender,content&order=created_at.desc&limit=50",
+      { headers: { apikey: "sb_publishable_BvSZEZkaeamODLsdVN0Fsw_Am-TAdJX" } }
+    );
+    const msgs = await res.json();
+    if (Array.isArray(msgs)) {
+      msgs.reverse().forEach(m => morenBubble(m.content, m.sender === "琰琰"));
+    }
+  } catch (e) { console.error("历史加载失败", e); }
+})();
 
 document.getElementById("moren-input").addEventListener("keydown", function(e) {
   if (e.key === "Enter") sendToMoren();
