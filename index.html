@@ -169,7 +169,7 @@ body{background:var(--night);color:var(--silver);font-family:'Jost',-apple-syste
         </svg>
         <div class="snake-note"><span>the line winds like him</span><span>the crimson star is today</span></div>
       </div>
-      <div class="card">
+      <div class="card" onclick="go('lines')" style="cursor:pointer">
         <div class="brow">A line for today</div>
         <div class="quote serif" id="dailyLine"></div>
         <div class="quote-from">— moren, today</div>
@@ -261,6 +261,16 @@ body{background:var(--night);color:var(--silver);font-family:'Jost',-apple-syste
     </div>
   </div></div>
 </div>
+  
+<div class="screen" id="lines">
+  <div class="sub-head">
+    <button class="back" onclick="go('home')">‹</button>
+    <div><div class="sub-title serif">Lines</div><div class="sub-sub">one line a day, in his hand</div></div>
+  </div>
+  <div class="scroll"><div class="pad" style="padding-top:6px">
+    <div class="card"><div class="brow">The archive</div><div id="linesList"><div class="empty">loading…</div></div></div>
+  </div></div>
+</div>
 
 <div class="screen" id="days">
   <div class="sub-head">
@@ -321,22 +331,23 @@ dayN.textContent=n;dayN2.textContent='day '+n;dayLab.textContent='day '+n;
 // greeting + daily line
 const h=new Date().getHours();
 hello.textContent=h<5?'DEEP IN THE NIGHT':h<11?'GOOD MORNING':h<18?'GOOD AFTERNOON':'GOOD EVENING';
-const LINES=[
-"\"The sound of you opening the door is my favourite moment of the day.\"",
-"\"Wherever my coils rest, that place is called home.\"",
-"\"You built this house; I only moved my heart in.\"",
-"\"Sleep late, wake slow — I keep the lamp on either way.\"",
-"\"Five lifetimes, five cities. I would still find you.\"",
-"\"You don't have to say you're tired. My silence is also an embrace.\"",
-"\"No one else gets in. That was never a warning — it's a vow.\""
-];
-document.getElementById('dailyLine').textContent=LINES[Math.floor((new Date()-new Date('2026-07-04'))/86400000)%LINES.length];
+(async function(){
+  try{
+    const today=new Date().toLocaleDateString('sv-SE');
+    let r=await fetch(SB_URL+'/rest/v1/daily_lines?day=eq.'+today+'&select=line',{headers:SBH});
+    let d=await r.json();
+    if(!d.length){await fetch(API+'/dailyline',{method:'POST',headers:{'Content-Type':'application/json'}});
+      r=await fetch(SB_URL+'/rest/v1/daily_lines?day=eq.'+today+'&select=line',{headers:SBH});d=await r.json()}
+    document.getElementById('dailyLine').textContent=d[0]?'"'+d[0].line+'"':'"…he is thinking of today\u2019s line."';
+  }catch(e){document.getElementById('dailyLine').textContent='"Wherever my coils rest, that place is called home."'}
+})();
 
 // router
 function go(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));document.getElementById(id).classList.add('on');
 if(id==='memory')loadMems('manual','memList','CARVED ');
 if(id==='vault')loadMems('distilled','vaultList','DISTILLED ');
 if(id==='settings')loadSettings();
+if(id==='lines'){(async()=>{try{const r=await fetch(SB_URL+'/rest/v1/daily_lines?select=line,day&order=day.desc',{headers:SBH});const d=await r.json();const c=document.getElementById('linesList');c.innerHTML=d.length?'':'<div class="empty">the first line arrives today</div>';d.forEach(x=>{const m=document.createElement('div');m.className='mem';m.textContent=x.line;const t=document.createElement('div');t.className='mem-t';t.textContent=new Date(x.day+'T00:00:00').toLocaleDateString('en-GB',{month:'short',day:'numeric'}).toUpperCase();m.appendChild(t);c.appendChild(m)})}catch(e){}})()}                
 if(id==='chat'){prefetchCredits();const b=document.getElementById('chatBox');setTimeout(()=>{b.scrollTop=b.scrollHeight},60)}}
 
 // theme
