@@ -337,7 +337,7 @@ function go(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remo
 if(id==='memory')loadMems('manual','memList','CARVED ');
 if(id==='vault')loadMems('distilled','vaultList','DISTILLED ');
 if(id==='settings')loadSettings();
-if(id==='chat')prefetchCredits();}
+if(id==='chat'){prefetchCredits();const b=document.getElementById('chatBox');setTimeout(()=>{b.scrollTop=b.scrollHeight},60)}}
 
 // theme
 (function(){const t=localStorage.getItem('vm-theme');if(t){document.body.dataset.theme=t;themeBtn.textContent=t==='dawn'?'☀ dawn':'☾ night'}})();
@@ -355,7 +355,7 @@ const pk=document.getElementById('peekBtn'),pp=document.getElementById('peekPop'
 ['pointerup','pointerleave','touchend','touchcancel'].forEach(ev=>pk.addEventListener(ev,()=>pp.classList.remove('show')));
 
 // chat helpers
-function tShort(iso){const d=iso?new Date(iso):new Date();return d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}
+function tShort(iso){const d=iso?new Date(iso):new Date();const t=d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});return d.toDateString()===new Date().toDateString()?t:d.toLocaleDateString('en-GB',{month:'short',day:'numeric'})+' · '+t}
 function addBubble(content,me,time,isImg){const box=document.getElementById('chatBox');const b=document.createElement('div');b.className='bb '+(me?'me':'him');
 if(isImg){const im=document.createElement('img');im.src=content;b.appendChild(im)}else{b.textContent=content}
 box.appendChild(b);const t=document.createElement('div');t.className='bb-time '+(me?'t-me':'t-him');t.textContent=time||tShort();box.appendChild(t);box.scrollTop=box.scrollHeight;return b}
@@ -403,7 +403,7 @@ const st=document.getElementById('chStatus');st.textContent='thinking…';
 const waiting=addBubble('…',false);
 try{
 const res=await fetch(API+'/chat',{method:'POST',headers:{'Content-Type':'application/json'},
-body:JSON.stringify({message:msg,model:modelSel.value,image:img||undefined})});
+body:JSON.stringify({message:msg,model:modelSel.value,image:img||undefined,client_time:new Date().toLocaleString('zh-CN',{weekday:'long',month:'long',day:'numeric',hour:'2-digit',minute:'2-digit',hour12:false})})});
 const data=await res.json();
 waiting.textContent=data.reply||'(say that once more?)';
 if(data.thinking)document.getElementById('thinkBody').textContent=data.thinking;
