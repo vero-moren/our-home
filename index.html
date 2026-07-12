@@ -230,6 +230,8 @@ textarea.field{resize:none;max-height:130px;overflow-y:auto;line-height:1.55}
     <div class="card">
       <div class="brow">✎ Post something</div>
       <textarea class="area" id="momentBox" style="height:70px" placeholder="a mood, a win, a tired sigh..."></textarea>
+      <input type="file" id="momImg" accept="image/*" hidden>
+      <button class="ghost" onclick="momImg.click()" id="momImgBtn" style="margin-top:8px">＋ photo</button>
       <button class="soft-btn" onclick="postMoment()">Post</button>
     </div>
     <div class="card">
@@ -525,17 +527,33 @@ const res=await fetch(SB_URL+'/rest/v1/moments?select=id,content,created_at&orde
 const data=await res.json();
 const c=document.getElementById('momentList');c.innerHTML='';
 if(!Array.isArray(data)||!data.length){c.innerHTML='<div class="empty">post the first little thing 💜</div>';return}
-data.forEach(m=>{const d=document.createElement('div');d.className='mem';d.textContent=m.content;
+data.forEach(m=>{const d=document.createElement('div');d.className='mem';const im=m.content.match(/\[img\]([\s\S]*?)\[\/img\]/);
+if(im){const p=document.createElement('img');p.src=im[1];p.style.cssText='max-width:100%;border-radius:12px;display:block;margin-bottom:6px';d.appendChild(p);
+const cap=m.content.replace(im[0],'').trim();if(cap)d.appendChild(document.createTextNode(cap))}
+else d.textContent=m.content;
 const t=document.createElement('div');t.className='mem-t';
 t.textContent=new Date(m.created_at).toLocaleString('en-GB',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}).toUpperCase();
 const x=document.createElement('button');x.className='mini';x.textContent='✕';x.onclick=()=>delMoment(m.id);
 t.appendChild(x);d.appendChild(t);c.appendChild(d)})
 }catch(e){document.getElementById('momentList').innerHTML='<div class="empty">failed to load</div>'}
 }
+let momPending=null;
+document.getElementById('momImg')?.addEventListener('change',function(){
+const f=this.files[0];if(!f)return;const r=new FileReader();
+r.onload=e=>{const img=new Image();img.onload=()=>{
+const max=900;let w=img.width,ht=img.height;
+if(w>max||ht>max){const k=Math.min(max/w,max/ht);w=Math.round(w*k);ht=Math.round(ht*k)}
+const c=document.createElement('canvas');c.width=w;c.height=ht;
+c.getContext('2d').drawImage(img,0,0,w,ht);
+momPending=c.toDataURL('image/jpeg',0.75);
+document.getElementById('momImgBtn').textContent='🖼 ready'};
+img.src=e.target.result};r.readAsDataURL(f);this.value=''});
 async function postMoment(){
-const b=document.getElementById('momentBox');const t=b.value.trim();if(!t)return;
-await fetch(SB_URL+'/rest/v1/moments',{method:'POST',headers:{...SBH,'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify({content:t})});
-b.value='';loadMoments()}
+const b=document.getElementById('momentBox');const t=b.value.trim();
+if(!t&&!momPending)return;
+const content=(momPending?'[img]'+momPending+'[/img]':'')+t;
+await fetch(SB_URL+'/rest/v1/moments',{method:'POST',headers:{...SBH,'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify({content})});
+b.value='';momPending=null;document.getElementById('momImgBtn').textContent='＋ photo';loadMoments()}
 async function delMoment(id){
 if(!confirm('Delete this moment?'))return;
 await fetch(SB_URL+'/rest/v1/moments?id=eq.'+id,{method:'DELETE',headers:SBH});
