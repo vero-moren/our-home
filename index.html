@@ -136,6 +136,7 @@ body{background:var(--night);color:var(--silver);font-family:'Jost',-apple-syste
 .bb-think .tb{margin-top:6px;background:var(--deep);border:1px dashed var(--line);border-radius:12px;padding:9px 12px;font-size:12px;line-height:1.8;color:var(--wisteria);font-style:italic;white-space:pre-wrap}
 textarea.field{resize:none;max-height:130px;overflow-y:auto;line-height:1.55}
 .mini{border:none;background:none;color:var(--wisteria);opacity:.7;font-size:12px;cursor:pointer;padding:0 5px;font-family:inherit}
+input[type="date"].in{-webkit-appearance:none;appearance:none;width:100%;min-width:0;max-width:100%;display:block}
 </style>
 </head>
 <body data-theme="night">
@@ -573,7 +574,8 @@ for(let i=1;i<pts.length;i++){const p=pts[i-1],q=pts[i];path+=' C '+((p[0]+q[0])
 let h='<path class="snake-path" d="'+path+'"/>';
 stars.forEach((s,i)=>{const[x,y]=pts[i];
 h+='<circle class="star-dot" cx="'+x+'" cy="'+y+'" r="3"/>';
-const lab=s.day.slice(5).replace('-','.')+' '+s.label.replace(/[^\u4e00-\u9fa5a-zA-Z0-9. ]/g,'').trim().slice(0,14);
+const lab=s.day.slice(5).replace('-','.')+' '+s.label.replace(/[^\u4e00-\u9fa5a-zA-Z0-9. ]/g,'').trim().slice(0,12);
+h+='<text class="star-lab" x="'+Math.max(2,Math.min(x-30,232))+'" y="'+(y>60?y+16:y-10)+'">'+lab+'</text>';
 h+='<text class="star-lab" x="'+Math.max(2,x-30)+'" y="'+(y>60?y+16:y-10)+'">'+lab+'</text>'});
 const[hx,hy]=pts[n];
 h+='<circle class="star-head" cx="'+hx+'" cy="'+hy+'" r="5"/>';
