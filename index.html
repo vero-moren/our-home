@@ -485,7 +485,7 @@ aiEl.addEventListener('input',()=>{aiEl.style.height='auto';aiEl.style.height=Ma
 // memories & moments & days
 async function loadVault(){
 try{
-const res=await fetch(SB_URL+'/rest/v1/memories?select=id,content,kind,created_at&order=created_at.asc',{headers:SBH});
+const res=await fetch(SB_URL+'/rest/v1/memories?select=id,content,kind,created_at&order=created_at.desc',{headers:SBH});
 const data=await res.json();
 const c=document.getElementById('vaultList');c.innerHTML='';
 if(!Array.isArray(data)||!data.length){c.innerHTML='<div class="empty">nothing here yet</div>';return}
