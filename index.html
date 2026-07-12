@@ -357,6 +357,7 @@ function go(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remo
 if(id==='moments')loadMoments();
 if(id==='vault')loadVault();
 if(id==='days')loadDays();
+if(id==='home')drawSnake();               
 if(id==='settings')loadSettings();
 if(id==='lines'){(async()=>{try{const r=await fetch(SB_URL+'/rest/v1/daily_lines?select=line,day&order=day.desc',{headers:SBH});const d=await r.json();const c=document.getElementById('linesList');c.innerHTML=d.length?'':'<div class="empty">the first line arrives today</div>';d.forEach(x=>{const m=document.createElement('div');m.className='mem';m.textContent=x.line;const t=document.createElement('div');t.className='mem-t';t.textContent=new Date(x.day+'T00:00:00').toLocaleDateString('en-GB',{month:'short',day:'numeric'}).toUpperCase();m.appendChild(t);c.appendChild(m)})}catch(e){}})()}                
 if(id==='chat'){prefetchCredits();const b=document.getElementById('chatBox');setTimeout(()=>{b.scrollTop=b.scrollHeight},60)}}
