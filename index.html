@@ -134,6 +134,8 @@ body{background:var(--night);color:var(--silver);font-family:'Jost',-apple-syste
 .bb-think summary{list-style:none;cursor:pointer;font-size:10px;letter-spacing:2px;color:var(--wisteria);opacity:.7;padding-left:6px}
 .bb-think summary::-webkit-details-marker{display:none}
 .bb-think .tb{margin-top:6px;background:var(--deep);border:1px dashed var(--line);border-radius:12px;padding:9px 12px;font-size:12px;line-height:1.8;color:var(--wisteria);font-style:italic;white-space:pre-wrap}
+textarea.field{resize:none;max-height:130px;overflow-y:auto;line-height:1.55}
+.mini{border:none;background:none;color:var(--wisteria);opacity:.7;font-size:12px;cursor:pointer;padding:0 5px;font-family:inherit}
 </style>
 </head>
 <body data-theme="night">
@@ -219,13 +221,11 @@ body{background:var(--night);color:var(--silver);font-family:'Jost',-apple-syste
       <option value="anthropic/claude-sonnet-4.5" selected>Sonnet 4.5</option>
     </select>
     <button class="ctrl-pill tog" id="thinkTog" onclick="cycleThink()">✧ light</button>
-    <button class="ctrl-pill" onclick="startEdit()">✎</button>
-    <button class="ctrl-pill" onclick="regenerate()">↻</button>
   </div>
   <div class="input-bar">
     <input type="file" id="imgFile" accept="image/*" hidden>
     <button class="attach" id="attachBtn" onclick="imgFile.click()">✚</button>
-    <input class="field" id="aiInput" placeholder="say something to moren...">
+    <textarea class="field" id="aiInput" rows="1" placeholder="say something to moren..."></textarea>
     <button class="send" onclick="sendToMoren()">↑</button>
   </div>
 </div>
@@ -378,6 +378,11 @@ function thinkLabel(){return thinkMode==='off'?'✧ hush':thinkMode==='light'?'�
 function applyThink(){const b=document.getElementById('thinkTog');b.textContent=thinkLabel();b.classList.toggle('on',thinkMode!=='off')}
 function cycleThink(){thinkMode=thinkMode==='off'?'light':thinkMode==='light'?'deep':'off';localStorage.setItem('vm-think',thinkMode);applyThink()}
 applyThink();
+function refreshMini(){
+document.querySelectorAll('.mini').forEach(b=>b.remove());
+const mes=document.querySelectorAll('.bb-time.t-me'),hims=document.querySelectorAll('.bb-time.t-him');
+const lm=mes[mes.length-1];if(lm){const b=document.createElement('button');b.className='mini';b.textContent='✎';b.onclick=startEdit;lm.prepend(b)}
+const lh=hims[hims.length-1];if(lh){const b=document.createElement('button');b.className='mini';b.textContent='↻';b.onclick=regenerate;lh.appendChild(b)}}
 let lastUserText='';let editing=false;
 function nowStr(){return new Date().toLocaleString('zh-CN',{weekday:'long',month:'long',day:'numeric',hour:'2-digit',minute:'2-digit',hour12:false})}
 
@@ -401,6 +406,7 @@ if(m.sender==='墨染'&&m.thought)addThought(m.thought);
 addBubble(m.content,m.sender==='琰琰',tShort(m.created_at));
 if(m.sender==='琰琰')lastUserText=m.content});
 box.scrollTop=box.scrollHeight;
+refreshMini();
 }catch(e){document.getElementById('chatBox').innerHTML='<div class="empty">connecting… refresh in a moment</div>'}
 }
 
@@ -453,8 +459,11 @@ waiting.textContent=data.reply||'(say that once more?)';
 if(data.thinking)addThought(data.thinking,waiting);
 }catch(e){waiting.textContent='(waking up — give it ~30s and try again)'}
 st.textContent='at home · with you';
+refreshMini();
 document.getElementById('chatBox').scrollTop=1e9}
-document.getElementById('aiInput').addEventListener('keydown',e=>{if(e.key==='Enter')sendToMoren()});
+const aiEl=document.getElementById('aiInput');
+aiEl.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendToMoren()}});
+aiEl.addEventListener('input',()=>{aiEl.style.height='auto';aiEl.style.height=Math.min(aiEl.scrollHeight,130)+'px'});
 
 // memories
 async function loadMems(kind,elId,tag){
