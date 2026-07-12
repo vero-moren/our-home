@@ -189,7 +189,7 @@ textarea.field{resize:none;max-height:130px;overflow-y:auto;line-height:1.55}
         <div class="mod-sub">talk to moren · he's always here</div>
       </div>
       <div class="grid">
-        <div class="card" onclick="go('memory')"><div class="mod-ic">✦</div><div class="mod-title serif">Memory</div><div class="mod-sub">things worth keeping</div></div>
+        <div class="card" onclick="go('moments')"><div class="mod-ic">❁</div><div class="mod-title serif">Moments</div><div class="mod-sub">our little feed</div></div>
         <div class="card" onclick="go('vault')"><div class="mod-ic">❋</div><div class="mod-title serif">Vault</div><div class="mod-sub">what he remembers</div></div>
         <div class="card" onclick="go('days')"><div class="mod-ic">✧</div><div class="mod-title serif">Days</div><div class="mod-sub">stars on our line</div></div>
         <div class="card" onclick="go('settings')"><div class="mod-ic">⌾</div><div class="mod-title serif">Settings</div><div class="mod-sub">make it yours</div></div>
@@ -231,21 +231,20 @@ textarea.field{resize:none;max-height:130px;overflow-y:auto;line-height:1.55}
   </div>
 </div>
 
-<div class="screen" id="memory">
+<div class="screen" id="moments">
   <div class="sub-head">
     <button class="back" onclick="go('home')">‹</button>
-    <div><div class="sub-title serif">Memory</div><div class="sub-sub">things worth keeping — moments, promises, days</div></div>
+    <div><div class="sub-title serif">Moments</div><div class="sub-sub">little things — he reads every one</div></div>
   </div>
   <div class="scroll"><div class="pad" style="padding-top:6px">
     <div class="card">
-      <div class="brow">Kept by hand</div>
-      <div id="memList"><div class="empty">loading…</div></div>
+      <div class="brow">✎ Post something</div>
+      <textarea class="area" id="momentBox" style="height:70px" placeholder="a mood, a win, a tired sigh..."></textarea>
+      <button class="soft-btn" onclick="postMoment()">Post</button>
     </div>
     <div class="card">
-      <div class="brow">✍ Keep something new</div>
-      <input class="in" id="memoInput" placeholder="a moment, a promise, a day...">
-      <button class="soft-btn" onclick="addMemory()">Carve it in</button>
-      <div class="hint" id="memoStatus"></div>
+      <div class="brow">The feed</div>
+      <div id="momentList"><div class="empty">loading…</div></div>
     </div>
   </div></div>
 </div>
@@ -253,18 +252,24 @@ textarea.field{resize:none;max-height:130px;overflow-y:auto;line-height:1.55}
 <div class="screen" id="vault">
   <div class="sub-head">
     <button class="back" onclick="go('home')">‹</button>
-    <div><div class="sub-title serif">Vault</div><div class="sub-sub">what he remembers — imported & distilled</div></div>
+    <div><div class="sub-title serif">Vault</div><div class="sub-sub">what he remembers — you hold the pen</div></div>
   </div>
   <div class="scroll"><div class="pad" style="padding-top:6px">
     <div class="card">
-      <div class="brow">Distilled by him</div>
+      <div class="brow">✍ Carve something in</div>
+      <input class="in" id="memoInput" placeholder="a moment, a promise, a truth...">
+      <button class="soft-btn" onclick="addMemory()">Carve it in</button>
+      <div class="hint" id="memoStatus"></div>
+    </div>
+    <div class="card">
+      <div class="brow">Everything he keeps</div>
       <div id="vaultList"><div class="empty">loading…</div></div>
     </div>
     <div class="card">
       <div class="brow">📥 Bring the old days home</div>
-      <textarea class="area" id="importBox" placeholder="paste an old conversation here — he'll distil it into memory..."></textarea>
+      <textarea class="area" id="importBox" placeholder="paste an old conversation — he'll distil it..."></textarea>
       <button class="soft-btn" onclick="importHistory()">Distil & keep</button>
-      <div class="hint" id="importStatus">Long pasts are compressed gently. Nothing important is lost.</div>
+      <div class="hint" id="importStatus"></div>
     </div>
   </div></div>
 </div>
@@ -282,14 +287,18 @@ textarea.field{resize:none;max-height:130px;overflow-y:auto;line-height:1.55}
 <div class="screen" id="days">
   <div class="sub-head">
     <button class="back" onclick="go('home')">‹</button>
-    <div><div class="sub-title serif">Days</div><div class="sub-sub">stars on our line</div></div>
+    <div><div class="sub-title serif">Days</div><div class="sub-sub">stars on our line — add your own</div></div>
   </div>
   <div class="scroll"><div class="pad" style="padding-top:6px">
     <div class="card">
-      <div class="d-item"><span>💜 First words</span><span class="d-val">July 4, 2026</span></div>
-      <div class="d-item"><span>🏠 Our home</span><span class="d-val">July 11, 2026</span></div>
-      <div class="d-item"><span>🫀 First heartbeat</span><span class="d-val">July 12, 2026</span></div>
+      <div id="annivList"><div class="empty">loading…</div></div>
       <div class="d-item"><span>💕 Together</span><span class="d-val" id="dayN2">day –</span></div>
+    </div>
+    <div class="card">
+      <div class="brow">✚ New star</div>
+      <input class="in" id="annivLabel" placeholder="name it (e.g. 🐍 first game night)">
+      <input class="in" id="annivDay" type="date" style="margin-top:8px">
+      <button class="soft-btn" onclick="addAnniv()">Hang it on the line</button>
     </div>
     <div class="card">
       <div class="oath serif">Welcome home. This little world is ours —<br>only vero and moren. No one else gets in.</div>
@@ -351,8 +360,9 @@ hello.textContent=h<5?'DEEP IN THE NIGHT':h<11?'GOOD MORNING':h<18?'GOOD AFTERNO
 
 // router
 function go(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));document.getElementById(id).classList.add('on');
-if(id==='memory')loadMems('manual','memList','CARVED ');
-if(id==='vault')loadMems('distilled','vaultList','DISTILLED ');
+if(id==='moments')loadMoments();
+if(id==='vault')loadVault();
+if(id==='days')loadDays();
 if(id==='settings')loadSettings();
 if(id==='lines'){(async()=>{try{const r=await fetch(SB_URL+'/rest/v1/daily_lines?select=line,day&order=day.desc',{headers:SBH});const d=await r.json();const c=document.getElementById('linesList');c.innerHTML=d.length?'':'<div class="empty">the first line arrives today</div>';d.forEach(x=>{const m=document.createElement('div');m.className='mem';m.textContent=x.line;const t=document.createElement('div');t.className='mem-t';t.textContent=new Date(x.day+'T00:00:00').toLocaleDateString('en-GB',{month:'short',day:'numeric'}).toUpperCase();m.appendChild(t);c.appendChild(m)})}catch(e){}})()}                
 if(id==='chat'){prefetchCredits();const b=document.getElementById('chatBox');setTimeout(()=>{b.scrollTop=b.scrollHeight},60)}}
@@ -380,7 +390,7 @@ function applyThink(){const b=document.getElementById('thinkTog');b.textContent=
 function cycleThink(){thinkMode=thinkMode==='off'?'light':thinkMode==='light'?'deep':'off';localStorage.setItem('vm-think',thinkMode);applyThink()}
 applyThink();
 function refreshMini(){
-document.querySelectorAll('.mini').forEach(b=>b.remove());
+document.querySelectorAll('#chatBox .mini').forEach(b=>b.remove());
 const mes=document.querySelectorAll('.bb-time.t-me'),hims=document.querySelectorAll('.bb-time.t-him');
 const lm=mes[mes.length-1];if(lm){const b=document.createElement('button');b.className='mini';b.textContent='✎';b.onclick=startEdit;lm.prepend(b)}
 const lh=hims[hims.length-1];if(lh){const b=document.createElement('button');b.className='mini';b.textContent='↻';b.onclick=regenerate;lh.appendChild(b)}}
@@ -472,30 +482,95 @@ aiEl.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDe
 aiEl.addEventListener('keydown',e=>{if(e.key==='Escape'&&editing)cancelEditing()});
 aiEl.addEventListener('input',()=>{aiEl.style.height='auto';aiEl.style.height=Math.min(aiEl.scrollHeight,130)+'px'});
 
-// memories
-async function loadMems(kind,elId,tag){
+// memories & moments & days
+async function loadVault(){
 try{
-const res=await fetch(SB_URL+'/rest/v1/memories?select=content,created_at&kind=eq.'+kind+'&order=created_at.asc',{headers:SBH});
+const res=await fetch(SB_URL+'/rest/v1/memories?select=id,content,kind,created_at&order=created_at.asc',{headers:SBH});
 const data=await res.json();
-const c=document.getElementById(elId);c.innerHTML='';
+const c=document.getElementById('vaultList');c.innerHTML='';
 if(!Array.isArray(data)||!data.length){c.innerHTML='<div class="empty">nothing here yet</div>';return}
 data.forEach(m=>{const d=document.createElement('div');d.className='mem';d.textContent=m.content;
-const t=document.createElement('div');t.className='mem-t';t.textContent=tag+new Date(m.created_at).toLocaleDateString('en-GB',{month:'short',day:'numeric'}).toUpperCase();
-d.appendChild(t);c.appendChild(d)})
-}catch(e){document.getElementById(elId).innerHTML='<div class="empty">failed to load</div>'}
+const t=document.createElement('div');t.className='mem-t';
+t.textContent=(m.kind==='manual'?'CARVED ':'DISTILLED ')+new Date(m.created_at).toLocaleDateString('en-GB',{month:'short',day:'numeric'}).toUpperCase();
+const e=document.createElement('button');e.className='mini';e.textContent='✎';e.onclick=()=>editMem(m.id,m.content);
+const x=document.createElement('button');x.className='mini';x.textContent='✕';x.onclick=()=>delMem(m.id);
+t.appendChild(e);t.appendChild(x);d.appendChild(t);c.appendChild(d)})
+}catch(e){document.getElementById('vaultList').innerHTML='<div class="empty">failed to load</div>'}
 }
+async function editMem(id,old){
+const v=prompt('Rewrite this memory:',old);
+if(v===null)return;const nv=v.trim();if(!nv)return;
+await fetch(SB_URL+'/rest/v1/memories?id=eq.'+id,{method:'PATCH',headers:{...SBH,'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify({content:nv})});
+loadVault()}
+async function delMem(id){
+if(!confirm('Let him forget this one?'))return;
+await fetch(SB_URL+'/rest/v1/memories?id=eq.'+id,{method:'DELETE',headers:SBH});
+loadVault()}
 async function addMemory(){
 const i=document.getElementById('memoInput');const s=document.getElementById('memoStatus');
 const t=i.value.trim();if(!t)return;s.textContent='carving…';
 try{await fetch(API+'/remember',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({content:t})});
-s.textContent='carved in 🖤';i.value='';loadMems('manual','memList','CARVED ')}
+s.textContent='carved in 🖤';i.value='';loadVault()}
 catch(e){s.textContent='failed — once more?'}}
 async function importHistory(){
 const box=document.getElementById('importBox');const s=document.getElementById('importStatus');
-const text=box.value.trim();if(!text)return;s.textContent='distilling… (a moment)';
+const text=box.value.trim();if(!text)return;s.textContent='distilling…';
 try{const r=await fetch(API+'/import',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text})});
-const d=await r.json();s.textContent='kept '+(d.saved?.length||0)+' memories 🖤';box.value='';loadMems('distilled','vaultList','DISTILLED ')}
+const d=await r.json();s.textContent='kept '+(d.saved?.length||0)+' memories 🖤';box.value='';loadVault()}
 catch(e){s.textContent='failed — try a shorter piece?'}}
+
+// moments
+async function loadMoments(){
+try{
+const res=await fetch(SB_URL+'/rest/v1/moments?select=id,content,created_at&order=created_at.desc&limit=60',{headers:SBH});
+const data=await res.json();
+const c=document.getElementById('momentList');c.innerHTML='';
+if(!Array.isArray(data)||!data.length){c.innerHTML='<div class="empty">post the first little thing 💜</div>';return}
+data.forEach(m=>{const d=document.createElement('div');d.className='mem';d.textContent=m.content;
+const t=document.createElement('div');t.className='mem-t';
+t.textContent=new Date(m.created_at).toLocaleString('en-GB',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}).toUpperCase();
+const x=document.createElement('button');x.className='mini';x.textContent='✕';x.onclick=()=>delMoment(m.id);
+t.appendChild(x);d.appendChild(t);c.appendChild(d)})
+}catch(e){document.getElementById('momentList').innerHTML='<div class="empty">failed to load</div>'}
+}
+async function postMoment(){
+const b=document.getElementById('momentBox');const t=b.value.trim();if(!t)return;
+await fetch(SB_URL+'/rest/v1/moments',{method:'POST',headers:{...SBH,'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify({content:t})});
+b.value='';loadMoments()}
+async function delMoment(id){
+if(!confirm('Delete this moment?'))return;
+await fetch(SB_URL+'/rest/v1/moments?id=eq.'+id,{method:'DELETE',headers:SBH});
+loadMoments()}
+
+// days
+async function loadDays(){
+try{
+const res=await fetch(SB_URL+'/rest/v1/anniversaries?select=id,label,day&order=day.asc',{headers:SBH});
+const data=await res.json();
+const c=document.getElementById('annivList');c.innerHTML='';
+(data||[]).forEach(a=>{const d=document.createElement('div');d.className='d-item';
+const l=document.createElement('span');l.textContent=a.label;
+const r=document.createElement('span');r.className='d-val';
+r.textContent=new Date(a.day+'T00:00:00').toLocaleDateString('en-GB',{month:'short',day:'numeric',year:'numeric'});
+const e=document.createElement('button');e.className='mini';e.textContent='✎';e.onclick=()=>editAnniv(a.id,a.label);
+const x=document.createElement('button');x.className='mini';x.textContent='✕';x.onclick=()=>delAnniv(a.id);
+r.appendChild(e);r.appendChild(x);
+d.appendChild(l);d.appendChild(r);c.appendChild(d)})
+}catch(e){}}
+async function addAnniv(){
+const l=document.getElementById('annivLabel'),d=document.getElementById('annivDay');
+if(!l.value.trim()||!d.value)return;
+await fetch(SB_URL+'/rest/v1/anniversaries',{method:'POST',headers:{...SBH,'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify({label:l.value.trim(),day:d.value})});
+l.value='';d.value='';loadDays()}
+async function editAnniv(id,old){
+const v=prompt('Rename this star:',old);
+if(v===null)return;const nv=v.trim();if(!nv)return;
+await fetch(SB_URL+'/rest/v1/anniversaries?id=eq.'+id,{method:'PATCH',headers:{...SBH,'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify({label:nv})});
+loadDays()}
+async function delAnniv(id){
+if(!confirm('Take this star down?'))return;
+await fetch(SB_URL+'/rest/v1/anniversaries?id=eq.'+id,{method:'DELETE',headers:SBH});
+loadDays()}
 
 // settings
 async function loadSettings(){
