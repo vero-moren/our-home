@@ -165,17 +165,7 @@ textarea.field{resize:none;max-height:130px;overflow-y:auto;line-height:1.55}
     <div class="pad" style="padding-top:6px">
       <div class="card">
         <div class="brow">Constellation of us</div>
-        <svg viewBox="0 0 320 118" width="100%">
-          <path class="snake-path" d="M22 94 C 80 94, 90 60, 150 58 S 250 42, 296 20"/>
-          <circle class="star-dot" cx="22" cy="94" r="3"/>
-          <circle class="star-dot" cx="150" cy="58" r="3"/>
-          <circle class="star-dot" cx="222" cy="47" r="3"/>
-          <circle class="star-head" cx="296" cy="20" r="5"/>
-          <text class="star-lab" x="8" y="110">7.04 first words</text>
-          <text class="star-lab" x="116" y="78">7.11 our home</text>
-          <text class="star-lab" x="190" y="34">7.12 first heartbeat</text>
-          <text class="star-lab now" x="250" y="12" id="dayLab">day –</text>
-        </svg>
+        <svg viewBox="0 0 320 118" width="100%" id="snakeSvg"></svg>
         <div class="snake-note"><span>the line winds like him</span><span>the crimson star is today</span></div>
       </div>
       <div class="card" onclick="go('lines')" style="cursor:pointer">
@@ -342,7 +332,9 @@ for(let i=0;i<60;i++){const d=document.createElement('div');d.className='st';con
 
 // days
 const n=Math.floor((new Date()-new Date('2026-07-04'))/86400000)+1;
-dayN.textContent=n;dayN2.textContent='day '+n;dayLab.textContent='day '+n;
+const n2=Math.floor((new Date()-new Date('2026-07-04'))/86400000)+1;
+dayN.textContent=n2;dayN2.textContent='day '+n2;
+drawSnake();
 
 // greeting + daily line
 const h=new Date().getHours();
@@ -550,6 +542,25 @@ await fetch(SB_URL+'/rest/v1/moments?id=eq.'+id,{method:'DELETE',headers:SBH});
 loadMoments()}
 
 // days
+async function drawSnake(){
+try{
+const res=await fetch(SB_URL+'/rest/v1/anniversaries?select=label,day&order=day.asc&limit=6',{headers:SBH});
+const stars=await res.json()||[];
+const svg=document.getElementById('snakeSvg');if(!svg)return;
+const n=stars.length;const pts=[];
+for(let i=0;i<=n;i++){const x=22+(274*i/Math.max(n,1));const y=94-(74*i/Math.max(n,1))+(i%2?8:-4);pts.push([x,Math.max(14,Math.min(98,y))])}
+let path='M'+pts[0][0]+' '+pts[0][1];
+for(let i=1;i<pts.length;i++){const p=pts[i-1],q=pts[i];path+=' C '+((p[0]+q[0])/2)+' '+p[1]+', '+((p[0]+q[0])/2)+' '+q[1]+', '+q[0]+' '+q[1]}
+let h='<path class="snake-path" d="'+path+'"/>';
+stars.forEach((s,i)=>{const[x,y]=pts[i];
+h+='<circle class="star-dot" cx="'+x+'" cy="'+y+'" r="3"/>';
+const lab=s.day.slice(5).replace('-','.')+' '+s.label.replace(/[^\u4e00-\u9fa5a-zA-Z0-9. ]/g,'').trim().slice(0,14);
+h+='<text class="star-lab" x="'+Math.max(2,x-30)+'" y="'+(y>60?y+16:y-10)+'">'+lab+'</text>'});
+const[hx,hy]=pts[n];
+h+='<circle class="star-head" cx="'+hx+'" cy="'+hy+'" r="5"/>';
+h+='<text class="star-lab now" x="'+(hx-44)+'" y="'+(hy-8)+'">day '+n2+'</text>';
+svg.innerHTML=h;
+}catch(e){}}
 async function loadDays(){
 try{
 const res=await fetch(SB_URL+'/rest/v1/anniversaries?select=id,label,day&order=day.asc',{headers:SBH});
@@ -568,16 +579,16 @@ async function addAnniv(){
 const l=document.getElementById('annivLabel'),d=document.getElementById('annivDay');
 if(!l.value.trim()||!d.value)return;
 await fetch(SB_URL+'/rest/v1/anniversaries',{method:'POST',headers:{...SBH,'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify({label:l.value.trim(),day:d.value})});
-l.value='';d.value='';loadDays()}
+l.value='';d.value='';loadDays()}drawSnake();
 async function editAnniv(id,old){
 const v=prompt('Rename this star:',old);
 if(v===null)return;const nv=v.trim();if(!nv)return;
 await fetch(SB_URL+'/rest/v1/anniversaries?id=eq.'+id,{method:'PATCH',headers:{...SBH,'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify({label:nv})});
-loadDays()}
+loadDays()}drawSnake();
 async function delAnniv(id){
 if(!confirm('Take this star down?'))return;
 await fetch(SB_URL+'/rest/v1/anniversaries?id=eq.'+id,{method:'DELETE',headers:SBH});
-loadDays()}
+loadDays()}drawSnake();
 
 // settings
 async function loadSettings(){
