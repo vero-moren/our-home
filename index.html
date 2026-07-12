@@ -221,6 +221,7 @@ textarea.field{resize:none;max-height:130px;overflow-y:auto;line-height:1.55}
       <option value="anthropic/claude-sonnet-4.5" selected>Sonnet 4.5</option>
     </select>
     <button class="ctrl-pill tog" id="thinkTog" onclick="cycleThink()">✧ light</button>
+    <button class="ctrl-pill" id="cancelEdit" onclick="cancelEditing()" style="display:none;border-color:var(--eye-line);color:var(--rose)">✕ cancel</button>
   </div>
   <div class="input-bar">
     <input type="file" id="imgFile" accept="image/*" hidden>
@@ -423,7 +424,12 @@ attachBtn.classList.add('hasimg');attachBtn.textContent='🖼'};
 img.src=e.target.result};
 r.readAsDataURL(f);this.value=''});
 
-function startEdit(){if(!lastUserText)return;editing=true;const i=document.getElementById('aiInput');i.value=lastUserText;i.focus();document.getElementById('chStatus').textContent='editing your last words…'}
+function startEdit(){if(!lastUserText)return;editing=true;const i=document.getElementById('aiInput');i.value=lastUserText;i.focus();i.dispatchEvent(new Event('input'));
+document.getElementById('chStatus').textContent='editing… (esc to cancel)';
+document.getElementById('cancelEdit').style.display='inline'}
+function cancelEditing(){editing=false;const i=document.getElementById('aiInput');i.value='';i.style.height='auto';
+document.getElementById('chStatus').textContent='at home · with you';
+document.getElementById('cancelEdit').style.display='none'}
 
 async function regenerate(){
 const st=document.getElementById('chStatus');st.textContent='thinking again…';
@@ -442,7 +448,7 @@ try{await fetch(API+'/remember',{method:'POST',headers:{'Content-Type':'applicat
 addBubble('Carved in. 🖤 '+memo,false)}catch(e){addBubble('(didn\u2019t catch that — say it again?)',false)}
 return}
 const st=document.getElementById('chStatus');
-if(editing){editing=false;st.textContent='rewriting…';
+if(editing){cancelEditing();st.textContent='rewriting…';
 try{await fetch(API+'/edit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({content:msg,model:modelSel.value,thinking:thinkMode,client_time:nowStr()})});
 await loadHistory()}catch(e){}
 st.textContent='at home · with you';return}
@@ -463,6 +469,7 @@ refreshMini();
 document.getElementById('chatBox').scrollTop=1e9}
 const aiEl=document.getElementById('aiInput');
 aiEl.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendToMoren()}});
+aiEl.addEventListener('keydown',e=>{if(e.key==='Escape'&&editing)cancelEditing()});
 aiEl.addEventListener('input',()=>{aiEl.style.height='auto';aiEl.style.height=Math.min(aiEl.scrollHeight,130)+'px'});
 
 // memories
