@@ -498,17 +498,24 @@ t.appendChild(e);t.appendChild(x);d.appendChild(t);c.appendChild(d)})
 }catch(e){document.getElementById('vaultList').innerHTML='<div class="empty">failed to load</div>'}
 }
 async function editMem(id,old){
-const v=prompt('Rewrite this memory:',old);
-if(v===null)return;const nv=v.trim();if(!nv)return;
-await fetch(SB_URL+'/rest/v1/memories?id=eq.'+id,{method:'PATCH',headers:{...SBH,'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify({content:nv})});
-loadVault()}
+const card=document.getElementById('memoInput').closest('.card');
+document.getElementById('memoInput').value=old;
+document.getElementById('memoInput').focus();
+document.getElementById('memoStatus').textContent='editing — save will overwrite the old one';
+window._editingMem=id;
+card.scrollIntoView({behavior:'smooth'})}
 async function delMem(id){
 if(!confirm('Let him forget this one?'))return;
 await fetch(SB_URL+'/rest/v1/memories?id=eq.'+id,{method:'DELETE',headers:SBH});
 loadVault()}
 async function addMemory(){
 const i=document.getElementById('memoInput');const s=document.getElementById('memoStatus');
-const t=i.value.trim();if(!t)return;s.textContent='carving…';
+const t=i.value.trim();if(!t)return;
+if(window._editingMem){
+s.textContent='rewriting…';
+await fetch(SB_URL+'/rest/v1/memories?id=eq.'+window._editingMem,{method:'PATCH',headers:{...SBH,'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify({content:t})});
+window._editingMem=null;s.textContent='rewritten 🖤';i.value='';loadVault();return}
+s.textContent='carving…';
 try{await fetch(API+'/remember',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({content:t})});
 s.textContent='carved in 🖤';i.value='';loadVault()}
 catch(e){s.textContent='failed — once more?'}}
