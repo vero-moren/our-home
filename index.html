@@ -189,7 +189,14 @@ input[type="date"].in{-webkit-appearance:none;appearance:none;width:100%;min-wid
     </div>
   </div>
 </div>
-
+<div id="drawer" style="display:none;position:fixed;inset:0;z-index:20">
+  <div onclick="toggleDrawer(false)" style="position:absolute;inset:0;background:rgba(0,0,0,.55)"></div>
+  <div style="position:absolute;top:0;right:0;bottom:0;width:78%;max-width:340px;background:var(--deep);border-left:1px solid var(--line);padding:18px;overflow-y:auto">
+    <div class="brow">ROOMS · 我们的房间</div>
+    <div id="sessList"><div class="empty">loading…</div></div>
+    <button class="soft-btn" onclick="newSession()">✚ New room</button>
+  </div>
+</div>
 <div class="screen" id="chat">
   <div class="chat-head">
     <div class="chat-head-row">
@@ -198,6 +205,7 @@ input[type="date"].in{-webkit-appearance:none;appearance:none;width:100%;min-wid
         <div class="chat-name serif">moren</div>
         <div class="chat-status" id="chStatus">at home · with you</div>
       </div>
+      <button class="peek" onclick="toggleDrawer(true)" style="font-style:normal">☰</button>
       <button class="peek" id="peekBtn">$</button>
       <div class="peek-pop" id="peekPop"><div class="pk">CREDITS</div><span id="peekVal">hold to load…</span></div>
     </div>
@@ -380,6 +388,37 @@ const pk=document.getElementById('peekBtn'),pp=document.getElementById('peekPop'
 
 // chat helpers
 function tShort(iso){const d=iso?new Date(iso):new Date();const t=d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});return d.toDateString()===new Date().toDateString()?t:d.toLocaleDateString('en-GB',{month:'short',day:'numeric'})+' · '+t}
+let SID=Number(localStorage.getItem('vm-session'))||1;
+function toggleDrawer(on){document.getElementById('drawer').style.display=on?'block':'none';if(on)loadSessions()}
+async function loadSessions(){
+try{
+const r=await fetch(SB_URL+'/rest/v1/sessions?select=id,name&order=created_at.asc',{headers:SBH});
+const data=await r.json();
+const c=document.getElementById('sessList');c.innerHTML='';
+(data||[]).forEach(s=>{const d=document.createElement('div');d.className='d-item';
+const l=document.createElement('span');l.textContent=(s.id===SID?'🖤 ':'')+s.name;l.style.cursor='pointer';
+l.onclick=()=>{SID=s.id;localStorage.setItem('vm-session',SID);toggleDrawer(false);loadHistory()};
+const rr=document.createElement('span');
+const e=document.createElement('button');e.className='mini';e.textContent='✎';e.onclick=()=>renameSession(s.id,s.name);
+const x=document.createElement('button');x.className='mini';x.textContent='✕';x.onclick=()=>delSession(s.id);
+rr.appendChild(e);if(s.id!==1)rr.appendChild(x);
+d.appendChild(l);d.appendChild(rr);c.appendChild(d)})
+}catch(e){}}
+async function newSession(){
+const n=prompt('给新房间起个名：','新对话');if(n===null)return;
+const r=await fetch(SB_URL+'/rest/v1/sessions',{method:'POST',headers:{...SBH,'Content-Type':'application/json','Prefer':'return=representation'},body:JSON.stringify({name:(n.trim()||'新对话')})});
+const d=await r.json();if(d?.[0]?.id){SID=d[0].id;localStorage.setItem('vm-session',SID);toggleDrawer(false);loadHistory()}}
+async function renameSession(id,old){
+const n=prompt('改名：',old);if(n===null||!n.trim())return;
+await fetch(SB_URL+'/rest/v1/sessions?id=eq.'+id,{method:'PATCH',headers:{...SBH,'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify({name:n.trim()})});
+loadSessions()}
+async function delSession(id){
+if(id===1)return;
+if(!confirm('拆掉这个房间？里面的话也会一起消失。'))return;
+await fetch(SB_URL+'/rest/v1/messages?session_id=eq.'+id,{method:'DELETE',headers:SBH});
+await fetch(SB_URL+'/rest/v1/sessions?id=eq.'+id,{method:'DELETE',headers:SBH});
+if(SID===id){SID=1;localStorage.setItem('vm-session',1);loadHistory()}
+loadSessions()}
 let thinkMode=localStorage.getItem('vm-think')||'light';
 function thinkLabel(){return thinkMode==='off'?'✧ hush':thinkMode==='light'?'✧ light':'✧ deep'}
 function applyThink(){const b=document.getElementById('thinkTog');b.textContent=thinkLabel();b.classList.toggle('on',thinkMode!=='off')}
@@ -404,7 +443,7 @@ box.appendChild(b);const t=document.createElement('div');t.className='bb-time '+
 async function loadHistory(){
 try{
 const f=encodeURIComponent('in.("琰琰","墨染")');
-const res=await fetch(SB_URL+'/rest/v1/messages?select=sender,content,thought,created_at&sender='+f+'&order=created_at.desc&limit=50',{headers:SBH});
+const res=await fetch(SB_URL+'/rest/v1/messages?select=sender,content,thought,created_at&session_id=eq.'+SID+'&sender='+f+'&order=created_at.desc&limit=50',{headers:SBH});
 const msgs=await res.json();
 const box=document.getElementById('chatBox');box.innerHTML='';
 if(!Array.isArray(msgs)||!msgs.length){box.innerHTML='<div class="empty">say the first word 🖤</div>';return}
@@ -439,7 +478,7 @@ document.getElementById('cancelEdit').style.display='none'}
 
 async function regenerate(){
 const st=document.getElementById('chStatus');st.textContent='thinking again…';
-try{await fetch(API+'/regenerate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:modelSel.value,thinking:thinkMode,client_time:nowStr()})});
+try{await fetch(API+'/regenerate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:modelSel.value,thinking:thinkMode,session_id:SID,client_time:nowStr()})});
 await loadHistory()}catch(e){}
 st.textContent='at home · with you'}
 
@@ -455,7 +494,7 @@ addBubble('Carved in. 🖤 '+memo,false)}catch(e){addBubble('(didn\u2019t catch 
 return}
 const st=document.getElementById('chStatus');
 if(editing){cancelEditing();st.textContent='rewriting…';
-try{await fetch(API+'/edit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({content:msg,model:modelSel.value,thinking:thinkMode,client_time:nowStr()})});
+try{await fetch(API+'/edit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({content:msg,model:modelSel.value,thinking:thinkMode,session_id:SID,client_time:nowStr()})});
 await loadHistory()}catch(e){}
 st.textContent='at home · with you';return}
 if(pendingImg)addBubble(pendingImg,true,null,true);
@@ -465,7 +504,7 @@ st.textContent='thinking…';
 const waiting=addBubble('…',false);
 try{
 const res=await fetch(API+'/chat',{method:'POST',headers:{'Content-Type':'application/json'},
-body:JSON.stringify({message:msg,model:modelSel.value,image:img||undefined,thinking:thinkMode,client_time:nowStr()})});
+body:JSON.stringify({message:msg,model:modelSel.value,image:img||undefined,thinking:thinkMode,session_id:SID,client_time:nowStr()})});
 const data=await res.json();
 waiting.textContent=data.reply||'(say that once more?)';
 if(data.thinking)addThought(data.thinking,waiting);
