@@ -222,8 +222,9 @@ input[type="date"].in{-webkit-appearance:none;appearance:none;width:100%;min-wid
     <button class="ctrl-pill tog" id="thinkTog" onclick="cycleThink()">✧ light</button>
     <button class="ctrl-pill" id="cancelEdit" onclick="cancelEditing()" style="display:none;border-color:var(--eye-line);color:var(--rose)">✕ cancel</button>
   </div>
+  <div id="imgPreview" style="display:none;gap:8px;padding:8px 14px 0;background:var(--night);position:relative;z-index:2;overflow-x:auto"></div>
   <div class="input-bar">
-    <input type="file" id="imgFile" accept="image/*" hidden>
+    <input type="file" id="imgFile" accept="image/*" multiple hidden>
     <button class="attach" id="attachBtn" onclick="imgFile.click()">✚</button>
     <textarea class="field" id="aiInput" rows="1" placeholder="say something to moren..."></textarea>
     <button class="send" id="sendBtn" onclick="sendToMoren()">↑</button>
@@ -459,7 +460,7 @@ box.appendChild(b);const t=document.createElement('div');t.className='bb-time '+
 const PAGE=30;let oldestAt=null,noMore=false,loadingOlder=false;
 function renderMsg(frag,m){
 if(m.sender==='墨染'&&m.thought){const d=document.createElement('details');d.className='bb-think';d.innerHTML='<summary>✧ HIS HEART</summary>';const t=document.createElement('div');t.className='tb';t.textContent=m.thought;d.appendChild(t);frag.appendChild(d)}
-const b=document.createElement('div');b.className='bb '+(m.sender==='琰琰'?'me':'him');b.textContent=m.content;frag.appendChild(b);
+const b=document.createElement('div');b.className='bb '+(m.sender==='琰琰'?'me':'him');fillRich(b,m.content);frag.appendChild(b);
 const tm=document.createElement('div');tm.className='bb-time '+(m.sender==='琰琰'?'t-me':'t-him');tm.textContent=tShort(m.created_at);frag.appendChild(tm)}
 async function fetchPage(){
 let url=SB_URL+'/rest/v1/messages?select=sender,content,thought,created_at&session_id=eq.'+SID+'&sender='+encodeURIComponent('in.("琰琰","墨染")')+'&order=created_at.desc&limit='+PAGE;
@@ -493,18 +494,35 @@ box.scrollTop+=box.scrollHeight-prev
 }catch(e){}finally{loadingOlder=false}}
 document.getElementById('chatBox').addEventListener('scroll',function(){if(this.scrollTop<60)loadOlder()});
 
-let pendingImg=null;
+let pendingImgs=[];
+function showImg(src){const o=document.createElement('div');o.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:99;display:flex;align-items:center;justify-content:center';
+const im=document.createElement('img');im.src=src;im.style.cssText='max-width:96%;max-height:92%;border-radius:12px';
+o.appendChild(im);o.onclick=()=>o.remove();document.body.appendChild(o)}
+function fillRich(b,content){const re=/\[img\]([\s\S]*?)\[\/img\]/g;const srcs=[];let mm;
+while((mm=re.exec(content)))srcs.push(mm[1]);
+srcs.forEach(s=>{const im=document.createElement('img');im.src=s;im.style.marginBottom='4px';im.onclick=()=>showImg(s);b.appendChild(im)});
+const text=content.replace(re,'').trim();if(text)b.appendChild(document.createTextNode(text))}
+function addRichBubble(content,me){const box=document.getElementById('chatBox');const b=document.createElement('div');b.className='bb '+(me?'me':'him');
+fillRich(b,content);box.appendChild(b);
+const t=document.createElement('div');t.className='bb-time '+(me?'t-me':'t-him');t.textContent=tShort();box.appendChild(t);box.scrollTop=box.scrollHeight;return b}
+function renderPreview(){const p=document.getElementById('imgPreview');p.innerHTML='';
+if(!pendingImgs.length){p.style.display='none';attachBtn.classList.remove('hasimg');attachBtn.textContent='✚';return}
+p.style.display='flex';attachBtn.classList.add('hasimg');attachBtn.textContent='🖼';
+pendingImgs.forEach((src,i)=>{const w=document.createElement('div');w.style.cssText='position:relative;flex-shrink:0';
+const im=document.createElement('img');im.src=src;im.style.cssText='height:56px;border-radius:10px;display:block';im.onclick=()=>showImg(src);
+const x=document.createElement('button');x.textContent='✕';x.style.cssText='position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;border:none;background:var(--eye);color:#fff;font-size:10px';
+x.onclick=()=>{pendingImgs.splice(i,1);renderPreview()};
+w.appendChild(im);w.appendChild(x);p.appendChild(w)})}
 document.getElementById('imgFile').addEventListener('change',function(){
-const f=this.files[0];if(!f)return;const r=new FileReader();
+const files=[...this.files].slice(0,4-pendingImgs.length);this.value='';
+files.forEach(f=>{const r=new FileReader();
 r.onload=e=>{const img=new Image();img.onload=()=>{
 const max=1024;let w=img.width,ht=img.height;
 if(w>max||ht>max){const k=Math.min(max/w,max/ht);w=Math.round(w*k);ht=Math.round(ht*k)}
 const c=document.createElement('canvas');c.width=w;c.height=ht;
 c.getContext('2d').drawImage(img,0,0,w,ht);
-pendingImg=c.toDataURL('image/jpeg',0.8);
-attachBtn.classList.add('hasimg');attachBtn.textContent='🖼'};
-img.src=e.target.result};
-r.readAsDataURL(f);this.value=''});
+pendingImgs.push(c.toDataURL('image/jpeg',0.8));renderPreview()};
+img.src=e.target.result};r.readAsDataURL(f)})});
 
 function startEdit(){if(!lastUserText)return;editing=true;const i=document.getElementById('aiInput');i.value=lastUserText;i.focus();i.dispatchEvent(new Event('input'));
 document.getElementById('chStatus').textContent='editing… (esc to cancel)';
@@ -521,7 +539,7 @@ st.textContent='at home · with you'}
 
 async function sendToMoren(){
 const i=document.getElementById('aiInput');const msg=i.value.trim();
-if(!msg&&!pendingImg)return;
+if(!msg&&!pendingImgs.length)return;
 i.value='';i.style.height='auto';
 if(msg.startsWith('记住：')||msg.startsWith('记住:')){
 addBubble(msg,true);
@@ -534,9 +552,9 @@ if(editing){cancelEditing();st.textContent='rewriting…';
 try{await fetch(API+'/edit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({content:msg,model:modelSel.value,thinking:thinkMode,session_id:SID,client_time:nowStr()})});
 await loadHistory()}catch(e){}
 st.textContent='at home · with you';return}
-if(pendingImg)addBubble(pendingImg,true,null,true);
-if(msg){addBubble(msg,true);lastUserText=msg}
-const img=pendingImg;pendingImg=null;attachBtn.classList.remove('hasimg');attachBtn.textContent='✚';
+const imgs=pendingImgs.slice();pendingImgs=[];renderPreview();
+if(imgs.length||msg)addRichBubble(imgs.map(u=>'[img]'+u+'[/img]').join('')+(msg||''),true);
+if(msg)lastUserText=msg;
 st.textContent='thinking…';
 const bubble=addBubble('',false);
 let thoughtEl=null,rawHead='',inT=false,tDone=(thinkMode==='off');
@@ -558,7 +576,7 @@ else thoughtEl.textContent=rawHead.slice(3)}
 streamCtrl=new AbortController();setSendMode(true);
 try{
 const res=await fetch(API+'/chat/stream',{method:'POST',headers:{'Content-Type':'application/json'},
-body:JSON.stringify({message:msg,model:modelSel.value,image:img||undefined,thinking:thinkMode,session_id:SID,client_time:nowStr()}),
+body:JSON.stringify({message:msg,model:modelSel.value,images:imgs.length?imgs:undefined,thinking:thinkMode,session_id:SID,client_time:nowStr()}),
 signal:streamCtrl.signal});
 const reader=res.body.getReader();const dec=new TextDecoder();let buf='';
 while(true){const{done,value}=await reader.read();if(done)break;
