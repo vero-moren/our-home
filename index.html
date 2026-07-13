@@ -543,15 +543,17 @@ let thoughtEl=null,rawHead='',inT=false,tDone=(thinkMode==='off');
 typewriter.start(bubble);
 function feed(t){
 if(tDone){typewriter.push(t);return}
-rawHead+=t;if(!inT)rawHead=rawHead.replace(/^\s+/,'');
+rawHead+=t;
 if(!inT){
+rawHead=rawHead.replace(/^\s+/,'');
 if(rawHead.length<3&&'【心】'.startsWith(rawHead))return;
 if(rawHead.startsWith('【心】')){inT=true;
 const d=addThought('',bubble);d.open=true;thoughtEl=d.querySelector('.tb')}
 else{tDone=true;typewriter.push(rawHead);rawHead='';return}}
-const end=rawHead.indexOf('【/心】');
+let end=rawHead.indexOf('【/心】'),len=4;
+if(end<0){const nn=rawHead.indexOf('\n\n');if(nn>=0){end=nn;len=2}}
 if(end>=0){thoughtEl.textContent=rawHead.slice(3,end).trim();
-typewriter.push(rawHead.slice(end+4).replace(/^\s+/,''));tDone=true;rawHead=''}
+typewriter.push(rawHead.slice(end+len).replace(/^\s+/,''));tDone=true;rawHead=''}
 else thoughtEl.textContent=rawHead.slice(3)}
 streamCtrl=new AbortController();setSendMode(true);
 try{
@@ -567,6 +569,7 @@ const data=line.slice(6).trim();if(data==='[DONE]')continue;
 try{const j=JSON.parse(data);if(j.t)feed(j.t);
 if(j.error)typewriter.push('\n(出错了，稍后再试)')}catch(e){}}}
 await typewriter.finish();
+if(!tDone&&thoughtEl&&thoughtEl.textContent){bubble.textContent=thoughtEl.textContent;thoughtEl.closest('details').remove()}
 }catch(e){
 typewriter.dump();
 if(e.name!=='AbortError'&&!typewriter.rendered)bubble.textContent='(waking up — give it ~30s and try again)'}
