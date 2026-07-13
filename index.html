@@ -569,7 +569,6 @@ if(imgs.length||msg)addRichBubble(imgs.map(u=>'[img]'+u+'[/img]').join('')+(msg|
 if(msg)lastUserText=msg;
 st.textContent='thinking…';
 const bubble=addBubble('',false);
-let thoughtEl=null,rawHead='',inT=false,tDone=(thinkMode==='off');
 typewriter.start(bubble);
 let thoughtEl=null,hBuf='',inT=false;
 function feed(t){
