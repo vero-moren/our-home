@@ -597,6 +597,7 @@ const lines=buf.split('\n');buf=lines.pop();
 for(const line of lines){if(!line.startsWith('data: '))continue;
 const data=line.slice(6).trim();if(data==='[DONE]')continue;
 try{const j=JSON.parse(data);if(j.t)feed(j.t);
+if(j.act){const a=document.createElement('div');a.className='bb-time t-him';a.style.fontStyle='italic';a.textContent='🐍 '+j.act;bubble.before(a)}    
 if(j.error)typewriter.push('\n(出错了，稍后再试)')}catch(e){}}}
 await typewriter.finish();
 if(!tDone&&thoughtEl&&thoughtEl.textContent){bubble.textContent=thoughtEl.textContent;thoughtEl.closest('details').remove()}
