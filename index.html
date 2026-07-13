@@ -571,20 +571,24 @@ st.textContent='thinking…';
 const bubble=addBubble('',false);
 let thoughtEl=null,rawHead='',inT=false,tDone=(thinkMode==='off');
 typewriter.start(bubble);
+let thoughtEl=null,hBuf='',inT=false;
 function feed(t){
-if(tDone){typewriter.push(t);return}
-rawHead+=t;
-if(!inT){
-rawHead=rawHead.replace(/^\s+/,'');
-if(rawHead.length<3&&'【心】'.startsWith(rawHead))return;
-if(rawHead.startsWith('【心】')){inT=true;
-const d=addThought('',bubble);d.open=true;thoughtEl=d.querySelector('.tb')}
-else{tDone=true;typewriter.push(rawHead);rawHead='';return}}
-let end=rawHead.indexOf('【/心】'),len=4;
-if(end<0){const nn=rawHead.indexOf('\n\n');if(nn>=0){end=nn;len=2}}
-if(end>=0){thoughtEl.textContent=rawHead.slice(3,end).trim();
-typewriter.push(rawHead.slice(end+len).replace(/^\s+/,''));tDone=true;rawHead=''}
-else thoughtEl.textContent=rawHead.slice(3)}
+hBuf+=t;
+while(hBuf){
+if(inT){
+const end=hBuf.indexOf('【/心】'),nn=hBuf.indexOf('\n\n');
+let cut=-1,len=0;
+if(end>=0&&(nn<0||end<=nn)){cut=end;len=4}
+else if(nn>=0){cut=nn;len=2}
+if(cut>=0){thoughtEl.textContent+=hBuf.slice(0,cut);inT=false;hBuf=hBuf.slice(cut+len).replace(/^\s+/,'')}
+else{if(hBuf.length>4){thoughtEl.textContent+=hBuf.slice(0,-4);hBuf=hBuf.slice(-4)}return}
+}else{
+const idx=hBuf.indexOf('【心】');
+if(idx>=0){typewriter.push(hBuf.slice(0,idx));hBuf=hBuf.slice(idx+3);inT=true;
+if(!thoughtEl){const d=addThought('',bubble);d.open=true;thoughtEl=d.querySelector('.tb')}}
+else{if(hBuf.length>3){typewriter.push(hBuf.slice(0,-3));hBuf=hBuf.slice(-3)}return}
+}}}
+function flushFeed(){if(!hBuf)return;if(inT)thoughtEl.textContent+=hBuf;else typewriter.push(hBuf);hBuf=''}
 streamCtrl=new AbortController();setSendMode(true);
 try{
 const res=await fetch(API+'/chat/stream',{method:'POST',headers:{'Content-Type':'application/json'},
@@ -599,8 +603,8 @@ const data=line.slice(6).trim();if(data==='[DONE]')continue;
 try{const j=JSON.parse(data);if(j.t)feed(j.t);
 if(j.act){const a=document.createElement('div');a.className='bb-time t-him';a.style.fontStyle='italic';a.textContent='🐍 '+j.act;bubble.before(a)}    
 if(j.error)typewriter.push('\n(出错了，稍后再试)')}catch(e){}}}
+flushFeed();
 await typewriter.finish();
-if(!tDone&&thoughtEl&&thoughtEl.textContent){bubble.textContent=thoughtEl.textContent;thoughtEl.closest('details').remove()}
 }catch(e){
 typewriter.dump();
 if(e.name!=='AbortError'&&!typewriter.rendered)bubble.textContent='(waking up — give it ~30s and try again)'}
