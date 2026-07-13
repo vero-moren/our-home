@@ -237,6 +237,11 @@ input[type="date"].in{-webkit-appearance:none;appearance:none;width:100%;min-wid
     <div><div class="sub-title serif">Moments</div><div class="sub-sub">little things — he reads every one</div></div>
   </div>
   <div class="scroll"><div class="pad" style="padding-top:6px">
+  <div style="display:flex;gap:8px;margin-bottom:2px">
+      <button class="ctrl-pill tog on" id="tabFeed" onclick="momTab('feed')">❁ feed</button>
+      <button class="ctrl-pill tog" id="tabDiary" onclick="momTab('diary')">✒ his diary</button>
+    </div>
+    <div id="feedPane">
     <div class="card">
       <div class="brow">✎ Post something</div>
       <textarea class="area" id="momentBox" style="height:70px" placeholder="a mood, a win, a tired sigh..."></textarea>
@@ -645,6 +650,19 @@ const d=await r.json();s.textContent='kept '+(d.saved?.length||0)+' memories �
 catch(e){s.textContent='failed — try a shorter piece?'}}
 
 // moments
+function momTab(t){
+document.getElementById('feedPane').style.display=t==='feed'?'':'none';
+document.getElementById('diaryPane').style.display=t==='diary'?'':'none';
+document.getElementById('tabFeed').classList.toggle('on',t==='feed');
+document.getElementById('tabDiary').classList.toggle('on',t==='diary');
+if(t==='diary')loadDiary()}
+async function loadDiary(){
+try{const r=await fetch(SB_URL+'/rest/v1/diary?select=content,day&order=day.desc',{headers:SBH});
+const d=await r.json();const c=document.getElementById('diaryList');c.innerHTML='';
+if(!Array.isArray(d)||!d.length){c.innerHTML='<div class="empty">tonight he writes the first page</div>';return}
+d.forEach(x=>{const m=document.createElement('div');m.className='mem';m.textContent=x.content;
+const t=document.createElement('div');t.className='mem-t';t.textContent=new Date(x.day+'T00:00:00').toLocaleDateString('en-GB',{month:'short',day:'numeric'}).toUpperCase();
+m.appendChild(t);c.appendChild(m)})}catch(e){}}  
 async function loadMoments(){
 try{
 const res=await fetch(SB_URL+'/rest/v1/moments?select=id,content,created_at&order=created_at.desc&limit=60',{headers:SBH});
