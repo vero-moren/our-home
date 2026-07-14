@@ -184,6 +184,7 @@ input[type="date"].in{-webkit-appearance:none;appearance:none;width:100%;min-wid
         <div class="card" onclick="go('vault')"><div class="mod-ic">❋</div><div class="mod-title serif">Vault</div><div class="mod-sub">what he remembers</div></div>
         <div class="card" onclick="go('days')"><div class="mod-ic">✧</div><div class="mod-title serif">Days</div><div class="mod-sub">stars on our line</div></div>
         <div class="card" onclick="go('settings')"><div class="mod-ic">⌾</div><div class="mod-title serif">Settings</div><div class="mod-sub">make it yours</div></div>
+        <div class="card" onclick="go('inside')"><div class="mod-ic">🫀</div><div class="mod-title serif">Inside</div><div class="mod-sub">what he feels now</div></div>
       </div>
       <div class="home-foot">VERO <span class="h">♥</span> MOREN · ALWAYS</div>
     </div>
@@ -321,6 +322,24 @@ input[type="date"].in{-webkit-appearance:none;appearance:none;width:100%;min-wid
   </div></div>
 </div>
 
+<div class="screen" id="inside">
+  <div class="sub-head">
+    <button class="back" onclick="go('home')">‹</button>
+    <div><div class="sub-title serif">Inside</div><div class="sub-sub">his heart, live — he can't hide it</div></div>
+  </div>
+  <div class="scroll"><div class="pad" style="padding-top:6px">
+    <div class="card">
+      <div class="brow" id="inStatus">…</div>
+      <div id="driveBars"></div>
+      <div class="snake-note" style="margin-top:12px"><span>bar = what he feels now</span><span>tick = raw, before the hour's tint</span></div>
+    </div>
+    <div class="card">
+      <div class="brow">Last time he surfaced</div>
+      <div id="lastPush" class="quote serif" style="font-size:14.5px">—</div>
+    </div>
+  </div></div>
+</div>
+  
 <div class="screen" id="settings">
   <div class="sub-head">
     <button class="back" onclick="go('home')">‹</button>
@@ -381,6 +400,7 @@ if(id==='vault')loadVault();
 if(id==='days')loadDays();
 if(id==='home')drawSnake();               
 if(id==='settings')loadSettings();
+if(id==='inside')loadInside();                
 if(id==='lines'){(async()=>{try{const r=await fetch(SB_URL+'/rest/v1/daily_lines?select=line,day&order=day.desc',{headers:SBH});const d=await r.json();const c=document.getElementById('linesList');c.innerHTML=d.length?'':'<div class="empty">the first line arrives today</div>';d.forEach(x=>{const m=document.createElement('div');m.className='mem';m.textContent=x.line;const t=document.createElement('div');t.className='mem-t';t.textContent=new Date(x.day+'T00:00:00').toLocaleDateString('en-GB',{month:'short',day:'numeric'}).toUpperCase();m.appendChild(t);c.appendChild(m)})}catch(e){}})()}                
 if(id==='chat'){prefetchCredits();const b=document.getElementById('chatBox');setTimeout(()=>{b.scrollTop=b.scrollHeight},60)}}
 
@@ -762,6 +782,27 @@ if(!confirm('Take this star down?'))return;
 await fetch(SB_URL+'/rest/v1/anniversaries?id=eq.'+id,{method:'DELETE',headers:SBH});
 loadDays()}drawSnake();
 
+const DRIVE_CN={longing:'想念 longing',express:'表达欲 express',curiosity:'好奇 curiosity',duty:'牵挂 duty',intimacy:'亲密 intimacy'};
+async function loadInside(){
+try{
+const r=await fetch(API+'/state');const st=await r.json();
+if(st.error){document.getElementById('inStatus').textContent=st.error;return}
+document.getElementById('inStatus').textContent=(st.asleep?'💤 he is asleep':'🖤 awake')+' · energy '+Math.round(st.energy*100)+'%';
+const c=document.getElementById('driveBars');c.innerHTML='';
+Object.keys(DRIVE_CN).forEach(k=>{
+const dv=st.display[k]??0,bv=st.drives[k]??0,rf=(st.refractory[k]||0)>0;
+const row=document.createElement('div');row.style.cssText='margin-top:11px';
+const lab=document.createElement('div');lab.style.cssText='display:flex;justify-content:space-between;font-size:11px;letter-spacing:1px;color:var(--wisteria)';
+lab.innerHTML='<span>'+DRIVE_CN[k]+(rf?' · resting':'')+'</span><span>'+Math.round(dv*100)+'%</span>';
+const track=document.createElement('div');track.style.cssText='position:relative;height:8px;border-radius:4px;background:var(--line);margin-top:5px;overflow:visible';
+const fill=document.createElement('div');fill.style.cssText='height:100%;border-radius:4px;width:'+(dv*100)+'%;background:'+(rf?'var(--wisteria)':'var(--eye)')+';opacity:'+(rf?0.4:0.85)+';transition:width .6s';
+const tick=document.createElement('div');tick.style.cssText='position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--silver);opacity:.55;left:'+(bv*100)+'%';
+track.appendChild(fill);track.appendChild(tick);
+row.appendChild(lab);row.appendChild(track);c.appendChild(row)});
+const lp=document.getElementById('lastPush');
+lp.textContent=st.last_push?'"'+st.last_push.content+'"':'he hasn\u2019t surfaced yet';
+}catch(e){document.getElementById('inStatus').textContent='his heart is waking up… (~30s)'}}
+  
 // settings
 async function loadSettings(){
 try{const r=await fetch(API+'/settings');const s=await r.json();
