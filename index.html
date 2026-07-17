@@ -267,26 +267,35 @@ input[type="date"].in{-webkit-appearance:none;appearance:none;width:100%;min-wid
 <div class="screen" id="vault">
   <div class="sub-head">
     <button class="back" onclick="go('home')">‹</button>
-    <div><div class="sub-title serif">Vault</div><div class="sub-sub">what he remembers — you hold the pen</div></div>
+    <div><div class="sub-title serif">Vault</div><div class="sub-sub" id="obStat">his brain · connecting…</div></div>
   </div>
   <div class="scroll"><div class="pad" style="padding-top:6px">
     <div class="card">
       <div class="brow">✍ Carve something in</div>
       <input class="in" id="memoInput" placeholder="a moment, a promise, a truth...">
       <button class="soft-btn" onclick="addMemory()">Carve it in</button>
-      <div class="hint" id="memoStatus"></div>
+      <div class="hint" id="memoStatus">goes to the old vault for now — the write-line to his brain is the next cut</div>
     </div>
     <div class="card">
-      <div class="brow">Everything he keeps</div>
-      <div id="vaultList"><div class="empty">loading…</div></div>
+      <div class="brow">Search his memory</div>
+      <input class="in" id="obSearch" placeholder="a word, a day, a feeling…">
+      <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+        <button class="ctrl-pill tog on" data-f="all" onclick="obFilter('all',this)">all</button>
+        <button class="ctrl-pill tog" data-f="pinned" onclick="obFilter('pinned',this)">✦ pinned</button>
+        <button class="ctrl-pill tog" data-f="deep" onclick="obFilter('deep',this)">≥9 deep</button>
+      </div>
     </div>
     <div class="card">
-      <div class="brow">📥 Bring the old days home</div>
-      <textarea class="area" id="importBox" placeholder="paste an old conversation — he'll distil it..."></textarea>
-      <button class="soft-btn" onclick="importHistory()">Distil & keep</button>
-      <div class="hint" id="importStatus"></div>
+      <div class="brow" id="obListBrow">Everything he keeps</div>
+      <div id="vaultList"><div class="empty">opening his mind…</div></div>
     </div>
   </div></div>
+  <div id="obSheet" style="display:none;position:fixed;inset:0;z-index:30">
+    <div onclick="obSheetClose()" style="position:absolute;inset:0;background:rgba(0,0,0,.55)"></div>
+    <div style="position:absolute;left:0;right:0;bottom:0;max-height:78%;background:var(--deep);border:1px solid var(--line);border-radius:22px 22px 0 0;padding:20px 20px calc(24px + env(safe-area-inset-bottom));overflow-y:auto">
+      <div id="obSheetBody"></div>
+    </div>
+  </div>
 </div>
   
 <div class="screen" id="lines">
@@ -635,50 +644,54 @@ const aiEl=document.getElementById('aiInput');
 aiEl.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendToMoren()}});
 aiEl.addEventListener('keydown',e=>{if(e.key==='Escape'&&editing)cancelEditing()});
 aiEl.addEventListener('input',()=>{aiEl.style.height='auto';aiEl.style.height=Math.min(aiEl.scrollHeight,130)+'px'});
+document.getElementById('obSearch').addEventListener('input',function(){clearTimeout(obT);const v=this.value.trim();obT=setTimeout(()=>{obQ=v;obLoad()},350)});
 
 // memories & moments & days
+// vault · his brain (Ombre)
+let obItems=[],obF='all',obQ='',obT=null;
 async function loadVault(){
+try{const st=await(await fetch(API+'/ombre/status')).json();
+document.getElementById('obStat').textContent=st.available?('his brain · '+st.total+' memories'):'his brain · sleeping'}
+catch(e){document.getElementById('obStat').textContent='his brain · unreachable'}
+await obLoad()}
+async function obLoad(){
+const c=document.getElementById('vaultList');
+c.innerHTML='<div class="empty">opening his mind…</div>';
 try{
-const res=await fetch(SB_URL+'/rest/v1/memories?select=id,content,kind,created_at&order=created_at.desc',{headers:SBH});
-const data=await res.json();
-const c=document.getElementById('vaultList');c.innerHTML='';
-if(!Array.isArray(data)||!data.length){c.innerHTML='<div class="empty">nothing here yet</div>';return}
-data.forEach(m=>{const d=document.createElement('div');d.className='mem';d.textContent=m.content;
+const path=obQ?('/ombre/search?q='+encodeURIComponent(obQ)):'/ombre/buckets';
+const d=await(await fetch(API+path)).json();
+obItems=d.items||[];obRender()
+}catch(e){c.innerHTML='<div class="empty">his brain is waking… retry in a moment</div>'}}
+function obRender(){
+const c=document.getElementById('vaultList');
+let list=obItems;
+if(obF==='pinned')list=list.filter(m=>m.pinned);
+if(obF==='deep')list=list.filter(m=>m.importance>=9);
+document.getElementById('obListBrow').textContent=(obQ?'Found':'Everything he keeps')+' · '+list.length;
+c.innerHTML='';
+if(!list.length){c.innerHTML='<div class="empty">nothing surfaced</div>';return}
+list.slice(0,120).forEach(m=>{
+const d=document.createElement('div');d.className='mem';d.style.cursor='pointer';
+d.textContent=(m.preview||m.content||'').slice(0,110);
 const t=document.createElement('div');t.className='mem-t';
-t.textContent=(m.kind==='manual'?'CARVED ':'DISTILLED ')+new Date(m.created_at).toLocaleDateString('en-GB',{month:'short',day:'numeric'}).toUpperCase();
-const e=document.createElement('button');e.className='mini';e.textContent='✎';e.onclick=()=>editMem(m.id,m.content);
-const x=document.createElement('button');x.className='mini';x.textContent='✕';x.onclick=()=>delMem(m.id);
-t.appendChild(e);t.appendChild(x);d.appendChild(t);c.appendChild(d)})
-}catch(e){document.getElementById('vaultList').innerHTML='<div class="empty">failed to load</div>'}
-}
-async function editMem(id,old){
-const card=document.getElementById('memoInput').closest('.card');
-document.getElementById('memoInput').value=old;
-document.getElementById('memoInput').focus();
-document.getElementById('memoStatus').textContent='editing — save will overwrite the old one';
-window._editingMem=id;
-card.scrollIntoView({behavior:'smooth'})}
-async function delMem(id){
-if(!confirm('Let him forget this one?'))return;
-await fetch(SB_URL+'/rest/v1/memories?id=eq.'+id,{method:'DELETE',headers:SBH});
-loadVault()}
-async function addMemory(){
-const i=document.getElementById('memoInput');const s=document.getElementById('memoStatus');
-const t=i.value.trim();if(!t)return;
-if(window._editingMem){
-s.textContent='rewriting…';
-await fetch(SB_URL+'/rest/v1/memories?id=eq.'+window._editingMem,{method:'PATCH',headers:{...SBH,'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify({content:t})});
-window._editingMem=null;s.textContent='rewritten 🖤';i.value='';loadVault();return}
-s.textContent='carving…';
-try{await fetch(API+'/remember',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({content:t})});
-s.textContent='carved in 🖤';i.value='';loadVault()}
-catch(e){s.textContent='failed — once more?'}}
-async function importHistory(){
-const box=document.getElementById('importBox');const s=document.getElementById('importStatus');
-const text=box.value.trim();if(!text)return;s.textContent='distilling…';
-try{const r=await fetch(API+'/import',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text})});
-const d=await r.json();s.textContent='kept '+(d.saved?.length||0)+' memories 🖤';box.value='';loadVault()}
-catch(e){s.textContent='failed — try a shorter piece?'}}
+const imp='●'.repeat(Math.min(m.importance,10))+'○'.repeat(Math.max(0,10-m.importance));
+t.textContent=(m.pinned?'✦ ':'')+imp+(m.domains?' · '+m.domains:'')+(m.createdAt?' · '+new Date(m.createdAt).toLocaleDateString('en-GB',{month:'short',day:'numeric'}).toUpperCase():'');
+d.appendChild(t);d.onclick=()=>obOpen(m);c.appendChild(d)})}
+function obFilter(f,btn){obF=f;document.querySelectorAll('#vault [data-f]').forEach(b=>b.classList.toggle('on',b===btn));obRender()}
+async function obOpen(m){
+const sheet=document.getElementById('obSheet'),body=document.getElementById('obSheetBody');
+sheet.style.display='block';body.innerHTML='<div class="empty">opening…</div>';
+let full=m;
+try{const d=await(await fetch(API+'/ombre/buckets/'+encodeURIComponent(m.id))).json();if(d&&(d.content||d.preview))full=d}catch(e){}
+body.innerHTML='';
+const h=document.createElement('div');h.className='sub-title serif';h.textContent=full.name||'memory';
+const meta=document.createElement('div');meta.className='hint';meta.style.marginTop='4px';
+meta.textContent=(full.pinned?'✦ pinned · ':'')+'importance '+full.importance+(full.domains?' · '+full.domains:'');
+const ct=document.createElement('div');ct.style.cssText='margin-top:14px;font-size:14px;line-height:1.85;white-space:pre-wrap';
+ct.textContent=full.content||full.preview||'';
+const idb=document.createElement('div');idb.className='hint';idb.style.marginTop='14px';idb.textContent='ID '+full.id;
+body.appendChild(h);body.appendChild(meta);body.appendChild(ct);body.appendChild(idb)}
+function obSheetClose(){document.getElementById('obSheet').style.display='none'}
 
 // moments
 function momTab(t){
