@@ -677,7 +677,10 @@ const t=document.createElement('div');t.className='mem-t';
 const imp='●'.repeat(Math.min(m.importance,10))+'○'.repeat(Math.max(0,10-m.importance));
 t.textContent=(m.pinned?'✦ ':'')+imp+(m.domains?' · '+m.domains:'')+(m.createdAt?' · '+new Date(m.createdAt).toLocaleDateString('en-GB',{month:'short',day:'numeric'}).toUpperCase():'');
 d.appendChild(t);d.onclick=()=>obOpen(m);c.appendChild(d)})}
-function obFilter(f,btn){obF=f;document.querySelectorAll('#vault [data-f]').forEach(b=>b.classList.toggle('on',b===btn));obRender()}
+function obFilter(f,btn){
+if(obF===f&&f!=='all'){obF='all';btn.classList.remove('on');document.querySelector('#vault [data-f="all"]').classList.add('on')}
+else{obF=f;document.querySelectorAll('#vault [data-f]').forEach(b=>b.classList.toggle('on',b===btn))}
+obRender()}
 async function obOpen(m){
 const sheet=document.getElementById('obSheet'),body=document.getElementById('obSheetBody');
 sheet.style.display='block';body.innerHTML='<div class="empty">opening…</div>';
