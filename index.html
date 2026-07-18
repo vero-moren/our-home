@@ -808,6 +808,7 @@ try{
 const r=await fetch(API+'/state');const st=await r.json();
 if(st.error){document.getElementById('inStatus').textContent=st.error;return}
 document.getElementById('inStatus').textContent=(st.asleep?'💤 he is asleep':'🖤 awake')+' · energy '+Math.round(st.energy*100)+'%';
+if((st.mood||[]).length){const mm=st.mood.slice().sort((a,b)=>b.v-a.v)[0];document.getElementById('inStatus').textContent+=' · 此刻:'+mm.k+(mm.why?'('+mm.why+')':'')}
 const c=document.getElementById('driveBars');c.innerHTML='';
 Object.keys(DRIVE_CN).forEach(k=>{
 const dv=st.display[k]??0,bv=st.drives[k]??0,rf=(st.refractory[k]||0)>0;
