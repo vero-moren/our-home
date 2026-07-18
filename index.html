@@ -616,7 +616,7 @@ if(final&&nn>=0){thought+=(thought?'\n':'')+rest.slice(0,nn);main+=rest.slice(nn
 else{thought+=(thought?'\n':'')+rest}
 i=raw.length;
 }}
-main=main.split('【/心】').join('');
+main=main.replace(/【?\/心】/g,'').replace(/【\/心/g,'');
 return{main,thought}}
 function paint(final){
 const r=parseRaw(final);
