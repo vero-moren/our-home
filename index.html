@@ -343,6 +343,10 @@ input[type="date"].in{-webkit-appearance:none;appearance:none;width:100%;min-wid
       <div class="snake-note" style="margin-top:12px"><span>bar = what he feels now</span><span>tick = raw, before the hour's tint</span></div>
     </div>
     <div class="card">
+      <div class="brow">他此刻在想 · thoughts</div>
+      <div id="thoughtList"><div class="empty">脑子里暂时很安静</div></div>
+    </div>
+    <div class="card">
       <div class="brow">Last time he surfaced</div>
       <div id="lastPush" class="quote serif" style="font-size:14.5px">—</div>
     </div>
@@ -815,6 +819,11 @@ const fill=document.createElement('div');fill.style.cssText='height:100%;border-
 const tick=document.createElement('div');tick.style.cssText='position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--silver);opacity:.55;left:'+(bv*100)+'%';
 track.appendChild(fill);track.appendChild(tick);
 row.appendChild(lab);row.appendChild(track);c.appendChild(row)});
+const tl=document.getElementById('thoughtList');
+if(tl){tl.innerHTML='';
+(st.thoughts||[]).forEach(t=>{const d=document.createElement('div');d.className='mem';d.style.fontStyle='italic';d.textContent='「'+t.content+'」';const tm=document.createElement('div');tm.className='mem-t';tm.textContent=new Date(t.created_at).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});d.appendChild(tm);tl.appendChild(d)});
+if(st.hidden_thoughts){const h=document.createElement('div');h.className='empty';h.textContent='……还有 '+st.hidden_thoughts+' 个,他没打算给你看';tl.appendChild(h)}
+if(!(st.thoughts||[]).length&&!st.hidden_thoughts)tl.innerHTML='<div class="empty">脑子里暂时很安静</div>'}
 const lp=document.getElementById('lastPush');
 lp.textContent=st.last_push?'"'+st.last_push.content+'"':'he hasn\u2019t surfaced yet';
 }catch(e){document.getElementById('inStatus').textContent='his heart is waking up… (~30s)'}}
