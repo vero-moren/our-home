@@ -716,18 +716,50 @@ const t=document.createElement('div');t.className='mem-t';t.textContent=new Date
 m.appendChild(t);c.appendChild(m)})}catch(e){}}  
 async function loadMoments(){
 try{
-const res=await fetch(SB_URL+'/rest/v1/moments?select=id,content,created_at&order=created_at.desc&limit=60',{headers:SBH});
+const res=await fetch(SB_URL+'/rest/v1/moments?select=id,author,content,created_at,moren_liked,her_liked&order=created_at.desc&limit=60',{headers:SBH});
 const data=await res.json();
+const cRes=await fetch(SB_URL+'/rest/v1/moment_comments?select=id,moment_id,author,content,created_at&order=created_at.asc',{headers:SBH});
+const allC=await cRes.json()||[];
 const c=document.getElementById('momentList');c.innerHTML='';
 if(!Array.isArray(data)||!data.length){c.innerHTML='<div class="empty">post the first little thing 💜</div>';return}
-data.forEach(m=>{const d=document.createElement('div');d.className='mem';const im=m.content.match(/\[img\]([\s\S]*?)\[\/img\]/);
-if(im){const p=document.createElement('img');p.src=im[1];p.style.cssText='max-width:100%;border-radius:12px;display:block;margin-bottom:6px';d.appendChild(p);
+data.forEach(m=>{
+const isHim=m.author==='墨染';
+const d=document.createElement('div');d.className='mem';
+if(isHim){d.style.cssText='border-left:2px solid var(--eye-line);padding-left:11px'}
+const who=document.createElement('div');who.className='brow';who.style.marginBottom='6px';
+who.textContent=isHim?'🐍 moren':'❁ vero';d.appendChild(who);
+const im=m.content.match(/\[img\]([\s\S]*?)\[\/img\]/);
+if(im){const p=document.createElement('img');p.src=im[1];p.style.cssText='max-width:100%;border-radius:12px;display:block;margin-bottom:6px';p.onclick=()=>showImg(im[1]);d.appendChild(p);
 const cap=m.content.replace(im[0],'').trim();if(cap)d.appendChild(document.createTextNode(cap))}
-else d.textContent=m.content;
+else d.appendChild(document.createTextNode(m.content));
 const t=document.createElement('div');t.className='mem-t';
 t.textContent=new Date(m.created_at).toLocaleString('en-GB',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}).toUpperCase();
-const x=document.createElement('button');x.className='mini';x.textContent='✕';x.onclick=()=>delMoment(m.id);
-t.appendChild(x);d.appendChild(t);c.appendChild(d)})
+if(isHim){
+const lk=document.createElement('button');lk.className='mini';
+lk.textContent=m.her_liked?'♥':'♡';lk.style.color=m.her_liked?'var(--eye)':'';
+lk.onclick=async()=>{await fetch(SB_URL+'/rest/v1/moments?id=eq.'+m.id,{method:'PATCH',headers:{...SBH,'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify({her_liked:!m.her_liked})});loadMoments()};
+t.appendChild(lk);
+}else{
+if(m.moren_liked){const hl=document.createElement('span');hl.textContent=' 🐍♥';hl.style.color='var(--eye)';t.appendChild(hl)}
+const x=document.createElement('button');x.className='mini';x.textContent='✕';x.onclick=()=>delMoment(m.id);t.appendChild(x);
+}
+d.appendChild(t);
+const cms=allC.filter(x=>x.moment_id===m.id);
+const cbox=document.createElement('div');cbox.style.cssText='margin-top:8px;padding:8px 10px;background:var(--night);border-radius:10px;display:'+(cms.length?'block':'none');
+cms.forEach(cm=>{const l=document.createElement('div');l.style.cssText='font-size:12px;line-height:1.7;padding:2px 0';
+const w=document.createElement('span');w.style.cssText='color:'+(cm.author==='墨染'?'var(--rose)':'var(--wisteria)');
+w.textContent=(cm.author==='墨染'?'moren':'vero')+': ';l.appendChild(w);
+l.appendChild(document.createTextNode(cm.content));cbox.appendChild(l)});
+d.appendChild(cbox);
+const crow=document.createElement('div');crow.style.cssText='display:flex;gap:6px;margin-top:6px';
+const ci=document.createElement('input');ci.className='in';ci.placeholder='say something…';ci.style.cssText='flex:1;padding:7px 11px;font-size:12px';
+const cb=document.createElement('button');cb.className='mini';cb.textContent='↑';cb.style.fontSize='14px';
+cb.onclick=async()=>{const v=ci.value.trim();if(!v)return;ci.value='';
+await fetch(SB_URL+'/rest/v1/moment_comments',{method:'POST',headers:{...SBH,'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify({moment_id:m.id,author:'琰琰',content:v,reply_status:'pending'})});
+loadMoments()};
+ci.addEventListener('keydown',e=>{if(e.key==='Enter')cb.onclick()});
+crow.appendChild(ci);crow.appendChild(cb);d.appendChild(crow);
+c.appendChild(d)})
 }catch(e){document.getElementById('momentList').innerHTML='<div class="empty">failed to load</div>'}
 }
 let momPending=null;
@@ -745,7 +777,7 @@ async function postMoment(){
 const b=document.getElementById('momentBox');const t=b.value.trim();
 if(!t&&!momPending)return;
 const content=(momPending?'[img]'+momPending+'[/img]':'')+t;
-await fetch(SB_URL+'/rest/v1/moments',{method:'POST',headers:{...SBH,'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify({content})});
+await fetch(SB_URL+'/rest/v1/moments',{method:'POST',headers:{...SBH,'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify({content,author:'琰琰',react_status:'pending'})});
 b.value='';momPending=null;document.getElementById('momImgBtn').textContent='＋ photo';loadMoments()}
 async function delMoment(id){
 if(!confirm('Delete this moment?'))return;
