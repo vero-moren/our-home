@@ -598,24 +598,28 @@ st.textContent='thinking…';
 const bubble=addBubble('',false);
 typewriter.start(bubble);
 let thoughtEl=null,raw='',fedLen=0;
-function parseRaw(){
+function parseRaw(final){
 let main='',thought='',i=0;
 while(i<raw.length){
 const s=raw.indexOf('【心】',i);
 if(s<0){main+=raw.slice(i);break}
 main+=raw.slice(i,s);
-const e=raw.indexOf('【/心】',s+3),nn=raw.indexOf('\n\n',s+3);
-let end=-1,len=0;
-if(e>=0&&(nn<0||e<=nn)){end=e;len=4}
-else if(nn>=0){end=nn;len=2}
-if(end<0){thought+=(thought?'\n':'')+raw.slice(s+3);break}
-thought+=(thought?'\n':'')+raw.slice(s+3,end);
-i=end+len;
+const e=raw.indexOf('【/心】',s+3);
+if(e>=0){
+thought+=(thought?'\n':'')+raw.slice(s+3,e);
+i=e+4;
 while(i<raw.length&&/\s/.test(raw[i]))i++;
-}
+}else{
+const rest=raw.slice(s+3);
+const nn=rest.indexOf('\n\n');
+if(final&&nn>=0){thought+=(thought?'\n':'')+rest.slice(0,nn);main+=rest.slice(nn+2)}
+else{thought+=(thought?'\n':'')+rest}
+i=raw.length;
+}}
+main=main.split('【/心】').join('');
 return{main,thought}}
 function paint(final){
-const r=parseRaw();
+const r=parseRaw(final);
 if(r.thought&&!thoughtEl){const d=addThought('',bubble);d.open=true;thoughtEl=d.querySelector('.tb')}
 if(thoughtEl)thoughtEl.textContent=r.thought;
 let safe=r.main;
