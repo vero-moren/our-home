@@ -363,8 +363,6 @@ input[type="date"].in{-webkit-appearance:none;appearance:none;width:100%;min-wid
       <div class="brow">How he thinks</div>
       <div class="f-row"><div><div class="f-lab">Temperature</div><div class="f-des">warmth of his voice</div></div><input class="f-in" id="sTemp"></div>
       <div class="f-row"><div><div class="f-lab">Context rounds</div><div class="f-des">recent turns he re-reads</div></div><input class="f-in" id="sCtx"></div>
-      <div class="f-row"><div><div class="f-lab">Compress at</div><div class="f-des">token threshold</div></div><input class="f-in" id="sCmp"></div>
-      <div class="f-row"><div><div class="f-lab">Keep after</div><div class="f-des">rounds kept post-compress</div></div><input class="f-in" id="sKeep"></div>
       <div class="f-row"><div><div class="f-lab">Max reply</div><div class="f-des">tokens per answer</div></div><input class="f-in" id="sMax"></div>
       <button class="soft-btn" onclick="saveSettings()">Save</button>
       <div class="hint" id="setStatus">Saved to the settings table — change him anytime, no redeploy.</div>
@@ -648,7 +646,7 @@ document.getElementById('obSearch').addEventListener('input',function(){clearTim
 
 // memories & moments & days
 // vault · his brain (Ombre)
-let obItems=[],obF='all',obQ='',obT=null;
+let obItems=[],obF='all',obQ='',obT=null,obTag='';
 async function loadVault(){
 try{const st=await(await fetch(API+'/ombre/status')).json();
 document.getElementById('obStat').textContent=st.available?('his brain · '+st.total+' memories'):'his brain · sleeping'}
@@ -663,11 +661,17 @@ const d=await(await fetch(API+path)).json();
 obItems=d.items||[];obRender()
 }catch(e){c.innerHTML='<div class="empty">his brain is waking… retry in a moment</div>'}}
 function obRender(){
+const tb=document.getElementById('obTags');
+if(tb){const set=new Set();obItems.forEach(m=>String(m.domains||'').split(',').forEach(t=>{t=t.trim();if(t)set.add(t)}));
+tb.innerHTML='';[...set].sort().forEach(t=>{
+const b=document.createElement('button');b.className='ctrl-pill tog'+(obTag===t?' on':'');b.textContent='# '+t;
+b.onclick=()=>{obTag=obTag===t?'':t;obRender()};tb.appendChild(b)})}
 const c=document.getElementById('vaultList');
 let list=obItems;
 if(obF==='pinned')list=list.filter(m=>m.pinned);
 if(obF==='deep')list=list.filter(m=>m.importance>=9);
-document.getElementById('obListBrow').textContent=(obQ?'Found':'Everything he keeps')+' · '+list.length;
+if(obTag)list=list.filter(m=>String(m.domains||'').split(',').map(x=>x.trim()).includes(obTag));
+document.getElementById('obListBrow').textContent=(obQ?'Found':'Everything he keeps')+(obTag?' · #'+obTag:'')+' · '+list.length;
 c.innerHTML='';
 if(!list.length){c.innerHTML='<div class="empty">nothing surfaced</div>';return}
 list.slice(0,120).forEach(m=>{
@@ -881,13 +885,13 @@ lp.textContent=st.last_push?'"'+st.last_push.content+'"':'he hasn\u2019t surface
 async function loadSettings(){
 try{const r=await fetch(API+'/settings');const s=await r.json();
 sPrompt.value=s.system_prompt||'';sTemp.value=s.temperature??0.9;sCtx.value=s.context_rounds??20;
-sCmp.value=s.compress_at??4000;sKeep.value=s.keep_after??6;sMax.value=s.max_reply??1000;
+sMax.value=s.max_reply??1000;
 }catch(e){setStatus.textContent='could not load — is the heart awake?'}}
 async function saveSettings(){
 setStatus.textContent='saving…';
 try{await fetch(API+'/settings',{method:'POST',headers:{'Content-Type':'application/json'},
 body:JSON.stringify({system_prompt:sPrompt.value,temperature:Number(sTemp.value),context_rounds:Number(sCtx.value),
-compress_at:Number(sCmp.value),keep_after:Number(sKeep.value),max_reply:Number(sMax.value)})});
+max_reply:Number(sMax.value)})});
 setStatus.textContent='saved 🖤 he changes with your words'}
 catch(e){setStatus.textContent='failed to save — try again'}}
 
