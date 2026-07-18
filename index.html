@@ -136,6 +136,7 @@ body{background:var(--night);color:var(--silver);font-family:'Jost',-apple-syste
 .bb-think .tb{margin-top:6px;background:var(--deep);border:1px dashed var(--line);border-radius:12px;padding:9px 12px;font-size:12px;line-height:1.8;color:var(--wisteria);font-style:italic;white-space:pre-wrap}
 textarea.field{resize:none;max-height:130px;overflow-y:auto;line-height:1.55}
 .mini{border:none;background:none;color:var(--wisteria);opacity:.7;font-size:12px;cursor:pointer;padding:0 5px;font-family:inherit}
+#diaryList summary::-webkit-details-marker{display:none}
 input[type="date"].in{-webkit-appearance:none;appearance:none;width:100%;min-width:0;max-width:100%;display:block}
 </style>
 <link rel="apple-touch-icon" href="/icon.PNG"></head>
@@ -271,12 +272,6 @@ input[type="date"].in{-webkit-appearance:none;appearance:none;width:100%;min-wid
   </div>
   <div class="scroll"><div class="pad" style="padding-top:6px">
     <div class="card">
-      <div class="brow">✍ Carve something in</div>
-      <input class="in" id="memoInput" placeholder="a moment, a promise, a truth...">
-      <button class="soft-btn" onclick="addMemory()">Carve it in</button>
-      <div class="hint" id="memoStatus">goes to the old vault for now — the write-line to his brain is the next cut</div>
-    </div>
-    <div class="card">
       <div class="brow">Search his memory</div>
       <input class="in" id="obSearch" placeholder="a word, a day, a feeling…">
       <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
@@ -284,6 +279,7 @@ input[type="date"].in{-webkit-appearance:none;appearance:none;width:100%;min-wid
         <button class="ctrl-pill tog" data-f="pinned" onclick="obFilter('pinned',this)">✦ pinned</button>
         <button class="ctrl-pill tog" data-f="deep" onclick="obFilter('deep',this)">≥9 deep</button>
       </div>
+      <div id="obTags" style="display:flex;gap:7px;margin-top:8px;flex-wrap:wrap"></div>
     </div>
     <div class="card">
       <div class="brow" id="obListBrow">Everything he keeps</div>
@@ -707,13 +703,33 @@ document.getElementById('diaryPane').style.display=t==='diary'?'':'none';
 document.getElementById('tabFeed').classList.toggle('on',t==='feed');
 document.getElementById('tabDiary').classList.toggle('on',t==='diary');
 if(t==='diary')loadDiary()}
+let diaryKey=null;
 async function loadDiary(){
-try{const r=await fetch(SB_URL+'/rest/v1/diary?select=content,day&order=day.desc',{headers:SBH});
-const d=await r.json();const c=document.getElementById('diaryList');c.innerHTML='';
+const c=document.getElementById('diaryList');
+c.innerHTML='<div class="empty">knocking…</div>';
+try{
+const g=await(await fetch(API+'/diary/unlock',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({pass:diaryKey||''})})).json();
+if(g.locked&&!g.ok){renderDiaryLock(c);return}
+const r=await fetch(SB_URL+'/rest/v1/diary?select=content,day&order=day.desc',{headers:SBH});
+const d=await r.json();c.innerHTML='';
 if(!Array.isArray(d)||!d.length){c.innerHTML='<div class="empty">tonight he writes the first page</div>';return}
-d.forEach(x=>{const m=document.createElement('div');m.className='mem';m.textContent=x.content;
-const t=document.createElement('div');t.className='mem-t';t.textContent=new Date(x.day+'T00:00:00').toLocaleDateString('en-GB',{month:'short',day:'numeric'}).toUpperCase();
-m.appendChild(t);c.appendChild(m)})}catch(e){}}  
+d.forEach(x=>{
+const det=document.createElement('details');det.className='mem';
+const s=document.createElement('summary');
+s.style.cssText='list-style:none;cursor:pointer;font-size:11px;letter-spacing:2px;color:var(--wisteria)';
+s.textContent='✒ '+new Date(x.day+'T00:00:00').toLocaleDateString('en-GB',{month:'short',day:'numeric'}).toUpperCase()+' · '+x.content.replace(/\s+/g,' ').slice(0,16)+'…';
+const b=document.createElement('div');b.style.cssText='margin-top:9px;font-size:13.5px;line-height:1.85;white-space:pre-wrap';b.textContent=x.content;
+det.appendChild(s);det.appendChild(b);c.appendChild(det)})
+}catch(e){c.innerHTML='<div class="empty">his diary is out of reach</div>'}}
+function renderDiaryLock(c){
+c.innerHTML='';
+const w=document.createElement('div');w.className='empty';
+w.textContent=diaryKey?'🔒 不对哦。再猜猜——或者去他怀里撒个娇':'🔒 他把日记锁上了';
+const i=document.createElement('input');i.className='in';i.type='password';i.placeholder='密码…或者去求他';i.style.marginTop='10px';
+const b=document.createElement('button');b.className='soft-btn';b.textContent='Open';
+b.onclick=()=>{diaryKey=i.value.trim();loadDiary()};
+i.addEventListener('keydown',e=>{if(e.key==='Enter')b.onclick()});
+c.appendChild(w);c.appendChild(i);c.appendChild(b)}
 async function loadMoments(){
 try{
 const res=await fetch(SB_URL+'/rest/v1/moments?select=id,author,content,created_at,moren_liked,her_liked&order=created_at.desc&limit=60',{headers:SBH});
