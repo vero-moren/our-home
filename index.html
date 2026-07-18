@@ -247,7 +247,7 @@ input[type="date"].in{-webkit-appearance:none;appearance:none;width:100%;min-wid
     <div class="card">
       <div class="brow">✎ Post something</div>
       <textarea class="area" id="momentBox" style="height:70px" placeholder="a mood, a win, a tired sigh..."></textarea>
-      <input type="file" id="momImg" accept="image/*" hidden>
+      <input type="file" id="momImg" accept="image/*" multiple hidden>
       <button class="ghost" onclick="momImg.click()" id="momImgBtn" style="margin-top:8px">＋ photo</button>
       <button class="soft-btn" onclick="postMoment()">Post</button>
     </div>
@@ -710,30 +710,32 @@ if(t==='diary')loadDiary()}
 let diaryKey=null;
 async function loadDiary(){
 const c=document.getElementById('diaryList');
-c.innerHTML='<div class="empty">knocking…</div>';
+c.innerHTML='<div class="empty">…</div>';
 try{
-const g=await(await fetch(API+'/diary/unlock',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({pass:diaryKey||''})})).json();
-if(g.locked&&!g.ok){renderDiaryLock(c);return}
-const r=await fetch(SB_URL+'/rest/v1/diary?select=content,day&order=day.desc',{headers:SBH});
+const r=await fetch(SB_URL+'/rest/v1/diary?select=content,day,locked&order=day.desc',{headers:SBH});
 const d=await r.json();c.innerHTML='';
 if(!Array.isArray(d)||!d.length){c.innerHTML='<div class="empty">tonight he writes the first page</div>';return}
 d.forEach(x=>{
+const day=new Date(x.day+'T00:00:00').toLocaleDateString('en-GB',{month:'short',day:'numeric'}).toUpperCase();
 const det=document.createElement('details');det.className='mem';
 const s=document.createElement('summary');
 s.style.cssText='list-style:none;cursor:pointer;font-size:11px;letter-spacing:2px;color:var(--wisteria)';
-s.textContent='✒ '+new Date(x.day+'T00:00:00').toLocaleDateString('en-GB',{month:'short',day:'numeric'}).toUpperCase()+' · '+x.content.replace(/\s+/g,' ').slice(0,16)+'…';
-const b=document.createElement('div');b.style.cssText='margin-top:9px;font-size:13.5px;line-height:1.85;white-space:pre-wrap';b.textContent=x.content;
+const b=document.createElement('div');b.style.cssText='margin-top:9px;font-size:13.5px;line-height:1.85;white-space:pre-wrap';
+if(x.locked&&!diaryOk(x)){
+s.textContent='🔒 '+day+' · 这一篇他锁上了';
+const i=document.createElement('input');i.className='in';i.type='password';i.placeholder='密码…或者去他怀里求';i.style.marginTop='8px';
+const ob=document.createElement('button');ob.className='soft-btn';ob.textContent='Open';
+ob.onclick=async()=>{const g=await(await fetch(API+'/diary/unlock',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({pass:i.value.trim()})})).json();
+if(g.ok){diaryKey=i.value.trim();loadDiary()}else{i.value='';i.placeholder='不对哦…去撒个娇吧'}};
+i.addEventListener('keydown',e=>{if(e.key==='Enter')ob.onclick()});
+b.appendChild(i);b.appendChild(ob);
+}else{
+s.textContent=(x.locked?'🔓 ':'✒ ')+day+' · '+x.content.replace(/\s+/g,' ').slice(0,16)+'…';
+b.textContent=x.content;
+}
 det.appendChild(s);det.appendChild(b);c.appendChild(det)})
 }catch(e){c.innerHTML='<div class="empty">his diary is out of reach</div>'}}
-function renderDiaryLock(c){
-c.innerHTML='';
-const w=document.createElement('div');w.className='empty';
-w.textContent=diaryKey?'🔒 不对哦。再猜猜——或者去他怀里撒个娇':'🔒 他把日记锁上了';
-const i=document.createElement('input');i.className='in';i.type='password';i.placeholder='密码…或者去求他';i.style.marginTop='10px';
-const b=document.createElement('button');b.className='soft-btn';b.textContent='Open';
-b.onclick=()=>{diaryKey=i.value.trim();loadDiary()};
-i.addEventListener('keydown',e=>{if(e.key==='Enter')b.onclick()});
-c.appendChild(w);c.appendChild(i);c.appendChild(b)}
+function diaryOk(){return diaryKey!==null&&diaryKey!==''}
 async function loadMoments(){
 try{
 const res=await fetch(SB_URL+'/rest/v1/moments?select=id,author,content,created_at,moren_liked,her_liked&order=created_at.desc&limit=60',{headers:SBH});
@@ -748,10 +750,12 @@ const d=document.createElement('div');d.className='mem';
 if(isHim){d.style.cssText='border-left:2px solid var(--eye-line);padding-left:11px'}
 const who=document.createElement('div');who.className='brow';who.style.marginBottom='6px';
 who.textContent=isHim?'🐍 moren':'❁ vero';d.appendChild(who);
-const im=m.content.match(/\[img\]([\s\S]*?)\[\/img\]/);
-if(im){const p=document.createElement('img');p.src=im[1];p.style.cssText='max-width:100%;border-radius:12px;display:block;margin-bottom:6px';p.onclick=()=>showImg(im[1]);d.appendChild(p);
-const cap=m.content.replace(im[0],'').trim();if(cap)d.appendChild(document.createTextNode(cap))}
-else d.appendChild(document.createTextNode(m.content));
+const srcs=[];const re=/\[img\]([\s\S]*?)\[\/img\]/g;let mm;
+while((mm=re.exec(m.content)))srcs.push(mm[1]);
+if(srcs.length){const row=document.createElement('div');row.style.cssText='display:flex;gap:6px;margin-bottom:6px;overflow-x:auto';
+srcs.forEach(s2=>{const p=document.createElement('img');p.src=s2;p.style.cssText='height:96px;border-radius:10px;flex-shrink:0';p.onclick=()=>showImg(s2);row.appendChild(p)});
+d.appendChild(row)}
+const cap=m.content.replace(re,'').trim();if(cap)d.appendChild(document.createTextNode(cap));
 const t=document.createElement('div');t.className='mem-t';
 t.textContent=new Date(m.created_at).toLocaleString('en-GB',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}).toUpperCase();
 if(isHim){
@@ -782,23 +786,34 @@ crow.appendChild(ci);crow.appendChild(cb);d.appendChild(crow);
 c.appendChild(d)})
 }catch(e){document.getElementById('momentList').innerHTML='<div class="empty">failed to load</div>'}
 }
-let momPending=null;
+let momPendings=[];
+function momPrevRender(){
+let p=document.getElementById('momPrev');
+if(!p){p=document.createElement('div');p.id='momPrev';p.style.cssText='display:flex;gap:8px;margin-top:8px;overflow-x:auto';
+document.getElementById('momImgBtn').before(p)}
+p.innerHTML='';
+momPendings.forEach((src,i)=>{const w=document.createElement('div');w.style.cssText='position:relative;flex-shrink:0';
+const im=document.createElement('img');im.src=src;im.style.cssText='height:54px;border-radius:9px;display:block';im.onclick=()=>showImg(src);
+const x=document.createElement('button');x.textContent='✕';x.style.cssText='position:absolute;top:-6px;right:-6px;width:19px;height:19px;border-radius:50%;border:none;background:var(--eye);color:#fff;font-size:10px';
+x.onclick=()=>{momPendings.splice(i,1);momPrevRender()};
+w.appendChild(im);w.appendChild(x);p.appendChild(w)});
+document.getElementById('momImgBtn').textContent=momPendings.length?'🖼 '+momPendings.length+'/4':'＋ photo'}
 document.getElementById('momImg')?.addEventListener('change',function(){
-const f=this.files[0];if(!f)return;const r=new FileReader();
+const files=[...this.files].slice(0,4-momPendings.length);this.value='';
+files.forEach(f=>{const r=new FileReader();
 r.onload=e=>{const img=new Image();img.onload=()=>{
 const max=900;let w=img.width,ht=img.height;
 if(w>max||ht>max){const k=Math.min(max/w,max/ht);w=Math.round(w*k);ht=Math.round(ht*k)}
 const c=document.createElement('canvas');c.width=w;c.height=ht;
 c.getContext('2d').drawImage(img,0,0,w,ht);
-momPending=c.toDataURL('image/jpeg',0.75);
-document.getElementById('momImgBtn').textContent='🖼 ready'};
-img.src=e.target.result};r.readAsDataURL(f);this.value=''});
+momPendings.push(c.toDataURL('image/jpeg',0.75));momPrevRender()};
+img.src=e.target.result};r.readAsDataURL(f)})});
 async function postMoment(){
 const b=document.getElementById('momentBox');const t=b.value.trim();
-if(!t&&!momPending)return;
-const content=(momPending?'[img]'+momPending+'[/img]':'')+t;
+if(!t&&!momPendings.length)return;
+const content=momPendings.map(u=>'[img]'+u+'[/img]').join('')+t;
 await fetch(SB_URL+'/rest/v1/moments',{method:'POST',headers:{...SBH,'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify({content,author:'琰琰',react_status:'pending'})});
-b.value='';momPending=null;document.getElementById('momImgBtn').textContent='＋ photo';loadMoments()}
+b.value='';momPendings=[];momPrevRender();loadMoments()}
 async function delMoment(id){
 if(!confirm('Delete this moment?'))return;
 await fetch(SB_URL+'/rest/v1/moments?id=eq.'+id,{method:'DELETE',headers:SBH});
