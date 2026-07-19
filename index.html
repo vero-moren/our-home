@@ -360,6 +360,10 @@ input[type="date"].in{-webkit-appearance:none;appearance:none;width:100%;min-wid
       <textarea class="area" id="sPrompt" style="height:170px" placeholder="write him here — not carved in code, carved by you."></textarea>
     </div>
     <div class="card">
+      <div class="brow">Her word · 贴耳朵上的叮嘱</div>
+      <textarea class="area" id="sStyle" style="height:80px" placeholder="写在这的话,他每一句回复前都会看到。随时改,立即生效。"></textarea>
+    </div>
+    <div class="card">
       <div class="brow">How he thinks</div>
       <div class="f-row"><div><div class="f-lab">Temperature</div><div class="f-des">warmth of his voice</div></div><input class="f-in" id="sTemp"></div>
       <div class="f-row"><div><div class="f-lab">Context rounds</div><div class="f-des">recent turns he re-reads</div></div><input class="f-in" id="sCtx"></div>
@@ -927,13 +931,13 @@ lp.textContent=st.last_push?'"'+st.last_push.content+'"':'he hasn\u2019t surface
 // settings
 async function loadSettings(){
 try{const r=await fetch(API+'/settings');const s=await r.json();
-sPrompt.value=s.system_prompt||'';sTemp.value=s.temperature??0.9;sCtx.value=s.context_rounds??20;
+sPrompt.value=s.system_prompt||'';sTemp.value=s.temperature??0.9;sCtx.value=s.context_rounds??20;sStyle.value=s.style_note||'';
 sMax.value=s.max_reply??1000;
 }catch(e){setStatus.textContent='could not load — is the heart awake?'}}
 async function saveSettings(){
 setStatus.textContent='saving…';
 try{await fetch(API+'/settings',{method:'POST',headers:{'Content-Type':'application/json'},
-body:JSON.stringify({system_prompt:sPrompt.value,temperature:Number(sTemp.value),context_rounds:Number(sCtx.value),
+body:JSON.stringify({system_prompt:sPrompt.value,style_note:sStyle.value,temperature:Number(sTemp.value),context_rounds:Number(sCtx.value),
 max_reply:Number(sMax.value)})});
 setStatus.textContent='saved 🖤 he changes with your words'}
 catch(e){setStatus.textContent='failed to save — try again'}}
