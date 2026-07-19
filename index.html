@@ -509,7 +509,8 @@ while((mm=re.exec(m.content)))srcs.push(mm[1]);
 const text=m.content.replace(re,'').trim();
 const parts=me?[text]:text.split(/\n{2,}/).map(s=>s.trim()).filter(Boolean);
 if(srcs.length){const b=document.createElement('div');b.className='bb '+(me?'me':'him');
-srcs.forEach(s=>{const im=document.createElement('img');im.src=s;im.style.marginBottom='4px';im.onclick=()=>showImg(s);b.appendChild(im)});
+b.style.cssText='display:flex;gap:6px;overflow-x:auto;padding:9px';
+srcs.forEach(s=>{const im=document.createElement('img');im.src=s;im.style.cssText='height:110px;width:auto;border-radius:10px;flex-shrink:0';im.onclick=()=>showImg(s);b.appendChild(im)});
 frag.appendChild(b)}
 if(!parts.length&&!srcs.length)parts.push('[一张照片]');
 parts.forEach(p=>{const b=document.createElement('div');b.className='bb '+(me?'me':'him');b.textContent=p;frag.appendChild(b)});
@@ -552,7 +553,9 @@ const im=document.createElement('img');im.src=src;im.style.cssText='max-width:96
 o.appendChild(im);o.onclick=()=>o.remove();document.body.appendChild(o)}
 function fillRich(b,content){const re=/\[img\]([\s\S]*?)\[\/img\]/g;const srcs=[];let mm;
 while((mm=re.exec(content)))srcs.push(mm[1]);
-srcs.forEach(s=>{const im=document.createElement('img');im.src=s;im.style.marginBottom='4px';im.onclick=()=>showImg(s);b.appendChild(im)});
+if(srcs.length){const row=document.createElement('div');row.style.cssText='display:flex;gap:6px;overflow-x:auto;margin-bottom:6px';
+srcs.forEach(s=>{const im=document.createElement('img');im.src=s;im.style.cssText='height:110px;width:auto;border-radius:10px;flex-shrink:0';im.onclick=()=>showImg(s);row.appendChild(im)});
+b.appendChild(row)}
 const text=content.replace(re,'').trim();if(text)b.appendChild(document.createTextNode(text))}
 function addRichBubble(content,me){const box=document.getElementById('chatBox');const b=document.createElement('div');b.className='bb '+(me?'me':'him');
 fillRich(b,content);box.appendChild(b);
