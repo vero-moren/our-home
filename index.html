@@ -499,8 +499,17 @@ box.appendChild(b);const t=document.createElement('div');t.className='bb-time '+
 const PAGE=30;let oldestAt=null,noMore=false,loadingOlder=false;
 function renderMsg(frag,m){
 if(m.sender==='墨染'&&m.thought){const d=document.createElement('details');d.className='bb-think';d.innerHTML='<summary>✧ HIS HEART</summary>';const t=document.createElement('div');t.className='tb';t.textContent=m.thought;d.appendChild(t);frag.appendChild(d)}
-const b=document.createElement('div');b.className='bb '+(m.sender==='琰琰'?'me':'him');fillRich(b,m.content);frag.appendChild(b);
-const tm=document.createElement('div');tm.className='bb-time '+(m.sender==='琰琰'?'t-me':'t-him');tm.textContent=tShort(m.created_at);frag.appendChild(tm)}
+const me=m.sender==='琰琰';
+const re=/\[img\]([\s\S]*?)\[\/img\]/g;const srcs=[];let mm;
+while((mm=re.exec(m.content)))srcs.push(mm[1]);
+const text=m.content.replace(re,'').trim();
+const parts=me?[text]:text.split(/\n{2,}/).map(s=>s.trim()).filter(Boolean);
+if(srcs.length){const b=document.createElement('div');b.className='bb '+(me?'me':'him');
+srcs.forEach(s=>{const im=document.createElement('img');im.src=s;im.style.marginBottom='4px';im.onclick=()=>showImg(s);b.appendChild(im)});
+frag.appendChild(b)}
+if(!parts.length&&!srcs.length)parts.push('[一张照片]');
+parts.forEach(p=>{const b=document.createElement('div');b.className='bb '+(me?'me':'him');b.textContent=p;frag.appendChild(b)});
+const tm=document.createElement('div');tm.className='bb-time '+(me?'t-me':'t-him');tm.textContent=tShort(m.created_at);frag.appendChild(tm)}
 async function fetchPage(){
 let url=SB_URL+'/rest/v1/messages?select=sender,content,thought,created_at&session_id=eq.'+SID+'&sender='+encodeURIComponent('in.("琰琰","墨染")')+'&order=created_at.desc&limit='+PAGE;
 if(oldestAt)url+='&created_at=lt.'+encodeURIComponent(oldestAt);
@@ -644,6 +653,12 @@ if(j.act){const a=document.createElement('div');a.className='bb-time t-him';a.st
 if(j.error)typewriter.push('\n(出错了，稍后再试)')}catch(e){}}}
 flushFeed();
 await typewriter.finish();
+const finalText=typewriter.rendered;
+const paras=finalText.split(/\n{2,}/).map(s=>s.trim()).filter(Boolean);
+if(paras.length>1){bubble.textContent=paras[0];
+let anchor=bubble;
+paras.slice(1).forEach(p=>{const nb=document.createElement('div');nb.className='bb him';nb.textContent=p;anchor.after(nb);anchor=nb});
+const box=document.getElementById('chatBox');box.scrollTop=box.scrollHeight}
 }catch(e){
 typewriter.dump();
 if(e.name!=='AbortError'&&!typewriter.rendered)bubble.textContent='(waking up — give it ~30s and try again)'}
