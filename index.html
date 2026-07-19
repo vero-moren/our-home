@@ -342,10 +342,6 @@ input[type="date"].in{-webkit-appearance:none;appearance:none;width:100%;min-wid
       <div class="brow">他此刻在想 · thoughts</div>
       <div id="thoughtList"><div class="empty">脑子里暂时很安静</div></div>
     </div>
-    <div class="card">
-      <div class="brow">Last time he surfaced</div>
-      <div id="lastPush" class="quote serif" style="font-size:14.5px">—</div>
-    </div>
   </div></div>
 </div>
   
@@ -508,10 +504,7 @@ const re=/\[img\]([\s\S]*?)\[\/img\]/g;const srcs=[];let mm;
 while((mm=re.exec(m.content)))srcs.push(mm[1]);
 const text=m.content.replace(re,'').trim();
 const parts=me?[text]:text.split(/\n{2,}/).map(s=>s.trim()).filter(Boolean);
-if(srcs.length){const b=document.createElement('div');b.className='bb '+(me?'me':'him');
-b.style.cssText='display:flex;gap:6px;overflow-x:auto;padding:9px';
-srcs.forEach(s=>{const im=document.createElement('img');im.src=s;im.style.cssText='height:110px;width:auto;border-radius:10px;flex-shrink:0';im.onclick=()=>showImg(s);b.appendChild(im)});
-frag.appendChild(b)}
+if(srcs.length){const b=document.createElement('div');b.className='bb '+(me?'me':'him');b.appendChild(imgWall(srcs));frag.appendChild(b)}
 if(!parts.length&&!srcs.length)parts.push('[一张照片]');
 parts.forEach(p=>{const b=document.createElement('div');b.className='bb '+(me?'me':'him');b.textContent=p;frag.appendChild(b)});
 const tm=document.createElement('div');tm.className='bb-time '+(me?'t-me':'t-him');tm.textContent=tShort(m.created_at);frag.appendChild(tm)}
@@ -551,10 +544,16 @@ let pendingImgs=[];
 function showImg(src){const o=document.createElement('div');o.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:99;display:flex;align-items:center;justify-content:center';
 const im=document.createElement('img');im.src=src;im.style.cssText='max-width:96%;max-height:92%;border-radius:12px';
 o.appendChild(im);o.onclick=()=>o.remove();document.body.appendChild(o)}
+function imgWall(srcs){const w=document.createElement('div');
+if(srcs.length===1){const im=document.createElement('img');im.src=srcs[0];im.style.cssText='max-width:100%;max-height:300px;width:auto;border-radius:12px;display:block';im.onclick=()=>showImg(srcs[0]);w.appendChild(im)}
+else{w.style.cssText='display:grid;grid-template-columns:1fr 1fr;gap:6px;min-width:180px';
+srcs.forEach(s=>{const im=document.createElement('img');im.src=s;im.style.cssText='width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px';im.onclick=()=>showImg(s);w.appendChild(im)})}
+return w}
+function obDate(s){s=String(s);if(!/Z|[+\-]\d{2}:?\d{2}$/.test(s))s=s.replace(' ','T')+'Z';return new Date(s)}
 function fillRich(b,content){const re=/\[img\]([\s\S]*?)\[\/img\]/g;const srcs=[];let mm;
 while((mm=re.exec(content)))srcs.push(mm[1]);
 if(srcs.length){const row=document.createElement('div');row.style.cssText='display:flex;gap:6px;overflow-x:auto;margin-bottom:6px';
-srcs.forEach(s=>{const im=document.createElement('img');im.src=s;im.style.cssText='height:110px;width:auto;border-radius:10px;flex-shrink:0';im.onclick=()=>showImg(s);row.appendChild(im)});
+if(srcs.length){const w=imgWall(srcs);w.style.marginBottom='6px';b.appendChild(w)}
 b.appendChild(row)}
 const text=content.replace(re,'').trim();if(text)b.appendChild(document.createTextNode(text))}
 function addRichBubble(content,me){const box=document.getElementById('chatBox');const b=document.createElement('div');b.className='bb '+(me?'me':'him');
@@ -714,7 +713,7 @@ const d=document.createElement('div');d.className='mem';d.style.cursor='pointer'
 d.textContent=(m.preview||m.content||'').slice(0,110);
 const t=document.createElement('div');t.className='mem-t';
 const imp='●'.repeat(Math.min(m.importance,10))+'○'.repeat(Math.max(0,10-m.importance));
-t.textContent=(m.pinned?'✦ ':'')+imp+(m.domains?' · '+m.domains:'')+(m.createdAt?' · '+new Date(m.createdAt).toLocaleDateString('en-GB',{month:'short',day:'numeric'}).toUpperCase():'');
+t.textContent=(m.pinned?'✦ ':'')+imp+(m.domains?' · '+m.domains:'')+(m.createdAt?' · '+obDate(m.createdAt).toLocaleDateString('en-GB',{month:'short',day:'numeric'}).toUpperCase():'');
 d.appendChild(t);d.onclick=()=>obOpen(m);c.appendChild(d)})}
 function obFilter(f,btn){
 if(obF===f&&f!=='all'){obF='all';btn.classList.remove('on');document.querySelector('#vault [data-f="all"]').classList.add('on')}
@@ -927,8 +926,6 @@ if(tl){tl.innerHTML='';
 (st.thoughts||[]).forEach(t=>{const d=document.createElement('div');d.className='mem';d.style.fontStyle='italic';d.textContent='「'+t.content+'」';const tm=document.createElement('div');tm.className='mem-t';tm.textContent=new Date(t.created_at).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});d.appendChild(tm);tl.appendChild(d)});
 if(st.hidden_thoughts){const h=document.createElement('div');h.className='empty';h.textContent='……还有 '+st.hidden_thoughts+' 个,他没打算给你看';tl.appendChild(h)}
 if(!(st.thoughts||[]).length&&!st.hidden_thoughts)tl.innerHTML='<div class="empty">脑子里暂时很安静</div>'}
-const lp=document.getElementById('lastPush');
-lp.textContent=st.last_push?'"'+st.last_push.content+'"':'he hasn\u2019t surfaced yet';
 }catch(e){document.getElementById('inStatus').textContent='his heart is waking up… (~30s)'}}
   
 // settings
