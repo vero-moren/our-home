@@ -868,7 +868,6 @@ stars.forEach((s,i)=>{const[x,y]=pts[i];
 h+='<circle class="star-dot" cx="'+x+'" cy="'+y+'" r="3"/>';
 const lab=s.day.slice(5).replace('-','.')+' '+s.label.replace(/[^\u4e00-\u9fa5a-zA-Z0-9. ]/g,'').trim().slice(0,12);
 h+='<text class="star-lab" x="'+Math.max(2,Math.min(x-30,232))+'" y="'+(y>60?y+16:y-10)+'">'+lab+'</text>';
-h+='<text class="star-lab" x="'+Math.max(2,x-30)+'" y="'+(y>60?y+16:y-10)+'">'+lab+'</text>'});
 const[hx,hy]=pts[n];
 h+='<circle class="star-head" cx="'+hx+'" cy="'+hy+'" r="5"/>';
 h+='<text class="star-lab now" x="'+(hx-44)+'" y="'+(hy-8)+'">day '+n2+'</text>';
@@ -892,16 +891,16 @@ async function addAnniv(){
 const l=document.getElementById('annivLabel'),d=document.getElementById('annivDay');
 if(!l.value.trim()||!d.value)return;
 await fetch(SB_URL+'/rest/v1/anniversaries',{method:'POST',headers:{...SBH,'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify({label:l.value.trim(),day:d.value})});
-l.value='';d.value='';loadDays()}drawSnake();
+l.value='';d.value='';loadDays()}
 async function editAnniv(id,old){
 const v=prompt('Rename this star:',old);
 if(v===null)return;const nv=v.trim();if(!nv)return;
 await fetch(SB_URL+'/rest/v1/anniversaries?id=eq.'+id,{method:'PATCH',headers:{...SBH,'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify({label:nv})});
-loadDays()}drawSnake();
+loadDays()}
 async function delAnniv(id){
 if(!confirm('Take this star down?'))return;
 await fetch(SB_URL+'/rest/v1/anniversaries?id=eq.'+id,{method:'DELETE',headers:SBH});
-loadDays()}drawSnake();
+loadDays()}
 
 const DRIVE_CN={longing:'想念 longing',express:'表达欲 express',curiosity:'好奇 curiosity',duty:'牵挂 duty',intimacy:'亲密 intimacy'};
 async function loadInside(){
@@ -910,6 +909,8 @@ const r=await fetch(API+'/state');const st=await r.json();
 if(st.error){document.getElementById('inStatus').textContent=st.error;return}
 document.getElementById('inStatus').textContent=(st.asleep?'💤 he is asleep':'🖤 awake')+' · energy '+Math.round(st.energy*100)+'%';
 if((st.mood||[]).length){const mm=st.mood.slice().sort((a,b)=>b.v-a.v)[0];document.getElementById('inStatus').textContent+=' · 此刻:'+mm.k+(mm.why?'('+mm.why+')':'')}
+try{const hh=await(await fetch(API+'/health')).json();
+document.getElementById('inStatus').textContent+=' · '+(hh.engine==='订阅⚡'?'⚡ 订阅供血':hh.engine==='OR'?'🜁 OpenRouter':'· 引擎待命');}catch(e){}
 const c=document.getElementById('driveBars');c.innerHTML='';
 Object.keys(DRIVE_CN).forEach(k=>{
 const dv=st.display[k]??0,bv=st.drives[k]??0,rf=(st.refractory[k]||0)>0;
