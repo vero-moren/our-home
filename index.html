@@ -867,7 +867,7 @@ let h='<path class="snake-path" d="'+path+'"/>';
 stars.forEach((s,i)=>{const[x,y]=pts[i];
 h+='<circle class="star-dot" cx="'+x+'" cy="'+y+'" r="3"/>';
 const lab=s.day.slice(5).replace('-','.')+' '+s.label.replace(/[^\u4e00-\u9fa5a-zA-Z0-9. ]/g,'').trim().slice(0,12);
-h+='<text class="star-lab" x="'+Math.max(2,Math.min(x-30,232))+'" y="'+(y>60?y+16:y-10)+'">'+lab+'</text>';
+h+='<text class="star-lab" x="'+Math.max(2,Math.min(x-30,232))+'" y="'+(y>60?y+16:y-10)+'">'+lab+'</text>'});
 const[hx,hy]=pts[n];
 h+='<circle class="star-head" cx="'+hx+'" cy="'+hy+'" r="5"/>';
 h+='<text class="star-lab now" x="'+(hx-44)+'" y="'+(hy-8)+'">day '+n2+'</text>';
