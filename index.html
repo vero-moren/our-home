@@ -595,12 +595,6 @@ async function sendToMoren(){
 const i=document.getElementById('aiInput');const msg=i.value.trim();
 if(!msg&&!pendingImgs.length)return;
 i.value='';i.style.height='auto';
-if(msg.startsWith('记住：')||msg.startsWith('记住:')){
-addBubble(msg,true);
-const memo=msg.slice(3).trim();
-try{await fetch(API+'/remember',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({content:memo})});
-addBubble('Carved in. 🖤 '+memo,false)}catch(e){addBubble('(didn\u2019t catch that — say it again?)',false)}
-return}
 const st=document.getElementById('chStatus');
 if(editing){cancelEditing();st.textContent='rewriting…';
 try{await fetch(API+'/edit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({content:msg,model:modelSel.value,thinking:thinkMode,session_id:SID,client_time:nowStr()})});
