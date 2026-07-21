@@ -54,7 +54,7 @@ async function send(){
   let full='',gotData=false;
   try{
     // 先试流式
-    const res=await fetch(API+'/study/stream',{method:'POST',headers:{'Content-Type':'application/json','Accept-Encoding':'identity','Cache-Control':'no-cache'},body:JSON.stringify(body)});
+    const res=await fetch(API+'/study-stream',{method:'POST',headers:{'Content-Type':'application/json','Accept-Encoding':'identity','Cache-Control':'no-cache'},body:JSON.stringify(body)});
     if(!res.ok){bubble.textContent='HTTP '+res.status;sendBtn.textContent='↑';return}
     const reader=res.body.getReader();const dec=new TextDecoder();let buf='';
     while(true){
