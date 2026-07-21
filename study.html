@@ -36,7 +36,7 @@ body{background:#130E20;color:#EDE9F6;font-family:-apple-system,'PingFang SC',sa
   <button class="send" id="sendBtn" onclick="send()">↑</button>
 </div>
 <script>
-const API='https://our-home-backend-5zsm.onrender.com';
+const API='https://moren-bridge-4g.zeabur.app';
 let SID=localStorage.getItem('study-sid');
 if(SID&&!/^[0-9a-fA-F-]{36}$/.test(String(SID).trim())){localStorage.removeItem('study-sid');SID=null}
 SID=SID?String(SID).trim():null;
