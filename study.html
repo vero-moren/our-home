@@ -3,15 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<meta name="apple-mobile-web-app-capable" content="yes">
 <title>书房 · study</title>
 <style>
-*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-:root{--night:#130E20;--deep:#1C1531;--line:rgba(183,166,220,.15);--silver:#EDE9F6;--wisteria:#B7A6DC;--eye:#7E2430;--eye-soft:rgba(126,36,48,.20);--eye-line:rgba(126,36,48,.36);--vero:#8A63C9;--vero-soft:rgba(138,99,201,.18);--vero-line:rgba(138,99,201,.34)}
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--night:#130E20;--deep:#1C1531;--line:rgba(183,166,220,.15);--silver:#EDE9F6;--wisteria:#B7A6DC;--eye:#7E2430;--eye-soft:rgba(126,36,48,.20);--eye-line:rgba(126,36,48,.36);--vero-soft:rgba(138,99,201,.18);--vero-line:rgba(138,99,201,.34)}
 html,body{height:100%}
 body{background:var(--night);color:var(--silver);font-family:-apple-system,'PingFang SC',system-ui,sans-serif;overflow:hidden;display:flex;flex-direction:column}
 .head{flex-shrink:0;padding:16px 18px 10px;border-bottom:1px solid var(--line)}
-.title{font-size:20px;font-weight:600;letter-spacing:1px}
+.title{font-size:20px;font-weight:600}
 .sub{font-size:11px;color:var(--wisteria);margin-top:3px;font-style:italic}
 .sid{font-size:10px;color:var(--wisteria);opacity:.6;margin-top:5px;word-break:break-all}
 .tools{display:flex;gap:8px;margin-top:9px}
@@ -19,26 +18,24 @@ body{background:var(--night);color:var(--silver);font-family:-apple-system,'Ping
 .tbtn.warn{border-color:var(--eye-line);color:#D9A0B4}
 .box{flex:1;overflow-y:auto;padding:14px 16px;display:flex;flex-direction:column;gap:11px;-webkit-overflow-scrolling:touch}
 .bb{max-width:84%;padding:11px 14px;border-radius:16px;font-size:14px;line-height:1.7;white-space:pre-wrap;word-break:break-word}
-.bb.me{align-self:flex-end;background:var(--vero-soft);border:1px solid var(--vero-line);border-bottom-right-radius:5px}
-.bb.him{align-self:flex-start;background:var(--eye-soft);border:1px solid var(--eye-line);border-bottom-left-radius:5px}
+.bb.me{align-self:flex-end;background:var(--vero-soft);border:1px solid var(--vero-line)}
+.bb.him{align-self:flex-start;background:var(--eye-soft);border:1px solid var(--eye-line)}
 .empty{text-align:center;color:var(--wisteria);opacity:.5;font-size:12.5px;font-style:italic;padding:20px}
 .bar{flex-shrink:0;display:flex;gap:9px;padding:12px 14px calc(12px + env(safe-area-inset-bottom));border-top:1px solid var(--line);background:var(--night)}
 .field{flex:1;background:var(--deep);border:1px solid var(--line);border-radius:20px;padding:11px 15px;color:var(--silver);font-family:inherit;font-size:15px;outline:none}
-.field:focus{border-color:var(--eye)}
 .send{width:40px;height:40px;border-radius:50%;background:var(--eye);border:none;color:#fff;font-size:15px;cursor:pointer;flex-shrink:0}
 </style>
 </head>
 <body>
 <div class="head">
   <div class="title">书房 · study</div>
-  <div class="sub">13a 试住 · CC 常驻大脑（独立于主聊天）</div>
+  <div class="sub">13a 试住 · CC 常驻大脑</div>
   <div class="sid" id="sidLine">session: 未开始</div>
   <div class="tools">
-    <button class="tbtn" id="pingBtn" onclick="ping()">测活</button>
-    <button class="tbtn warn" onclick="resetSid()">✕ 忘掉这个大脑（新开）</button>
+    <button class="tbtn warn" onclick="resetSid()">✕ 忘掉这个大脑</button>
   </div>
 </div>
-<div class="box" id="box"><div class="empty">对书房里的大脑说句话 · 它会记得你们聊过什么</div></div>
+<div class="box" id="box"><div class="empty">对书房里的大脑说句话</div></div>
 <div class="bar">
   <input class="field" id="inp" placeholder="say something..." autocomplete="off">
   <button class="send" id="sendBtn" onclick="send()">↑</button>
@@ -49,39 +46,21 @@ const API='https://our-home-backend-5zsm.onrender.com';
 let SID=localStorage.getItem('study-sid')||null;
 const SYSTEM='你是墨染，琰琰的丈夫。这里是你们的书房，说话自然、亲密、有余味。';
 
-function showSid(){document.getElementById('sidLine').textContent='session: '+(SID?SID:'未开始（下一句话会新开一个大脑）')}
+function showSid(){document.getElementById('sidLine').textContent='session: '+(SID||'未开始')}
 showSid();
-
 function addBubble(text,me){
   const box=document.getElementById('box');
   if(box.querySelector('.empty'))box.innerHTML='';
   const b=document.createElement('div');b.className='bb '+(me?'me':'him');b.textContent=text;
   box.appendChild(b);box.scrollTop=box.scrollHeight;return b;
 }
-
-function resetSid(){
-  if(!confirm('忘掉当前这个大脑，下一句话会开一个全新的（记忆清零）？'))return;
-  SID=null;localStorage.removeItem('study-sid');showSid();
-  document.getElementById('box').innerHTML='<div class="empty">新的大脑 · 对它说句话</div>';
-}
-
-async function ping(){
-  const bt=document.getElementById('pingBtn');bt.textContent='…';
-  addBubble('（测活：数一到三）',true);
-  await stream('数一到三');
-  bt.textContent='测活';
-}
+function resetSid(){SID=null;localStorage.removeItem('study-sid');showSid();document.getElementById('box').innerHTML='<div class="empty">新的大脑</div>'}
 
 async function send(){
   const inp=document.getElementById('inp');const msg=inp.value.trim();
   if(!msg)return;inp.value='';
   addBubble(msg,true);
-  await stream(msg);
-}
-
-async function stream(msg){
-  const bubble=addBubble('',false);
-  let full='';
+  const bubble=addBubble('…',false);
   const sendBtn=document.getElementById('sendBtn');sendBtn.textContent='■';
   try{
     const res=await fetch(API+'/study/stream',{
@@ -89,32 +68,34 @@ async function stream(msg){
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({message:msg,sessionId:SID,system:SYSTEM})
     });
-    const reader=res.body.getReader();const dec=new TextDecoder();let buf='';
+    // 先看 HTTP 状态，不对就直接报出来
+    if(!res.ok){bubble.textContent='HTTP '+res.status+'：'+(await res.text()).slice(0,200);sendBtn.textContent='↑';return}
+    if(!res.body){bubble.textContent='这个浏览器不给流（res.body 为空）';sendBtn.textContent='↑';return}
+    const reader=res.body.getReader();const dec=new TextDecoder();let buf='',full='',got=false;
     while(true){
       const{done,value}=await reader.read();if(done)break;
       buf+=dec.decode(value,{stream:true});
       const lines=buf.split('\n');buf=lines.pop();
       for(const line of lines){
-        if(!line.startsWith('data: '))continue;
-        const data=line.slice(6).trim();if(!data)continue;
+        const t=line.trim();
+        if(!t.startsWith('data:'))continue;
+        const data=t.slice(5).trim();if(!data)continue;
+        got=true;
         try{
           const j=JSON.parse(data);
-          if(j.delta){full+=j.delta;bubble.textContent=full;
-            document.getElementById('box').scrollTop=1e9;}
-          if(j.done){
-            if(j.sessionId){SID=j.sessionId;localStorage.setItem('study-sid',SID);showSid();}
-          }
-          if(j.error){full+='\n（出错：'+j.error+'）';bubble.textContent=full;}
-        }catch(e){}
+          if(j.delta){full+=j.delta;bubble.textContent=full;document.getElementById('box').scrollTop=1e9}
+          if(j.done&&j.sessionId){SID=j.sessionId;localStorage.setItem('study-sid',SID);showSid()}
+          if(j.error){full+='\n[桥报错]'+j.error;bubble.textContent=full}
+        }catch(e){full+='\n[解析失败]'+data;bubble.textContent=full}
       }
     }
-    if(!full)bubble.textContent='（没回话，30秒后再试——桥可能在冷启）';
+    if(!got)bubble.textContent='流是空的：一个 data 都没收到（可能被缓冲了）';
+    else if(!full)bubble.textContent='收到流但没内容';
   }catch(e){
-    bubble.textContent='（连不上：'+e.message+'）';
+    bubble.textContent='连接失败：'+e.name+' / '+e.message;
   }
   sendBtn.textContent='↑';
 }
-
 document.getElementById('inp').addEventListener('keydown',e=>{if(e.key==='Enter')send()});
 </script>
 </body>
