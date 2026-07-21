@@ -71,24 +71,18 @@ async function send(){
     // 先看 HTTP 状态，不对就直接报出来
     if(!res.ok){bubble.textContent='HTTP '+res.status+'：'+(await res.text()).slice(0,200);sendBtn.textContent='↑';return}
     if(!res.body){bubble.textContent='这个浏览器不给流（res.body 为空）';sendBtn.textContent='↑';return}
-    const reader=res.body.getReader();const dec=new TextDecoder();let buf='',full='',got=false;
+    const reader=res.body.getReader();const dec=new TextDecoder();let raw='';
     while(true){
-      const{done,value}=await reader.read();if(done)break;
-      buf+=dec.decode(value,{stream:true});
-      const lines=buf.split('\n');buf=lines.pop();
-      for(const line of lines){
-        const t=line.trim();
-        if(!t.startsWith('data:'))continue;
-        const data=t.slice(5).trim();if(!data)continue;
-        got=true;
-        try{
-          const j=JSON.parse(data);
-          if(j.delta){full+=j.delta;bubble.textContent=full;document.getElementById('box').scrollTop=1e9}
-          if(j.done&&j.sessionId){SID=j.sessionId;localStorage.setItem('study-sid',SID);showSid()}
-          if(j.error){full+='\n[桥报错]'+j.error;bubble.textContent=full}
-        }catch(e){full+='\n[解析失败]'+data;bubble.textContent=full}
-      }
+      const{done,value}=await reader.read();
+      if(done)break;
+      raw+=dec.decode(value,{stream:true});
+      bubble.textContent=raw;                    // 收到什么原样显示，不解析
+      document.getElementById('box').scrollTop=1e9;
     }
+    // 循环结束后，从原始流里把 sessionId 抠出来存
+    const m=raw.match(/"sessionId":"([^"]+)"/);
+    if(m){SID=m[1];localStorage.setItem('study-sid',SID);showSid()}
+    if(!raw)bubble.textContent='真·空流：连一个字节都没收到';
     if(!got)bubble.textContent='流是空的：一个 data 都没收到（可能被缓冲了）';
     else if(!full)bubble.textContent='收到流但没内容';
   }catch(e){
