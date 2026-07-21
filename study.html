@@ -65,7 +65,7 @@ async function send(){
   try{
     const res=await fetch(API+'/study/stream',{
       method:'POST',
-      headers:{'Content-Type':'application/json'},
+      headers:{'Content-Type':'application/json','Cache-Control':'no-cache'},
       body:JSON.stringify({message:msg,sessionId:SID,system:SYSTEM})
     });
     // 先看 HTTP 状态，不对就直接报出来
