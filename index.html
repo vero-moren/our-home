@@ -646,7 +646,7 @@ signal:streamCtrl.signal});
 const payload=await prep.json();
 if(payload.sleeping){bubble.textContent=payload.hint;st.textContent='at home · with you';setSendMode(false);streamCtrl=null;refreshMini();return}
 if(payload.error){bubble.textContent=payload.error;st.textContent='at home · with you';setSendMode(false);streamCtrl=null;return}
-const res=await fetch(BRIDGE+'/chat-stream',{method:'POST',headers:{'Content-Type':'application/json','X-Bridge-Secret':'moren520'},
+const res=await fetch(BRIDGE+'/chat-stream',{method:'POST',headers:{'Content-Type':'application/json','X-Bridge-Token':payload.bridgeToken},
 body:JSON.stringify({system:payload.system,messages:payload.messages}),
 signal:streamCtrl.signal});
 const reader=res.body.getReader();const dec=new TextDecoder();let buf='';
