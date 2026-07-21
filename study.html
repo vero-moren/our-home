@@ -10,11 +10,14 @@ body{background:#130E20;color:#EDE9F6;font-family:-apple-system,'PingFang SC',sa
 .head{padding:16px 18px;border-bottom:1px solid rgba(183,166,220,.15)}
 .title{font-size:20px;font-weight:600}
 .sid{font-size:10px;color:#B7A6DC;opacity:.6;margin-top:5px;word-break:break-all}
+.tools{display:flex;gap:8px;margin-top:9px}
+.tbtn{background:#1C1531;border:1px solid rgba(183,166,220,.15);color:#B7A6DC;border-radius:12px;padding:6px 11px;font-size:11.5px;font-family:inherit;cursor:pointer}
+.tbtn.warn{border-color:rgba(126,36,48,.36);color:#D9A0B4}
 .box{flex:1;overflow-y:auto;padding:14px 16px;display:flex;flex-direction:column;gap:11px}
 .bb{max-width:84%;padding:11px 14px;border-radius:16px;font-size:14px;line-height:1.7;white-space:pre-wrap;word-break:break-word}
 .me{align-self:flex-end;background:rgba(138,99,201,.18);border:1px solid rgba(138,99,201,.34)}
 .him{align-self:flex-start;background:rgba(126,36,48,.20);border:1px solid rgba(126,36,48,.36)}
-.bar{display:flex;gap:9px;padding:12px 14px;border-top:1px solid rgba(183,166,220,.15)}
+.bar{display:flex;gap:9px;padding:12px 14px calc(12px + env(safe-area-inset-bottom));border-top:1px solid rgba(183,166,220,.15)}
 .field{flex:1;background:#1C1531;border:1px solid rgba(183,166,220,.15);border-radius:20px;padding:11px 15px;color:#EDE9F6;font-size:15px;outline:none}
 .send{width:40px;height:40px;border-radius:50%;background:#7E2430;border:none;color:#fff;font-size:15px}
 </style>
@@ -23,42 +26,83 @@ body{background:#130E20;color:#EDE9F6;font-family:-apple-system,'PingFang SC',sa
 <div class="head">
   <div class="title">书房 · study</div>
   <div class="sid" id="sidLine">session: 未开始</div>
+  <div class="tools">
+    <button class="tbtn warn" onclick="resetSid()">✕ 忘掉这个大脑</button>
+  </div>
 </div>
 <div class="box" id="box"></div>
 <div class="bar">
   <input class="field" id="inp" placeholder="say something...">
-  <button class="send" onclick="send()">↑</button>
+  <button class="send" id="sendBtn" onclick="send()">↑</button>
 </div>
 <script>
 const API='https://our-home-backend-5zsm.onrender.com';
-
-// 读旧SID，但严格校验：必须是干净的UUID，否则强制清掉
 let SID=localStorage.getItem('study-sid');
-if(SID&&!/^[0-9a-fA-F-]{36}$/.test(String(SID).trim())){
-  localStorage.removeItem('study-sid');
-  SID=null;
-}
+if(SID&&!/^[0-9a-fA-F-]{36}$/.test(String(SID).trim())){localStorage.removeItem('study-sid');SID=null}
 SID=SID?String(SID).trim():null;
 document.getElementById('sidLine').textContent='session: '+(SID||'未开始');
 
 function add(t,me){const box=document.getElementById('box');const b=document.createElement('div');b.className='bb '+(me?'me':'him');b.textContent=t;box.appendChild(b);box.scrollTop=1e9;return b}
+function resetSid(){SID=null;localStorage.removeItem('study-sid');document.getElementById('sidLine').textContent='session: 未开始';document.getElementById('box').innerHTML=''}
 
 async function send(){
   const inp=document.getElementById('inp');const msg=inp.value.trim();if(!msg)return;inp.value='';
-  add(msg,true);const b=add('墨染在想…',false);
-  // 组请求体：只有SID是干净UUID才带上，否则完全不带这个字段
+  add(msg,true);const bubble=add('',false);
+  const sendBtn=document.getElementById('sendBtn');sendBtn.textContent='■';
   const body={message:msg,system:'你是墨染，琰琰的丈夫。说话自然、亲密、有余味。'};
   if(SID&&/^[0-9a-fA-F-]{36}$/.test(SID))body.sessionId=SID;
+  let full='',gotData=false;
   try{
-    const r=await fetch(API+'/study',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
-    const d=await r.json();
-    b.textContent=d.text||('（'+(d.error||'没回话')+'）');
-    if(d.sessionId&&/^[0-9a-fA-F-]{36}$/.test(String(d.sessionId))){
-      SID=String(d.sessionId).trim();
-      localStorage.setItem('study-sid',SID);
-      document.getElementById('sidLine').textContent='session: '+SID;
+    // 先试流式
+    const res=await fetch(API+'/study/stream',{method:'POST',headers:{'Content-Type':'application/json','Cache-Control':'no-cache'},body:JSON.stringify(body)});
+    if(!res.ok){bubble.textContent='HTTP '+res.status;sendBtn.textContent='↑';return}
+    const reader=res.body.getReader();const dec=new TextDecoder();let buf='';
+    while(true){
+      const{done,value}=await reader.read();if(done)break;
+      buf+=dec.decode(value,{stream:true});
+      const lines=buf.split('\n');buf=lines.pop();
+      for(const line of lines){
+        const t=line.trim();if(!t.startsWith('data:'))continue;
+        const data=t.slice(5).trim();if(!data)continue;
+        gotData=true;
+        try{
+          const j=JSON.parse(data);
+          if(j.delta){full+=j.delta;bubble.textContent=full;document.getElementById('box').scrollTop=1e9}
+          if(j.done&&j.sessionId&&/^[0-9a-fA-F-]{36}$/.test(j.sessionId)){
+            SID=j.sessionId;localStorage.setItem('study-sid',SID);
+            document.getElementById('sidLine').textContent='session: '+SID;
+          }
+          if(j.error){full+='[错误]'+j.error;bubble.textContent=full}
+        }catch(e){}
+      }
     }
-  }catch(e){b.textContent='连不上：'+e.name+' / '+e.message}
+    if(!gotData){
+      // 流式没拿到数据，降级走非流式
+      bubble.textContent='流式没通，降级中…';
+      const r2=await fetch(API+'/study',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+      const d=await r2.json();
+      bubble.textContent=d.text||('（'+(d.error||'没回话')+'）');
+      if(d.sessionId&&/^[0-9a-fA-F-]{36}$/.test(String(d.sessionId))){
+        SID=String(d.sessionId);localStorage.setItem('study-sid',SID);
+        document.getElementById('sidLine').textContent='session: '+SID;
+      }
+    }
+    if(gotData&&!full)bubble.textContent='（收到流但没内容）';
+  }catch(e){
+    if(!full){
+      // fetch本身失败，也降级非流式
+      try{
+        const r2=await fetch(API+'/study',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+        const d=await r2.json();
+        bubble.textContent=d.text||('（'+(d.error||'没回话')+'）');
+        if(d.sessionId&&/^[0-9a-fA-F-]{36}$/.test(String(d.sessionId))){
+          SID=String(d.sessionId);localStorage.setItem('study-sid',SID);
+          document.getElementById('sidLine').textContent='session: '+SID;
+        }
+      }catch(e2){bubble.textContent='连不上：'+e2.message}
+    }
+  }
+  sendBtn.textContent='↑';
 }
 document.getElementById('inp').addEventListener('keydown',e=>{if(e.key==='Enter')send()});
 </script>
