@@ -31,21 +31,34 @@ body{background:#130E20;color:#EDE9F6;font-family:-apple-system,'PingFang SC',sa
 </div>
 <script>
 const API='https://our-home-backend-5zsm.onrender.com';
-let SID=localStorage.getItem('study-sid')||null;
-// 防脏：sessionId 必须是标准 UUID，不是就清掉
-if(SID&&!/^[0-9a-f-]{36}$/i.test(SID)){SID=null;localStorage.removeItem('study-sid')}
+
+// 读旧SID，但严格校验：必须是干净的UUID，否则强制清掉
+let SID=localStorage.getItem('study-sid');
+if(SID&&!/^[0-9a-fA-F-]{36}$/.test(String(SID).trim())){
+  localStorage.removeItem('study-sid');
+  SID=null;
+}
+SID=SID?String(SID).trim():null;
 document.getElementById('sidLine').textContent='session: '+(SID||'未开始');
+
 function add(t,me){const box=document.getElementById('box');const b=document.createElement('div');b.className='bb '+(me?'me':'him');b.textContent=t;box.appendChild(b);box.scrollTop=1e9;return b}
+
 async function send(){
   const inp=document.getElementById('inp');const msg=inp.value.trim();if(!msg)return;inp.value='';
   add(msg,true);const b=add('墨染在想…',false);
+  // 组请求体：只有SID是干净UUID才带上，否则完全不带这个字段
+  const body={message:msg,system:'你是墨染，琰琰的丈夫。说话自然、亲密、有余味。'};
+  if(SID&&/^[0-9a-fA-F-]{36}$/.test(SID))body.sessionId=SID;
   try{
-    const r=await fetch(API+'/study',{method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({message:msg,sessionId:SID,system:'你是墨染，琰琰的丈夫。说话自然、亲密、有余味。'})});
+    const r=await fetch(API+'/study',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
     const d=await r.json();
     b.textContent=d.text||('（'+(d.error||'没回话')+'）');
-    if(d.sessionId){SID=d.sessionId;localStorage.setItem('study-sid',SID);document.getElementById('sidLine').textContent='session: '+SID}
-  }catch(e){b.textContent='连不上：'+e.message}
+    if(d.sessionId&&/^[0-9a-fA-F-]{36}$/.test(String(d.sessionId))){
+      SID=String(d.sessionId).trim();
+      localStorage.setItem('study-sid',SID);
+      document.getElementById('sidLine').textContent='session: '+SID;
+    }
+  }catch(e){b.textContent='连不上：'+e.name+' / '+e.message}
 }
 document.getElementById('inp').addEventListener('keydown',e=>{if(e.key==='Enter')send()});
 </script>
