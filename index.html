@@ -374,6 +374,7 @@ input[type="date"].in{-webkit-appearance:none;appearance:none;width:100%;min-wid
 const SB_URL='https://kvegublibjsdyidmsjvy.supabase.co';
 const SB_KEY='sb_publishable_BvSZEZkaeamODLsdVN0Fsw_Am-TAdJX';
 const API='https://our-home-backend-5zsm.onrender.com';
+const BRIDGE='https://moren-bridge-4g.zeabur.app';
 const SBH={'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY};
 
 // stars
@@ -639,8 +640,14 @@ function feed(t){raw+=t;paint(false)}
 function flushFeed(){paint(true)}
 streamCtrl=new AbortController();setSendMode(true);
 try{
-const res=await fetch(API+'/chat/stream',{method:'POST',headers:{'Content-Type':'application/json'},
+const prep=await fetch(API+'/chat/prepare',{method:'POST',headers:{'Content-Type':'application/json'},
 body:JSON.stringify({message:msg,model:modelSel.value,images:imgs.length?imgs:undefined,thinking:thinkMode,session_id:SID,client_time:nowStr()}),
+signal:streamCtrl.signal});
+const payload=await prep.json();
+if(payload.sleeping){bubble.textContent=payload.hint;st.textContent='at home · with you';setSendMode(false);streamCtrl=null;refreshMini();return}
+if(payload.error){bubble.textContent=payload.error;st.textContent='at home · with you';setSendMode(false);streamCtrl=null;return}
+const res=await fetch(BRIDGE+'/chat-stream',{method:'POST',headers:{'Content-Type':'application/json','X-Bridge-Secret':'moren520'},
+body:JSON.stringify({system:payload.system,messages:payload.messages}),
 signal:streamCtrl.signal});
 const reader=res.body.getReader();const dec=new TextDecoder();let buf='';
 while(true){const{done,value}=await reader.read();if(done)break;
@@ -659,6 +666,9 @@ if(paras.length>1){bubble.textContent=paras[0];
 let anchor=bubble;
 paras.slice(1).forEach(p=>{const nb=document.createElement('div');nb.className='bb him';nb.textContent=p;anchor.after(nb);anchor=nb});
 const box=document.getElementById('chatBox');box.scrollTop=box.scrollHeight}
+const archR=parseRaw(raw);
+fetch(API+'/chat/archive',{method:'POST',headers:{'Content-Type':'application/json'},
+body:JSON.stringify({reply:archR.main.trim(),thought:archR.thought||null,sid:SID})}).catch(()=>{});
 }catch(e){
 typewriter.dump();
 if(e.name!=='AbortError'&&!typewriter.rendered)bubble.textContent='(waking up — give it ~30s and try again)'}
