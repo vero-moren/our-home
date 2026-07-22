@@ -1,4 +1,4 @@
-const API = "https://our-home-backend-5zsm.onrender.com";
+const API = "https://moren-backend.zeabur.app";
 const SECRET = "veromoren";
 
 async function beat() {
