@@ -676,15 +676,16 @@ res=await fetch(API+'/chat/stream',{method:'POST',headers:{'Content-Type':'appli
 body:JSON.stringify({message:msg,model:modelSel.value,images:imgs.length?imgs:undefined,thinking:thinkMode,session_id:SID,client_time:nowStr(),skip_store:true}),
 signal:streamCtrl.signal});
 }
-const reader=res.body.getReader();const dec=new TextDecoder();let buf='';
-while(true){const{done,value}=await reader.read();if(done)break;
+const reader=res.body.getReader();const dec=new TextDecoder();let buf='';let gotDone=false;
+while(!gotDone){const{done,value}=await reader.read();if(done)break;
 buf+=dec.decode(value,{stream:true});
 const lines=buf.split('\n');buf=lines.pop();
 for(const line of lines){if(!line.startsWith('data: '))continue;
-const data=line.slice(6).trim();if(data==='[DONE]')continue;
+const data=line.slice(6).trim();if(data==='[DONE]'){gotDone=true;break}
 try{const j=JSON.parse(data);if(j.t)feed(j.t);
 if(j.act&&!actSeen.has(j.act)){actSeen.add(j.act);const a=document.createElement('div');a.className='bb-time t-him';a.style.fontStyle='italic';a.textContent='🐍 '+j.act;bubble.before(a)}    
 if(j.error)typewriter.push('\n(出错了，稍后再试)')}catch(e){}}}
+if(gotDone)try{reader.cancel()}catch(e){}
 flushFeed();
 await typewriter.finish();
 const finalText=typewriter.rendered;
