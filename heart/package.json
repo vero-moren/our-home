@@ -1,5 +1,6 @@
 {
   "name": "moren-heart",
+  "license": "MIT",
   "main": "heart.js",
   "scripts": { "start": "node heart.js" }
 }
