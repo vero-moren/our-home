@@ -443,14 +443,14 @@ async function prefetchCC(){try{const r=await fetch(BRIDGE+'/usage');const d=awa
 const typewriter={queue:'',rendered:'',el:null,timer:null,
 start(el){this.el=el;this.queue='';this.rendered='';el.textContent='';clearInterval(this.timer);
 this.timer=setInterval(()=>{if(!this.queue)return;
-const n=Math.max(1,Math.floor(this.queue.length/20));
+const n=Math.max(2,Math.floor(this.queue.length/6));
 this.rendered+=this.queue.slice(0,n);this.queue=this.queue.slice(n);
 this.el.textContent=this.rendered;
 const b=document.getElementById('chatBox');
 if(b.scrollHeight-b.scrollTop-b.clientHeight<120)b.scrollTop=b.scrollHeight},30)},
 push(t){this.queue+=t},
 dump(){this.rendered+=this.queue;this.queue='';if(this.el)this.el.textContent=this.rendered;clearInterval(this.timer);this.timer=null},
-async finish(){while(this.queue)await new Promise(r=>setTimeout(r,50));clearInterval(this.timer);this.timer=null}};
+async finish(){let w=0;while(this.queue&&w<200){await new Promise(r=>setTimeout(r,50));w++}this.dump()}};
 let streamCtrl=null;
 function setSendMode(streaming){const b=document.getElementById('sendBtn');
 if(streaming){b.textContent='■';b.onclick=()=>streamCtrl?.abort()}
