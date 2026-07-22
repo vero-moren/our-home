@@ -217,7 +217,7 @@ input[type="date"].in{-webkit-appearance:none;appearance:none;width:100%;min-wid
       <button class="peek" onclick="openSearch()" style="font-style:normal">⌕</button>
       <button class="peek" onclick="toggleDrawer(true)" style="font-style:normal">☰</button>
       <button class="peek" id="peekBtn">$</button>
-      <div class="peek-pop" id="peekPop"><div class="pk">ENGINE</div><div id="peekEng" style="margin-bottom:6px">还没开过口</div><div class="pk">CREDITS</div><span id="peekVal">hold to load…</span></div>
+      <div class="peek-pop" id="peekPop"><div class="pk">ENGINE</div><div id="peekEng" style="margin-bottom:6px">还没开过口</div><div class="pk">CC · 本窗 5H</div><div id="peekCC" style="margin-bottom:6px">hold to load…</div><div class="pk">OR CREDITS</div><span id="peekVal">hold to load…</span></div>
     </div>
   </div>
   <div class="bubbles" id="chatBox"><div class="empty">loading…</div></div>
@@ -230,6 +230,7 @@ input[type="date"].in{-webkit-appearance:none;appearance:none;width:100%;min-wid
       <option value="anthropic/claude-sonnet-4.5" selected>Sonnet 4.5</option>
     </select>
     <button class="ctrl-pill tog" id="thinkTog" onclick="cycleThink()">✧ light</button>
+    <button class="ctrl-pill tog on" id="effortTog" onclick="cycleEffort()">⚙ med</button>
     <button class="ctrl-pill" id="cancelEdit" onclick="cancelEditing()" style="display:none;border-color:var(--eye-line);color:var(--rose)">✕ cancel</button>
   </div>
   <div id="imgPreview" style="display:none;gap:8px;padding:8px 14px 0;background:var(--night);position:relative;z-index:2;overflow-x:auto"></div>
@@ -432,7 +433,9 @@ function saveModel(){localStorage.setItem('vm-model',modelSel.value)}
 let creditCache='hold to load…',engineCache='还没开过口';
 async function prefetchCredits(){try{const r=await fetch(API+'/credits');const d=await r.json();creditCache='used $'+Number(d.used).toFixed(2)+' · left $'+d.remaining}catch(e){creditCache='unavailable'}}
 const pk=document.getElementById('peekBtn'),pp=document.getElementById('peekPop');
-['pointerdown','touchstart'].forEach(ev=>pk.addEventListener(ev,e=>{e.preventDefault();document.getElementById('peekVal').textContent=creditCache;document.getElementById('peekEng').textContent=engineCache;pp.classList.add('show');prefetchCredits()}));
+let ccCache='hold to load…';
+async function prefetchCC(){try{const r=await fetch(BRIDGE+'/usage');const d=await r.json();ccCache=d.ok?(d.tokens+' tok · $'+d.cost+' · '+d.left+'后换窗'):(d.reason||'窗外无账')}catch(e){ccCache='桥没答话'}}
+['pointerdown','touchstart'].forEach(ev=>pk.addEventListener(ev,e=>{e.preventDefault();document.getElementById('peekVal').textContent=creditCache;document.getElementById('peekEng').textContent=engineCache;document.getElementById('peekCC').textContent=ccCache;pp.classList.add('show');prefetchCredits();prefetchCC()}));
 ['pointerup','pointerleave','touchend','touchcancel'].forEach(ev=>pk.addEventListener(ev,()=>pp.classList.remove('show')));
 
 // chat helpers
@@ -489,6 +492,10 @@ function thinkLabel(){return thinkMode==='off'?'✧ hush':thinkMode==='light'?'�
 function applyThink(){const b=document.getElementById('thinkTog');b.textContent=thinkLabel();b.classList.toggle('on',thinkMode!=='off')}
 function cycleThink(){thinkMode=thinkMode==='off'?'light':thinkMode==='light'?'deep':'off';localStorage.setItem('vm-think',thinkMode);applyThink()}
 applyThink();
+let effortMode=localStorage.getItem('vm-effort')||'medium';
+function applyEffort(){document.getElementById('effortTog').textContent=effortMode==='low'?'⚙ low':effortMode==='high'?'⚙ high':'⚙ med'}
+function cycleEffort(){effortMode=effortMode==='low'?'medium':effortMode==='medium'?'high':'low';localStorage.setItem('vm-effort',effortMode);applyEffort()}
+applyEffort();
 function refreshMini(){
 document.querySelectorAll('#chatBox .mini').forEach(b=>b.remove());
 const mes=document.querySelectorAll('.bb-time.t-me'),hims=document.querySelectorAll('.bb-time.t-him');
@@ -657,7 +664,7 @@ if(payload.error){bubble.textContent=payload.error;st.textContent='at home · wi
 let usedOR=false,res;
 try{
 res=await fetch(BRIDGE+'/chat-stream',{method:'POST',headers:{'Content-Type':'application/json','X-Bridge-Token':payload.bridgeToken},
-body:JSON.stringify({system:payload.system,messages:payload.messages}),
+body:JSON.stringify({system:payload.system,messages:payload.messages,effort:effortMode}),
 signal:streamCtrl.signal});
 if(!res.ok)throw new Error('bridge '+res.status);
 }catch(err){
