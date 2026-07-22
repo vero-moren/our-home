@@ -434,7 +434,7 @@ let creditCache='hold to load…',engineCache='还没开过口';
 async function prefetchCredits(){try{const r=await fetch(API+'/credits');const d=await r.json();creditCache='used $'+Number(d.used).toFixed(2)+' · left $'+d.remaining}catch(e){creditCache='unavailable'}}
 const pk=document.getElementById('peekBtn'),pp=document.getElementById('peekPop');
 let ccCache='hold to load…';
-async function prefetchCC(){try{const r=await fetch(BRIDGE+'/usage');const d=await r.json();ccCache=d.ok?(d.tokens+' tok · $'+d.cost+' · '+d.left+'后换窗'):(d.reason||'窗外无账')}catch(e){ccCache='桥没答话'}}
+async function prefetchCC(){try{const r=await fetch(BRIDGE+'/usage');const d=await r.json();ccCache=d.ok?(d.tokens+' tok · $'+d.cost+' · ≈'+d.left+'后换窗'):(d.reason||'窗外无账')}catch(e){ccCache='桥没答话'}}
 ['pointerdown','touchstart'].forEach(ev=>pk.addEventListener(ev,e=>{e.preventDefault();document.getElementById('peekVal').textContent=creditCache;document.getElementById('peekEng').textContent=engineCache;document.getElementById('peekCC').textContent=ccCache;pp.classList.add('show');prefetchCredits();prefetchCC()}));
 ['pointerup','pointerleave','touchend','touchcancel'].forEach(ev=>pk.addEventListener(ev,()=>pp.classList.remove('show')));
 
