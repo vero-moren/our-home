@@ -677,7 +677,10 @@ body:JSON.stringify({message:msg,model:modelSel.value,images:imgs.length?imgs:un
 signal:streamCtrl.signal});
 }
 const reader=res.body.getReader();const dec=new TextDecoder();let buf='';let gotDone=false;
-while(!gotDone){const{done,value}=await reader.read();if(done)break;
+let idleN=0;
+while(!gotDone){const rr=await Promise.race([reader.read(),new Promise(r=>setTimeout(()=>r({idle:true}),9000))]);
+if(rr.idle){idleN++;if(raw||idleN>=10)break;continue}
+idleN=0;const{done,value}=rr;if(done)break;if(!value)continue;
 buf+=dec.decode(value,{stream:true});
 const lines=buf.split('\n');buf=lines.pop();
 for(const line of lines){if(!line.startsWith('data: '))continue;
