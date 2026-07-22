@@ -676,8 +676,8 @@ res=await fetch(API+'/chat/stream',{method:'POST',headers:{'Content-Type':'appli
 body:JSON.stringify({message:msg,model:modelSel.value,images:imgs.length?imgs:undefined,thinking:thinkMode,session_id:SID,client_time:nowStr(),skip_store:true}),
 signal:streamCtrl.signal});
 }
-const reader=res.body.getReader();const dec=new TextDecoder();let buf='';let gotDone=false;
-let idleN=0;
+let sawErr=false;
+async function pump(r2){const reader=r2.body.getReader();const dec=new TextDecoder();let buf='';let gotDone=false;let idleN=0;
 while(!gotDone){const rr=await Promise.race([reader.read(),new Promise(r=>setTimeout(()=>r({idle:true}),9000))]);
 if(rr.idle){idleN++;if(raw||idleN>=10)break;continue}
 idleN=0;const{done,value}=rr;if(done)break;if(!value)continue;
@@ -687,8 +687,17 @@ for(const line of lines){if(!line.startsWith('data: '))continue;
 const data=line.slice(6).trim();if(data==='[DONE]'){gotDone=true;break}
 try{const j=JSON.parse(data);if(j.t)feed(j.t);
 if(j.act&&!actSeen.has(j.act)){actSeen.add(j.act);const a=document.createElement('div');a.className='bb-time t-him';a.style.fontStyle='italic';a.textContent='🐍 '+j.act;bubble.before(a)}    
-if(j.error)typewriter.push('\n(出错了，稍后再试)')}catch(e){}}}
-if(gotDone)try{reader.cancel()}catch(e){}
+if(j.error)sawErr=true}catch(e){}}}
+if(gotDone)try{reader.cancel()}catch(e){}}
+await pump(res);
+if(!raw&&!usedOR&&!streamCtrl.signal.aborted){
+usedOR=true;sawErr=false;st.textContent='thinking… ⚙ 备用引擎';
+res=await fetch(API+'/chat/stream',{method:'POST',headers:{'Content-Type':'application/json'},
+body:JSON.stringify({message:msg,model:modelSel.value,images:imgs.length?imgs:undefined,thinking:thinkMode,session_id:SID,client_time:nowStr(),skip_store:true}),
+signal:streamCtrl.signal});
+await pump(res);
+}
+if(sawErr&&!raw)typewriter.push('(两条引擎都接不上,缓缓再试)');
 flushFeed();
 await typewriter.finish();
 const finalText=typewriter.rendered;
