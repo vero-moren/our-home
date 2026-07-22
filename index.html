@@ -677,7 +677,7 @@ let anchor=bubble;
 paras.slice(1).forEach(p=>{const nb=document.createElement('div');nb.className='bb him';nb.textContent=p;anchor.after(nb);anchor=nb});
 const box=document.getElementById('chatBox');box.scrollTop=box.scrollHeight}
 const archR=parseRaw(raw);
-if(!usedOR)fetch(API+'/chat/archive',{method:'POST',headers:{'Content-Type':'application/json',
+if(!usedOR)fetch(API+'/chat/archive',{method:'POST',headers:{'Content-Type':'application/json'},
 body:JSON.stringify({reply:archR.main.trim(),thought:archR.thought||null,sid:SID})}).catch(()=>{});
 }catch(e){
 typewriter.dump();
