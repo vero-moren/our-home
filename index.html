@@ -726,12 +726,14 @@ div.onclick=()=>expandCtx(m,div);
 c.appendChild(div)})
 }catch(e){c.innerHTML='<div class="empty">搜不动了,再试一次</div>'}}
 async function expandCtx(m,el){
-if(el.dataset.open)return;el.dataset.open='1';
+if(el.dataset.open){const b=el.querySelector('div[data-ctx]');if(b)b.style.display=b.style.display==='none'?'':'none';return}
+el.dataset.open='1';
 try{
 const[before,after]=await Promise.all([
 fetch(SB_URL+'/rest/v1/messages?select=sender,content&session_id=eq.'+m.session_id+'&created_at=lt.'+encodeURIComponent(m.created_at)+'&order=created_at.desc&limit=3',{headers:SBH}).then(r=>r.json()),
 fetch(SB_URL+'/rest/v1/messages?select=sender,content&session_id=eq.'+m.session_id+'&created_at=gt.'+encodeURIComponent(m.created_at)+'&order=created_at.asc&limit=3',{headers:SBH}).then(r=>r.json())]);
 const box=document.createElement('div');
+box.dataset.ctx='1';
 box.style.cssText='margin-top:8px;padding:8px 10px;background:var(--night);border-radius:10px;font-size:12px;line-height:1.8';
 const mk=x=>{const l=document.createElement('div');l.textContent=(x.sender==='琰琰'?'她: ':'他: ')+x.content.replace(/\[img\][\s\S]*?\[\/img\]/g,'[照片]').slice(0,80);return l};
 (before||[]).reverse().forEach(x=>box.appendChild(mk(x)));
