@@ -654,6 +654,7 @@ if(safe.length>fedLen){typewriter.push(safe.slice(fedLen));fedLen=safe.length}}
 let fed1=false;
 function feed(t){if(!fed1){fed1=true;st.textContent='③ 流进来了'}raw+=t;paint(false)}
 function flushFeed(){paint(true)}
+let usedOR=false;
 streamCtrl=new AbortController();setSendMode(true);
 try{
 const prep=await fetch(API+'/chat/prepare',{method:'POST',headers:{'Content-Type':'application/json'},
@@ -663,7 +664,7 @@ const payload=await prep.json();
 if(payload.sleeping){bubble.textContent=payload.hint;st.textContent='at home · with you';setSendMode(false);streamCtrl=null;refreshMini();return}
 if(payload.error){bubble.textContent=payload.error;st.textContent='at home · with you';setSendMode(false);streamCtrl=null;return}
 st.textContent='② 过桥…';
-let usedOR=false,res;
+let res;
 try{
 res=await fetch(BRIDGE+'/chat-stream',{method:'POST',headers:{'Content-Type':'application/json','X-Bridge-Token':payload.bridgeToken},
 body:JSON.stringify({system:payload.system,messages:payload.messages,effort:effortMode}),
