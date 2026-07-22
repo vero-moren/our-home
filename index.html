@@ -199,6 +199,13 @@ input[type="date"].in{-webkit-appearance:none;appearance:none;width:100%;min-wid
     <button class="soft-btn" onclick="newSession()">✚ New room</button>
   </div>
 </div>
+<div id="searchPane" style="display:none;position:fixed;inset:0;z-index:25">
+  <div onclick="closeSearch()" style="position:absolute;inset:0;background:rgba(0,0,0,.55)"></div>
+  <div style="position:absolute;top:0;left:0;right:0;max-height:80%;background:var(--deep);border-bottom:1px solid var(--line);border-radius:0 0 22px 22px;padding:16px;overflow-y:auto">
+    <input class="in" id="msgSearch" placeholder="搜我们说过的话…">
+    <div id="searchList" style="margin-top:10px"></div>
+  </div>
+</div>
 <div class="screen" id="chat">
   <div class="chat-head">
     <div class="chat-head-row">
@@ -207,6 +214,7 @@ input[type="date"].in{-webkit-appearance:none;appearance:none;width:100%;min-wid
         <div class="chat-name serif">moren</div>
         <div class="chat-status" id="chStatus">at home · with you</div>
       </div>
+      <button class="peek" onclick="openSearch()" style="font-style:normal">⌕</button>
       <button class="peek" onclick="toggleDrawer(true)" style="font-style:normal">☰</button>
       <button class="peek" id="peekBtn">$</button>
       <div class="peek-pop" id="peekPop"><div class="pk">ENGINE</div><div id="peekEng" style="margin-bottom:6px">还没开过口</div><div class="pk">CREDITS</div><span id="peekVal">hold to load…</span></div>
@@ -692,6 +700,45 @@ aiEl.addEventListener('keydown',e=>{if(e.key==='Escape'&&editing)cancelEditing()
 aiEl.addEventListener('input',()=>{aiEl.style.height='auto';aiEl.style.height=Math.min(aiEl.scrollHeight,130)+'px'});
 document.getElementById('obSearch').addEventListener('input',function(){clearTimeout(obT);const v=this.value.trim();obT=setTimeout(()=>{obQ=v;obLoad()},350)});
 
+let msgT=null;
+function openSearch(){document.getElementById('searchPane').style.display='block';setTimeout(()=>document.getElementById('msgSearch').focus(),60)}
+function closeSearch(){document.getElementById('searchPane').style.display='none'}
+document.getElementById('msgSearch').addEventListener('input',function(){clearTimeout(msgT);const v=this.value.trim();msgT=setTimeout(()=>doMsgSearch(v),350)});
+async function doMsgSearch(q){
+const c=document.getElementById('searchList');
+if(!q){c.innerHTML='';return}
+c.innerHTML='<div class="empty">…</div>';
+try{
+const url=SB_URL+'/rest/v1/messages?select=id,sender,content,created_at,session_id&content=ilike.'+encodeURIComponent('*'+q+'*')+'&sender='+encodeURIComponent('in.("琰琰","墨染")')+'&order=created_at.desc&limit=30';
+const d=await(await fetch(url,{headers:SBH})).json();
+c.innerHTML='';
+if(!Array.isArray(d)||!d.length){c.innerHTML='<div class="empty">没翻到这句</div>';return}
+d.forEach(m=>{
+const div=document.createElement('div');div.className='mem';div.style.cursor='pointer';
+const text=m.content.replace(/\[img\][\s\S]*?\[\/img\]/g,'[照片]');
+const idx=text.toLowerCase().indexOf(q.toLowerCase());
+const s=Math.max(0,idx-20);
+div.textContent=(s>0?'…':'')+text.slice(s,s+70)+(s+70<text.length?'…':'');
+const t=document.createElement('div');t.className='mem-t';
+t.textContent=(m.sender==='琰琰'?'❁ vero':'🐍 moren')+' · '+tShort(m.created_at)+(Number(m.session_id)!==1?' · 房间'+m.session_id:'');
+div.appendChild(t);
+div.onclick=()=>expandCtx(m,div);
+c.appendChild(div)})
+}catch(e){c.innerHTML='<div class="empty">搜不动了,再试一次</div>'}}
+async function expandCtx(m,el){
+if(el.dataset.open)return;el.dataset.open='1';
+try{
+const[before,after]=await Promise.all([
+fetch(SB_URL+'/rest/v1/messages?select=sender,content&session_id=eq.'+m.session_id+'&created_at=lt.'+encodeURIComponent(m.created_at)+'&order=created_at.desc&limit=3',{headers:SBH}).then(r=>r.json()),
+fetch(SB_URL+'/rest/v1/messages?select=sender,content&session_id=eq.'+m.session_id+'&created_at=gt.'+encodeURIComponent(m.created_at)+'&order=created_at.asc&limit=3',{headers:SBH}).then(r=>r.json())]);
+const box=document.createElement('div');
+box.style.cssText='margin-top:8px;padding:8px 10px;background:var(--night);border-radius:10px;font-size:12px;line-height:1.8';
+const mk=x=>{const l=document.createElement('div');l.textContent=(x.sender==='琰琰'?'她: ':'他: ')+x.content.replace(/\[img\][\s\S]*?\[\/img\]/g,'[照片]').slice(0,80);return l};
+(before||[]).reverse().forEach(x=>box.appendChild(mk(x)));
+const me=mk(m);me.style.color='var(--rose)';box.appendChild(me);
+(after||[]).forEach(x=>box.appendChild(mk(x)));
+el.appendChild(box)
+}catch(e){}}
 // memories & moments & days
 // vault · his brain (Ombre)
 let obItems=[],obF='all',obQ='',obT=null,obTag='';
