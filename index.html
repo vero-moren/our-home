@@ -667,7 +667,7 @@ st.textContent='② 过桥…';
 let res;
 try{
 res=await fetch(BRIDGE+'/chat-stream',{method:'POST',headers:{'Content-Type':'application/json','X-Bridge-Token':payload.bridgeToken},
-body:JSON.stringify({system:payload.system,messages:payload.messages,effort:effortMode}),
+body:JSON.stringify({system:payload.system,messages:payload.messages,effort:effortMode,model:modelSel.value}),
 signal:streamCtrl.signal});
 if(!res.ok)throw new Error('bridge '+res.status);
 }catch(err){
