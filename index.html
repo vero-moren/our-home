@@ -677,7 +677,6 @@ setSendMode(false);streamCtrl=null;
 st.textContent='at home · with you';
 refreshMini()}
 const aiEl=document.getElementById('aiInput');
-aiEl.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendToMoren()}});
 aiEl.addEventListener('keydown',e=>{if(e.key==='Escape'&&editing)cancelEditing()});
 aiEl.addEventListener('input',()=>{aiEl.style.height='auto';aiEl.style.height=Math.min(aiEl.scrollHeight,130)+'px'});
 document.getElementById('obSearch').addEventListener('input',function(){clearTimeout(obT);const v=this.value.trim();obT=setTimeout(()=>{obQ=v;obLoad()},350)});
