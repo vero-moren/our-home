@@ -619,7 +619,7 @@ st.textContent='at home · with you';return}
 const imgs=pendingImgs.slice();pendingImgs=[];renderPreview();
 if(imgs.length||msg)addRichBubble(imgs.map(u=>'[img]'+u+'[/img]').join('')+(msg||''),true);
 if(msg)lastUserText=msg;
-st.textContent='thinking…';
+st.textContent='① 管家备料…';
 const bubble=addBubble('',false);
 typewriter.start(bubble);
 let thoughtEl=null,raw='',fedLen=0;const actSeen=new Set();
@@ -651,7 +651,8 @@ let safe=r.main;
 if(!final){const tail=safe.slice(-4),cut=tail.lastIndexOf('【');
 if(cut>=0)safe=safe.slice(0,safe.length-tail.length+cut)}
 if(safe.length>fedLen){typewriter.push(safe.slice(fedLen));fedLen=safe.length}}
-function feed(t){raw+=t;paint(false)}
+let fed1=false;
+function feed(t){if(!fed1){fed1=true;st.textContent='③ 流进来了'}raw+=t;paint(false)}
 function flushFeed(){paint(true)}
 streamCtrl=new AbortController();setSendMode(true);
 try{
@@ -661,6 +662,7 @@ signal:streamCtrl.signal});
 const payload=await prep.json();
 if(payload.sleeping){bubble.textContent=payload.hint;st.textContent='at home · with you';setSendMode(false);streamCtrl=null;refreshMini();return}
 if(payload.error){bubble.textContent=payload.error;st.textContent='at home · with you';setSendMode(false);streamCtrl=null;return}
+st.textContent='② 过桥…';
 let usedOR=false,res;
 try{
 res=await fetch(BRIDGE+'/chat-stream',{method:'POST',headers:{'Content-Type':'application/json','X-Bridge-Token':payload.bridgeToken},
