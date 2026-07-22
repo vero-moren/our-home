@@ -209,7 +209,7 @@ input[type="date"].in{-webkit-appearance:none;appearance:none;width:100%;min-wid
       </div>
       <button class="peek" onclick="toggleDrawer(true)" style="font-style:normal">☰</button>
       <button class="peek" id="peekBtn">$</button>
-      <div class="peek-pop" id="peekPop"><div class="pk">CREDITS</div><span id="peekVal">hold to load…</span></div>
+      <div class="peek-pop" id="peekPop"><div class="pk">ENGINE</div><div id="peekEng" style="margin-bottom:6px">还没开过口</div><div class="pk">CREDITS</div><span id="peekVal">hold to load…</span></div>
     </div>
   </div>
   <div class="bubbles" id="chatBox"><div class="empty">loading…</div></div>
@@ -421,10 +421,10 @@ function flipTheme(e){e.stopPropagation();const dawn=document.body.dataset.theme
 function saveModel(){localStorage.setItem('vm-model',modelSel.value)}
 
 // credits: hold to peek
-let creditCache='hold to load…';
+let creditCache='hold to load…',engineCache='还没开过口';
 async function prefetchCredits(){try{const r=await fetch(API+'/credits');const d=await r.json();creditCache='used $'+Number(d.used).toFixed(2)+' · left $'+d.remaining}catch(e){creditCache='unavailable'}}
 const pk=document.getElementById('peekBtn'),pp=document.getElementById('peekPop');
-['pointerdown','touchstart'].forEach(ev=>pk.addEventListener(ev,e=>{e.preventDefault();document.getElementById('peekVal').textContent=creditCache;pp.classList.add('show');prefetchCredits()}));
+['pointerdown','touchstart'].forEach(ev=>pk.addEventListener(ev,e=>{e.preventDefault();document.getElementById('peekVal').textContent=creditCache;document.getElementById('peekEng').textContent=engineCache;pp.classList.add('show');prefetchCredits()}));
 ['pointerup','pointerleave','touchend','touchcancel'].forEach(ev=>pk.addEventListener(ev,()=>pp.classList.remove('show')));
 
 // chat helpers
@@ -683,6 +683,7 @@ body:JSON.stringify({reply:archR.main.trim(),thought:archR.thought||null,sid:SID
 typewriter.dump();
 if(e.name!=='AbortError'&&!typewriter.rendered)bubble.textContent='(waking up — give it ~30s and try again)'}
 if(!bubble.textContent)bubble.textContent='(say that once more?)';
+engineCache=usedOR?'🜁 OpenRouter · 备用':'⚡ CC · 订阅';
 setSendMode(false);streamCtrl=null;
 st.textContent='at home · with you';
 refreshMini()}
