@@ -607,7 +607,7 @@ if(msg)lastUserText=msg;
 st.textContent='thinking…';
 const bubble=addBubble('',false);
 typewriter.start(bubble);
-let thoughtEl=null,raw='',fedLen=0;
+let thoughtEl=null,raw='',fedLen=0;const actSeen=new Set();
 function parseRaw(final){
 let main='',thought='',i=0;
 while(i<raw.length){
@@ -656,7 +656,7 @@ const lines=buf.split('\n');buf=lines.pop();
 for(const line of lines){if(!line.startsWith('data: '))continue;
 const data=line.slice(6).trim();if(data==='[DONE]')continue;
 try{const j=JSON.parse(data);if(j.t)feed(j.t);
-if(j.act){const a=document.createElement('div');a.className='bb-time t-him';a.style.fontStyle='italic';a.textContent='🐍 '+j.act;bubble.before(a)}    
+if(j.act&&!actSeen.has(j.act)){actSeen.add(j.act);const a=document.createElement('div');a.className='bb-time t-him';a.style.fontStyle='italic';a.textContent='🐍 '+j.act;bubble.before(a)}    
 if(j.error)typewriter.push('\n(出错了，稍后再试)')}catch(e){}}}
 flushFeed();
 await typewriter.finish();
