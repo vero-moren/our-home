@@ -683,7 +683,7 @@ const bl=pbuf.search(/\n{2,}/);
 if(bl>=0){
 if(sm.curHeart&&bl>0)typewriter.push(sm.curHeart,pbuf.slice(0,bl));
 pbuf=pbuf.slice(bl);
-if(final||pbuf.length>120){const m=pbuf.match(/^\n+/);pbuf=pbuf.slice(m[0].length);closeHeart();sm.mode='main';continue}
+if(final||pbuf.length>600){const m=pbuf.match(/^\n+/);pbuf=pbuf.slice(m[0].length);closeHeart();sm.mode='main';continue}
 break}
 const keep=final?0:partialTail(pbuf,HC);
 if(sm.curHeart)typewriter.push(sm.curHeart,pbuf.slice(0,pbuf.length-keep));pbuf=pbuf.slice(pbuf.length-keep);
