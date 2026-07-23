@@ -451,11 +451,12 @@ ccCache='⛽ '+fh.utilization+'% ('+rstStr(fh.resets_at)+') · 周'+d.data.seven
 // —— 打字机 & 暂停 ——
 const typewriter={items:[],timer:null,
 begin(){this.items=[];clearInterval(this.timer);
-this.timer=setInterval(()=>{const it=this.items[0];if(!it)return;
+this.timer=setInterval(()=>{if(!this.items.length)return;
 const total=this.items.reduce((s,x)=>s+x.text.length,0);
-const n=Math.max(2,Math.floor(total/6));
-it.el.textContent+=it.text.slice(0,n);it.text=it.text.slice(n);
-if(!it.text)this.items.shift();
+let n=Math.max(3,Math.floor(total/5));
+while(n>0&&this.items.length){const it=this.items[0];
+const take=it.text.slice(0,n);it.el.textContent+=take;it.text=it.text.slice(take.length);n-=take.length;
+if(!it.text)this.items.shift()}
 const b=document.getElementById('chatBox');
 if(b.scrollHeight-b.scrollTop-b.clientHeight<120)b.scrollTop=b.scrollHeight},30)},
 push(el,t){if(!t)return;const last=this.items[this.items.length-1];
@@ -674,8 +675,12 @@ const keep=final?0:partialTail(pbuf,HO);
 emitMain(pbuf.slice(0,pbuf.length-keep),final);pbuf=pbuf.slice(pbuf.length-keep);
 break}
 const e=pbuf.indexOf(HC);
+const bl=pbuf.search(/\n{2,}/);
+if(bl>=0&&(e<0||bl<e)){const m=pbuf.slice(bl).match(/^\n+/);
+if(sm.curHeart)typewriter.push(sm.curHeart,pbuf.slice(0,bl));pbuf=pbuf.slice(bl+m[0].length);closeHeart();sm.mode='main';continue}
 if(e>=0){if(sm.curHeart)typewriter.push(sm.curHeart,pbuf.slice(0,e));pbuf=pbuf.slice(e+HC.length);closeHeart();sm.mode='main';continue}
-const keep=final?0:partialTail(pbuf,HC);
+let keep=final?0:partialTail(pbuf,HC);
+if(!final&&/\n$/.test(pbuf))keep=Math.max(keep,pbuf.match(/\n+$/)[0].length);
 if(sm.curHeart)typewriter.push(sm.curHeart,pbuf.slice(0,pbuf.length-keep));pbuf=pbuf.slice(pbuf.length-keep);
 if(final){pbuf='';closeHeart();sm.mode='main'}
 break}}
@@ -688,7 +693,10 @@ main+=raw.slice(i,s);
 const e=raw.indexOf('【/心】',s+3);
 if(e>=0){thought+=(thought?'\n':'')+raw.slice(s+3,e);i=e+4;
 while(i<raw.length&&/\s/.test(raw[i]))i++}
-else{thought+=(thought?'\n':'')+raw.slice(s+3);i=raw.length}}
+else{const rest=raw.slice(s+3);const nn=rest.search(/\n{2,}/);
+if(nn>=0){thought+=(thought?'\n':'')+rest.slice(0,nn);main+=rest.slice(nn).replace(/^\n+/,'')}
+else{thought+=(thought?'\n':'')+rest}
+i=raw.length}}
 main=main.replace(/【?\/心】/g,'').replace(/【\/心/g,'');
 return{main,thought}}
 let fed1=false;
