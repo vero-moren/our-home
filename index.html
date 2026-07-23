@@ -679,7 +679,8 @@ emitMain(pbuf.slice(0,pbuf.length-keep),final);pbuf=pbuf.slice(pbuf.length-keep)
 break}
 if(sm.heartFresh){const w=pbuf.match(/^\s+/);if(w)pbuf=pbuf.slice(w[0].length);if(pbuf)sm.heartFresh=false;else break}
 const e=pbuf.indexOf(HC);
-if(e>=0){if(sm.curHeart)typewriter.push(sm.curHeart,pbuf.slice(0,e));
+if(e>=0){if(sm.curHeart)typewriter.push(sm.curHeart,pbuf.slice(0,e));pbuf=pbuf.slice(e+HC.length);closeHeart();sm.mode='main';continue}
+const bl=pbuf.search(/\n{2,}/);
 if(bl>=0){
 if(sm.curHeart&&bl>0)typewriter.push(sm.curHeart,pbuf.slice(0,bl));
 pbuf=pbuf.slice(bl);
