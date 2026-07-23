@@ -664,8 +664,11 @@ smBox.appendChild(d);sm.hearts.push(d);sm.curHeart=tb;sm.lastKind='heart';smBox.
 function closeHeart(){sm.curHeart=null;sm.eatWS=true}
 function settleRound(){
 if(sm.mode!=='heart')return;
-if(pbuf&&sm.curHeart)typewriter.push(sm.curHeart,pbuf);
-pbuf='';closeHeart();sm.mode='main'}
+const bl=pbuf.search(/\n{2,}/);
+if(bl>=0){if(sm.curHeart)typewriter.push(sm.curHeart,pbuf.slice(0,bl));
+const rest=pbuf.slice(bl).replace(/^\n+/,'');pbuf='';closeHeart();sm.mode='main';
+if(rest)emitMain(rest,false)}
+else{if(pbuf&&sm.curHeart)typewriter.push(sm.curHeart,pbuf);pbuf='';closeHeart();sm.mode='main'}}
 function drain(final){
 while(true){
 if(sm.mode==='main'){
@@ -675,12 +678,14 @@ const keep=final?0:partialTail(pbuf,HO);
 emitMain(pbuf.slice(0,pbuf.length-keep),final);pbuf=pbuf.slice(pbuf.length-keep);
 break}
 const e=pbuf.indexOf(HC);
-const bl=pbuf.search(/\n{2,}/);
-if(bl>=0&&(e<0||bl<e)){const m=pbuf.slice(bl).match(/^\n+/);
-if(sm.curHeart)typewriter.push(sm.curHeart,pbuf.slice(0,bl));pbuf=pbuf.slice(bl+m[0].length);closeHeart();sm.mode='main';continue}
 if(e>=0){if(sm.curHeart)typewriter.push(sm.curHeart,pbuf.slice(0,e));pbuf=pbuf.slice(e+HC.length);closeHeart();sm.mode='main';continue}
-let keep=final?0:partialTail(pbuf,HC);
-if(!final&&/\n$/.test(pbuf))keep=Math.max(keep,pbuf.match(/\n+$/)[0].length);
+const bl=pbuf.search(/\n{2,}/);
+if(bl>=0){
+if(sm.curHeart&&bl>0)typewriter.push(sm.curHeart,pbuf.slice(0,bl));
+pbuf=pbuf.slice(bl);
+if(final||pbuf.length>120){const m=pbuf.match(/^\n+/);pbuf=pbuf.slice(m[0].length);closeHeart();sm.mode='main';continue}
+break}
+const keep=final?0:partialTail(pbuf,HC);
 if(sm.curHeart)typewriter.push(sm.curHeart,pbuf.slice(0,pbuf.length-keep));pbuf=pbuf.slice(pbuf.length-keep);
 if(final){pbuf='';closeHeart();sm.mode='main'}
 break}}
