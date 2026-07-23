@@ -660,7 +660,7 @@ if(parts[i]){ensureMain();typewriter.push(sm.curBubble,parts[i])}}}
 function openHeart(){const d=document.createElement('details');d.className='bb-think';d.open=true;
 d.innerHTML='<summary>✧ HIS HEART</summary>';
 const tb=document.createElement('div');tb.className='tb';d.appendChild(tb);
-smBox.appendChild(d);sm.hearts.push(d);sm.curHeart=tb;sm.lastKind='heart';smBox.scrollTop=smBox.scrollHeight}
+smBox.appendChild(d);sm.hearts.push(d);sm.curHeart=tb;sm.heartFresh=true;sm.lastKind='heart';smBox.scrollTop=smBox.scrollHeight}
 function closeHeart(){sm.curHeart=null;sm.eatWS=true}
 function settleRound(){
 if(sm.mode!=='heart')return;
@@ -677,9 +677,9 @@ if(s>=0){emitMain(pbuf.slice(0,s),false);pbuf=pbuf.slice(s+HO.length);openHeart(
 const keep=final?0:partialTail(pbuf,HO);
 emitMain(pbuf.slice(0,pbuf.length-keep),final);pbuf=pbuf.slice(pbuf.length-keep);
 break}
+if(sm.heartFresh){const w=pbuf.match(/^\s+/);if(w)pbuf=pbuf.slice(w[0].length);if(pbuf)sm.heartFresh=false;else break}
 const e=pbuf.indexOf(HC);
-if(e>=0){if(sm.curHeart)typewriter.push(sm.curHeart,pbuf.slice(0,e));pbuf=pbuf.slice(e+HC.length);closeHeart();sm.mode='main';continue}
-const bl=pbuf.search(/\n{2,}/);
+if(e>=0){if(sm.curHeart)typewriter.push(sm.curHeart,pbuf.slice(0,e));
 if(bl>=0){
 if(sm.curHeart&&bl>0)typewriter.push(sm.curHeart,pbuf.slice(0,bl));
 pbuf=pbuf.slice(bl);
