@@ -666,7 +666,7 @@ st.textContent='② 过桥…';
 let res;
 try{
 res=await fetch(BRIDGE+'/chat-stream',{method:'POST',headers:{'Content-Type':'application/json','X-Bridge-Token':payload.bridgeToken},
-body:JSON.stringify({system:payload.system,messages:payload.messages,effort:effortMode,model:modelSel.value,ccSession:localStorage.getItem('vm-ccsid-'+SID)||undefined}),
+body:JSON.stringify({system:payload.system,messages:payload.messages,effort:effortMode,model:modelSel.value,ccSession:payload.ccSession||undefined}),
 signal:streamCtrl.signal});
 if(!res.ok)throw new Error('bridge '+res.status);
 }catch(err){
@@ -687,11 +687,10 @@ for(const line of lines){if(!line.startsWith('data: '))continue;
 const data=line.slice(6).trim();if(data==='[DONE]'){gotDone=true;break}
 try{const j=JSON.parse(data);if(j.t)feed(j.t);
 if(j.act&&!actSeen.has(j.act)){actSeen.add(j.act);const a=document.createElement('div');a.className='bb-time t-him';a.style.fontStyle='italic';a.textContent='🐍 '+j.act;bubble.before(a)}    
-if(j.sid)localStorage.setItem('vm-ccsid-'+SID,j.sid);if(j.error)sawErr=true}catch(e){}}}
+if(j.sid)window._ccSid=j.sid;if(j.error)sawErr=true}catch(e){}}}
 if(gotDone)try{reader.cancel()}catch(e){}}
 await pump(res);
 if(!raw&&!usedOR&&!streamCtrl.signal.aborted){
-localStorage.removeItem('vm-ccsid-'+SID);
 usedOR=true;sawErr=false;st.textContent='thinking… ⚙ 备用引擎';
 res=await fetch(API+'/chat/stream',{method:'POST',headers:{'Content-Type':'application/json'},
 body:JSON.stringify({message:msg,model:modelSel.value,images:imgs.length?imgs:undefined,thinking:thinkMode,session_id:SID,client_time:nowStr(),skip_store:true}),
@@ -709,7 +708,7 @@ paras.slice(1).forEach(p=>{const nb=document.createElement('div');nb.className='
 const box=document.getElementById('chatBox');box.scrollTop=box.scrollHeight}
 const archR=parseRaw(raw);
 if(!usedOR)fetch(API+'/chat/archive',{method:'POST',headers:{'Content-Type':'application/json'},
-body:JSON.stringify({reply:archR.main.trim(),thought:archR.thought||null,sid:SID})}).catch(()=>{});
+body:JSON.stringify({reply:archR.main.trim(),thought:archR.thought||null,sid:SID,ccSid:window._ccSid||null})}).catch(()=>{});
 }catch(e){
 typewriter.dump();
 if(e.name!=='AbortError'&&!typewriter.rendered)bubble.textContent='(waking up — give it ~30s and try again)'}
