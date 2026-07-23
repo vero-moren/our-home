@@ -430,12 +430,16 @@ function flipTheme(e){e.stopPropagation();const dawn=document.body.dataset.theme
 function saveModel(){localStorage.setItem('vm-model',modelSel.value)}
 
 // credits: hold to peek
-let creditCache='hold to load…',engineCache='还没开过口';
+let creditCache='…',engineCache='⚡ CC';
 async function prefetchCredits(){try{const r=await fetch(API+'/credits');const d=await r.json();creditCache='used $'+Number(d.used).toFixed(2)+' · left $'+d.remaining}catch(e){creditCache='unavailable'}}
 const pk=document.getElementById('peekBtn'),pp=document.getElementById('peekPop');
 let ccCache='…';
 function rstStr(iso){const m=Math.round((new Date(iso)-Date.now())/60000);if(m<=0)return'已重置';return m<60?m+'分后重置':Math.round(m/10)/6+'h后重置'}
-async function prefetchCC(){try{const r=await fetch(BRIDGE+'/quota');const d=await r.json();
+let ccAt=0;
+async function prefetchCC(){
+if(Date.now()-ccAt<5*60000&&ccCache!=='…')return;
+try{const r=await fetch(BRIDGE+'/quota');const d=await r.json();
+if(d.ok)ccAt=Date.now();
 if(!d.ok){ccCache='🔴 '+(d.reason||'没答话');return}
 const fh=d.data.five_hour,fb=(d.data.limits||[]).find(x=>x.kind==='weekly_scoped');
 ccCache='⛽ '+fh.utilization+'% ('+rstStr(fh.resets_at)+') · 周'+d.data.seven_day.utilization+'%'+(fb?' · Fable'+fb.percent+'%':'');
