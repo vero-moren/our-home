@@ -235,7 +235,7 @@ input[type="date"].in{-webkit-appearance:none;appearance:none;width:100%;min-wid
   </div>
   <div id="imgPreview" style="display:none;gap:8px;padding:8px 14px 0;background:var(--night);position:relative;z-index:2;overflow-x:auto"></div>
   <div class="input-bar">
-    <input type="file" id="imgFile" accept="image/*" multiple hidden>
+    <input type="file" id="imgFile" accept="image/*,.pdf,.txt,.md,.csv" multiple hidden>
     <button class="attach" id="attachBtn" onclick="imgFile.click()">✚</button>
     <textarea class="field" id="aiInput" rows="1" placeholder="say something to moren..."></textarea>
     <button class="send" id="sendBtn" onclick="sendToMoren()">↑</button>
@@ -594,7 +594,11 @@ x.onclick=()=>{pendingImgs.splice(i,1);renderPreview()};
 w.appendChild(im);w.appendChild(x);p.appendChild(w)})}
 document.getElementById('imgFile').addEventListener('change',function(){
 const files=[...this.files].slice(0,4-pendingImgs.length);this.value='';
-files.forEach(f=>{const r=new FileReader();
+files.forEach(f=>{
+if(!f.type.startsWith('image/')){
+if(f.size>8*1024*1024){alert(f.name+' 超过8MB,发不动');return}
+const r=new FileReader();r.onload=e=>{pendingImgs.push(e.target.result);renderPreview()};r.readAsDataURL(f);return}
+const r=new FileReader();
 r.onload=e=>{const img=new Image();img.onload=()=>{
 const max=1024;let w=img.width,ht=img.height;
 if(w>max||ht>max){const k=Math.min(max/w,max/ht);w=Math.round(w*k);ht=Math.round(ht*k)}
