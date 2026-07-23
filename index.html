@@ -714,13 +714,15 @@ await pump(res);
 if(sawErr&&!raw)typewriter.push('(两条引擎都接不上,缓缓再试)');
 flushFeed();
 await typewriter.finish();
-const finalText=typewriter.rendered;
+let finalText=typewriter.rendered;
+if(!finalText.trim()){const rp=parseRaw(raw);if((rp.thought||'').trim()){finalText=rp.thought;bubble.textContent=finalText;if(thoughtEl){const dd=thoughtEl.closest('details');if(dd)dd.remove();thoughtEl=null}}}
 const paras=finalText.split(/\n{2,}/).map(s=>s.trim()).filter(Boolean);
 if(paras.length>1){bubble.textContent=paras[0];
 let anchor=bubble;
 paras.slice(1).forEach(p=>{const nb=document.createElement('div');nb.className='bb him';nb.textContent=p;anchor.after(nb);anchor=nb});
 const box=document.getElementById('chatBox');box.scrollTop=box.scrollHeight}
 const archR=parseRaw(raw);
+if(!archR.main.trim()&&(archR.thought||'').trim()){archR.main=archR.thought;archR.thought='';}
 if(!usedOR)fetch(API+'/chat/archive',{method:'POST',headers:{'Content-Type':'application/json'},
 body:JSON.stringify({reply:archR.main.trim(),thought:archR.thought||null,sid:SID,ccSid:window._ccSid||null})}).catch(()=>{});
 }catch(e){
