@@ -220,6 +220,7 @@ input[type="date"].in{-webkit-appearance:none;appearance:none;width:100%;min-wid
       <div class="peek-pop" id="peekPop"><div class="pk">ENGINE</div><div id="peekEng" style="margin-bottom:6px">还没开过口</div><div class="pk">CC · 本窗 5H</div><div id="peekCC" style="margin-bottom:6px">hold to load…</div><div class="pk">OR CREDITS</div><span id="peekVal">hold to load…</span></div>
     </div>
   </div>
+  <div id="fuelBar" style="display:flex;gap:10px;justify-content:center;padding:5px 16px 0;font-size:10.5px;letter-spacing:1px;color:var(--wisteria);opacity:.8"><span id="fbEng">·</span><span id="fbCC">CC…</span><span id="fbOR">OR…</span></div>
   <div class="bubbles" id="chatBox"><div class="empty">loading…</div></div>
     <div class="ctrl-row">
     <select class="ctrl-pill" id="modelSel" onchange="saveModel()" style="flex:1">
@@ -432,8 +433,13 @@ function saveModel(){localStorage.setItem('vm-model',modelSel.value)}
 let creditCache='hold to load…',engineCache='还没开过口';
 async function prefetchCredits(){try{const r=await fetch(API+'/credits');const d=await r.json();creditCache='used $'+Number(d.used).toFixed(2)+' · left $'+d.remaining}catch(e){creditCache='unavailable'}}
 const pk=document.getElementById('peekBtn'),pp=document.getElementById('peekPop');
-let ccCache='hold to load…';
-async function prefetchCC(){try{const r=await fetch(BRIDGE+'/usage');const d=await r.json();ccCache=d.ok?(d.tokens+' tok · $'+d.cost+' · ≈'+d.left+'后换窗'):(d.reason||'窗外无账')}catch(e){ccCache='桥没答话'}}
+let ccCache='…';
+function rstStr(iso){const m=Math.round((new Date(iso)-Date.now())/60000);if(m<=0)return'已重置';return m<60?m+'分后重置':Math.round(m/10)/6+'h后重置'}
+async function prefetchCC(){try{const r=await fetch(BRIDGE+'/quota');const d=await r.json();
+if(!d.ok){ccCache='🔴 '+(d.reason||'没答话');return}
+const fh=d.data.five_hour,fb=(d.data.limits||[]).find(x=>x.kind==='weekly_scoped');
+ccCache='⛽ '+fh.utilization+'% ('+rstStr(fh.resets_at)+') · 周'+d.data.seven_day.utilization+'%'+(fb?' · Fable'+fb.percent+'%':'');
+}catch(e){ccCache='🔴 桥没答话'}}
 ['pointerdown','touchstart'].forEach(ev=>pk.addEventListener(ev,e=>{e.preventDefault();document.getElementById('peekVal').textContent=creditCache;document.getElementById('peekEng').textContent=engineCache;document.getElementById('peekCC').textContent=ccCache;pp.classList.add('show');prefetchCredits();prefetchCC()}));
 ['pointerup','pointerleave','touchend','touchcancel'].forEach(ev=>pk.addEventListener(ev,()=>pp.classList.remove('show')));
 
@@ -717,6 +723,9 @@ engineCache=usedOR?'🜁 OpenRouter · 备用':'⚡ CC · 订阅';
 setSendMode(false);streamCtrl=null;
 st.textContent='at home · with you';
 refreshMini()}
+function fuelPaint(){try{fbEng.textContent=engineCache.replace('· 订阅','').replace('· 备用','');fbCC.textContent=ccCache;fbOR.textContent=creditCache.replace('used ','').replace(' · left',' | 余')}catch(e){}}
+setInterval(()=>{if(document.getElementById('chat').classList.contains('on')){prefetchCC().then(fuelPaint);prefetchCredits().then(fuelPaint)}},60000);
+const _goOld=go;go=function(id){_goOld(id);if(id==='chat'){prefetchCC().then(fuelPaint);fuelPaint()}};
 const aiEl=document.getElementById('aiInput');
 aiEl.addEventListener('keydown',e=>{if(e.key==='Escape'&&editing)cancelEditing()});
 aiEl.addEventListener('input',()=>{aiEl.style.height='auto';aiEl.style.height=Math.min(aiEl.scrollHeight,130)+'px'});
@@ -994,8 +1003,6 @@ const r=await fetch(API+'/state');const st=await r.json();
 if(st.error){document.getElementById('inStatus').textContent=st.error;return}
 document.getElementById('inStatus').textContent=(st.asleep?'💤 he is asleep':'🖤 awake')+' · energy '+Math.round(st.energy*100)+'%';
 if((st.mood||[]).length){const mm=st.mood.slice().sort((a,b)=>b.v-a.v)[0];document.getElementById('inStatus').textContent+=' · 此刻:'+mm.k+(mm.why?'('+mm.why+')':'')}
-try{const hh=await(await fetch(API+'/health')).json();
-document.getElementById('inStatus').textContent+=' · '+(hh.engine==='订阅⚡'?'⚡ 订阅供血':hh.engine==='OR'?'🜁 OpenRouter':'· 引擎待命');}catch(e){}
 const c=document.getElementById('driveBars');c.innerHTML='';
 Object.keys(DRIVE_CN).forEach(k=>{
 const dv=st.display[k]??0,bv=st.drives[k]??0,rf=(st.refractory[k]||0)>0;
