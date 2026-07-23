@@ -449,17 +449,19 @@ ccCache='⛽ '+fh.utilization+'% ('+rstStr(fh.resets_at)+') · 周'+d.data.seven
 
 // chat helpers
 // —— 打字机 & 暂停 ——
-const typewriter={queue:'',rendered:'',el:null,timer:null,
-start(el){this.el=el;this.queue='';this.rendered='';el.textContent='';clearInterval(this.timer);
-this.timer=setInterval(()=>{if(!this.queue)return;
-const n=Math.max(2,Math.floor(this.queue.length/6));
-this.rendered+=this.queue.slice(0,n);this.queue=this.queue.slice(n);
-this.el.textContent=this.rendered;
+const typewriter={items:[],timer:null,
+begin(){this.items=[];clearInterval(this.timer);
+this.timer=setInterval(()=>{const it=this.items[0];if(!it)return;
+const total=this.items.reduce((s,x)=>s+x.text.length,0);
+const n=Math.max(2,Math.floor(total/6));
+it.el.textContent+=it.text.slice(0,n);it.text=it.text.slice(n);
+if(!it.text)this.items.shift();
 const b=document.getElementById('chatBox');
 if(b.scrollHeight-b.scrollTop-b.clientHeight<120)b.scrollTop=b.scrollHeight},30)},
-push(t){this.queue+=t},
-dump(){this.rendered+=this.queue;this.queue='';if(this.el)this.el.textContent=this.rendered;clearInterval(this.timer);this.timer=null},
-async finish(){let w=0;while(this.queue&&w<200){await new Promise(r=>setTimeout(r,50));w++}this.dump()}};
+push(el,t){if(!t)return;const last=this.items[this.items.length-1];
+if(last&&last.el===el)last.text+=t;else this.items.push({el,text:t})},
+dump(){this.items.forEach(x=>{x.el.textContent+=x.text});this.items=[];clearInterval(this.timer);this.timer=null},
+async finish(){let w=0;while(this.items.length&&w<200){await new Promise(r=>setTimeout(r,50));w++}this.dump()}};
 let streamCtrl=null;
 function setSendMode(streaming){const b=document.getElementById('sendBtn');
 if(streaming){b.textContent='■';b.onclick=()=>streamCtrl?.abort()}
@@ -633,40 +635,65 @@ const imgs=pendingImgs.slice();pendingImgs=[];renderPreview();
 if(imgs.length||msg)addRichBubble(imgs.map(u=>'[img]'+u+'[/img]').join('')+(msg||''),true);
 if(msg)lastUserText=msg;
 st.textContent='① 管家备料…';
-const bubble=addBubble('',false);
-typewriter.start(bubble);
-let thoughtEl=null,raw='',fedLen=0;const actSeen=new Set();
-function parseRaw(final){
+let raw='',pbuf='',anyMain=false;const actSeen=new Set();
+const smBox=document.getElementById('chatBox');
+const HO='【心】',HC='【/心】';
+const sm={mode:'main',curBubble:null,curHeart:null,lastKind:null,eatWS:false,mainHold:'',hearts:[]};
+typewriter.begin();
+function partialTail(s,marker){const m=Math.min(s.length,marker.length-1);
+for(let k=m;k>0;k--){if(s.endsWith(marker.slice(0,k)))return k}
+return 0}
+function newMainBubble(){const b=document.createElement('div');b.className='bb him';smBox.appendChild(b);
+sm.curBubble=b;sm.lastKind='main';anyMain=true;smBox.scrollTop=smBox.scrollHeight;return b}
+function ensureMain(){if(sm.lastKind!=='main'||!sm.curBubble)newMainBubble()}
+function emitMain(t,final){
+t=sm.mainHold+t;sm.mainHold='';
+t=t.replace(/【?\/心】/g,'');
+if(sm.eatWS){t=t.replace(/^\s+/,'');if(t)sm.eatWS=false}
+if(!t)return;
+if(!final){const m=t.match(/\n+$/);if(m){sm.mainHold=m[0];t=t.slice(0,t.length-m[0].length);if(!t)return}}
+const parts=t.split(/\n{2,}/);
+for(let i=0;i<parts.length;i++){
+if(i>0&&parts[i])newMainBubble();
+if(parts[i]){ensureMain();typewriter.push(sm.curBubble,parts[i])}}}
+function openHeart(){const d=document.createElement('details');d.className='bb-think';d.open=true;
+d.innerHTML='<summary>✧ HIS HEART</summary>';
+const tb=document.createElement('div');tb.className='tb';d.appendChild(tb);
+smBox.appendChild(d);sm.hearts.push(d);sm.curHeart=tb;sm.lastKind='heart';smBox.scrollTop=smBox.scrollHeight}
+function closeHeart(){sm.curHeart=null;sm.eatWS=true}
+function settleRound(){
+if(sm.mode!=='heart')return;
+if(pbuf&&sm.curHeart)typewriter.push(sm.curHeart,pbuf);
+pbuf='';closeHeart();sm.mode='main'}
+function drain(final){
+while(true){
+if(sm.mode==='main'){
+const s=pbuf.indexOf(HO);
+if(s>=0){emitMain(pbuf.slice(0,s),false);pbuf=pbuf.slice(s+HO.length);openHeart();sm.mode='heart';continue}
+const keep=final?0:partialTail(pbuf,HO);
+emitMain(pbuf.slice(0,pbuf.length-keep),final);pbuf=pbuf.slice(pbuf.length-keep);
+break}
+const e=pbuf.indexOf(HC);
+if(e>=0){if(sm.curHeart)typewriter.push(sm.curHeart,pbuf.slice(0,e));pbuf=pbuf.slice(e+HC.length);closeHeart();sm.mode='main';continue}
+const keep=final?0:partialTail(pbuf,HC);
+if(sm.curHeart)typewriter.push(sm.curHeart,pbuf.slice(0,pbuf.length-keep));pbuf=pbuf.slice(pbuf.length-keep);
+if(final){pbuf='';closeHeart();sm.mode='main'}
+break}}
+function parseRaw(){
 let main='',thought='',i=0;
 while(i<raw.length){
 const s=raw.indexOf('【心】',i);
 if(s<0){main+=raw.slice(i);break}
 main+=raw.slice(i,s);
 const e=raw.indexOf('【/心】',s+3);
-if(e>=0){
-thought+=(thought?'\n':'')+raw.slice(s+3,e);
-i=e+4;
-while(i<raw.length&&/\s/.test(raw[i]))i++;
-}else{
-const rest=raw.slice(s+3);
-const nn=rest.indexOf('\n\n');
-if(final&&nn>=0){thought+=(thought?'\n':'')+rest.slice(0,nn);main+=rest.slice(nn+2)}
-else{thought+=(thought?'\n':'')+rest}
-i=raw.length;
-}}
+if(e>=0){thought+=(thought?'\n':'')+raw.slice(s+3,e);i=e+4;
+while(i<raw.length&&/\s/.test(raw[i]))i++}
+else{thought+=(thought?'\n':'')+raw.slice(s+3);i=raw.length}}
 main=main.replace(/【?\/心】/g,'').replace(/【\/心/g,'');
 return{main,thought}}
-function paint(final){
-const r=parseRaw(final);
-if(r.thought&&!thoughtEl){const d=addThought('',bubble);d.open=true;thoughtEl=d.querySelector('.tb')}
-if(thoughtEl)thoughtEl.textContent=r.thought;
-let safe=r.main;
-if(!final){const tail=safe.slice(-4),cut=tail.lastIndexOf('【');
-if(cut>=0)safe=safe.slice(0,safe.length-tail.length+cut)}
-if(safe.length>fedLen){typewriter.push(safe.slice(fedLen));fedLen=safe.length}}
 let fed1=false;
-function feed(t){if(!fed1){fed1=true;st.textContent='③ 流进来了'}raw+=t;paint(false)}
-function flushFeed(){paint(true)}
+function feed(t){if(!fed1){fed1=true;st.textContent='③ 流进来了'}raw+=t;pbuf+=t;drain(false)}
+function flushFeed(){drain(true)}
 let usedOR=false;
 streamCtrl=new AbortController();setSendMode(true);
 try{
@@ -674,8 +701,8 @@ const prep=await fetch(API+'/chat/prepare',{method:'POST',headers:{'Content-Type
 body:JSON.stringify({message:msg,model:modelSel.value,images:imgs.length?imgs:undefined,thinking:thinkMode,session_id:SID,client_time:nowStr()}),
 signal:streamCtrl.signal});
 const payload=await prep.json();
-if(payload.sleeping){bubble.textContent=payload.hint;st.textContent='at home · with you';setSendMode(false);streamCtrl=null;refreshMini();return}
-if(payload.error){bubble.textContent=payload.error;st.textContent='at home · with you';setSendMode(false);streamCtrl=null;return}
+if(payload.sleeping){newMainBubble().textContent=payload.hint;st.textContent='at home · with you';setSendMode(false);streamCtrl=null;refreshMini();return}
+if(payload.error){newMainBubble().textContent=payload.error;st.textContent='at home · with you';setSendMode(false);streamCtrl=null;return}
 st.textContent='② 过桥…';
 let res;
 try{
@@ -700,7 +727,7 @@ const lines=buf.split('\n');buf=lines.pop();
 for(const line of lines){if(!line.startsWith('data: '))continue;
 const data=line.slice(6).trim();if(data==='[DONE]'){gotDone=true;break}
 try{const j=JSON.parse(data);if(j.t)feed(j.t);
-if(j.act&&!actSeen.has(j.act)){actSeen.add(j.act);const a=document.createElement('div');a.className='bb-time t-him';a.style.fontStyle='italic';a.textContent='🐍 '+j.act;bubble.before(a)}    
+if(j.act&&!actSeen.has(j.act)){actSeen.add(j.act);settleRound();const a=document.createElement('div');a.className='bb-time t-him';a.style.fontStyle='italic';a.textContent='🐍 '+j.act;smBox.appendChild(a);sm.lastKind='act';smBox.scrollTop=smBox.scrollHeight}
 if(j.sid)window._ccSid=j.sid;if(j.error)sawErr=true}catch(e){}}}
 if(gotDone)try{reader.cancel()}catch(e){}}
 await pump(res);
@@ -711,24 +738,19 @@ body:JSON.stringify({message:msg,model:modelSel.value,images:imgs.length?imgs:un
 signal:streamCtrl.signal});
 await pump(res);
 }
-if(sawErr&&!raw)typewriter.push('(两条引擎都接不上,缓缓再试)');
+if(sawErr&&!raw){newMainBubble();typewriter.push(sm.curBubble,'(两条引擎都接不上,缓缓再试)')}
 flushFeed();
 await typewriter.finish();
-let finalText=typewriter.rendered;
-if(!finalText.trim()){const rp=parseRaw(raw);if((rp.thought||'').trim()){finalText=rp.thought;bubble.textContent=finalText;if(thoughtEl){const dd=thoughtEl.closest('details');if(dd)dd.remove();thoughtEl=null}}}
-const paras=finalText.split(/\n{2,}/).map(s=>s.trim()).filter(Boolean);
-if(paras.length>1){bubble.textContent=paras[0];
-let anchor=bubble;
-paras.slice(1).forEach(p=>{const nb=document.createElement('div');nb.className='bb him';nb.textContent=p;anchor.after(nb);anchor=nb});
-const box=document.getElementById('chatBox');box.scrollTop=box.scrollHeight}
-const archR=parseRaw(raw);
+if(!anyMain){const rp=parseRaw();
+if((rp.thought||'').trim()){sm.hearts.forEach(d=>d.remove());newMainBubble().textContent=rp.thought}}
+const archR=parseRaw();
 if(!archR.main.trim()&&(archR.thought||'').trim()){archR.main=archR.thought;archR.thought='';}
 if(!usedOR)fetch(API+'/chat/archive',{method:'POST',headers:{'Content-Type':'application/json'},
 body:JSON.stringify({reply:archR.main.trim(),thought:archR.thought||null,sid:SID,ccSid:window._ccSid||null})}).catch(()=>{});
 }catch(e){
 typewriter.dump();
-if(e.name!=='AbortError'&&!typewriter.rendered)bubble.textContent='(waking up — give it ~30s and try again)'}
-if(!bubble.textContent)bubble.textContent='(say that once more?)';
+if(e.name!=='AbortError'&&!raw)newMainBubble().textContent='(waking up — give it ~30s and try again)'}
+if(!anyMain)newMainBubble().textContent='(say that once more?)';
 engineCache=usedOR?'🜁 OpenRouter · 备用':'⚡ CC · 订阅';
 setSendMode(false);streamCtrl=null;
 st.textContent='at home · with you';
