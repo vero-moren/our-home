@@ -943,8 +943,7 @@ img.src=e.target.result};r.readAsDataURL(f)})});
 async function postMoment(){
 const b=document.getElementById('momentBox');const t=b.value.trim();
 if(!t&&!momPendings.length)return;
-const content=momPendings.map(u=>'[img]'+u+'[/img]').join('')+t;
-await fetch(SB_URL+'/rest/v1/moments',{method:'POST',headers:{...SBH,'Content-Type':'application/json','Prefer':'return=minimal'},body:JSON.stringify({content,author:'琰琰',react_status:'pending'})});
+await fetch(API+'/moment/post',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:t,images:momPendings})});
 b.value='';momPendings=[];momPrevRender();loadMoments()}
 async function delMoment(id){
 if(!confirm('Delete this moment?'))return;
