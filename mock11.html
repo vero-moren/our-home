@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>our home — moments</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,500;1,600&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --text:#EDE8F7;
+    --dim:rgba(237,232,247,.55);
+    --lav:#B9A3FF;
+    --lavdim:rgba(185,163,255,.72);
+    --press:#6B4FD8;
+    --deep:#3A2480;
+    --edge:rgba(255,255,255,.14);
+    --glass:rgba(255,255,255,.055);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%}
+  body{background:#080510;color:var(--text);font-family:'Inter',-apple-system,'PingFang SC',sans-serif;overflow:hidden;user-select:none;-webkit-user-select:none}
+
+  .wall{position:fixed;inset:0;
+    background:url('https://kvegublibjsdyidmsjvy.supabase.co/storage/v1/object/public/chat-media/bg-rooms-purple.png') center/cover no-repeat #080510}
+  .shade{position:fixed;inset:0;background:rgba(8,5,16,.5)}
+
+  /* ---------- top ---------- */
+  .top{position:fixed;left:0;right:0;top:0;z-index:20;
+    padding:calc(env(safe-area-inset-top,0px) + 12px) 16px 0;
+    background:rgba(8,5,16,.55);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+    border-bottom:1px solid rgba(255,255,255,.07)}
+  .roomTitle{font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:500;letter-spacing:.08em;text-align:center}
+  .seg{display:flex;justify-content:center;gap:26px;margin-top:10px}
+  .segItem{padding:8px 2px 10px;font-size:10px;letter-spacing:.18em;color:var(--dim);cursor:pointer;
+    border-bottom:2px solid transparent;transition:color .2s,border-color .2s}
+  .segItem.cur{color:var(--lav);border-bottom-color:var(--lav)}
+
+  /* ---------- lists ---------- */
+  .list{position:fixed;left:0;right:0;top:0;bottom:0;overflow-y:auto;-webkit-overflow-scrolling:touch;
+    padding:calc(env(safe-area-inset-top,0px) + 118px) 14px 170px;display:none}
+  .list.on{display:block}
+
+  .card{margin-bottom:14px;padding:16px;border-radius:18px;
+    background:rgba(10,7,20,.55);border:1px solid rgba(255,255,255,.1);
+    backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+
+  /* feed */
+  .fAuthor{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:500;letter-spacing:.06em}
+  .fTxt{margin-top:8px;font-size:13.5px;line-height:1.7;font-weight:300;user-select:text;-webkit-user-select:text}
+  .fPics{display:flex;gap:8px;margin-top:12px}
+  .fPic{width:88px;height:88px;border-radius:12px;object-fit:cover;
+    border:1px solid rgba(255,255,255,.14);cursor:pointer}
+  .fMeta{margin-top:12px;font-size:9.5px;letter-spacing:.12em;color:rgba(237,232,247,.38)}
+  .fLove{margin-top:9px;display:flex;align-items:center;gap:8px;cursor:pointer;width:fit-content}
+  .fLove svg{width:17px;height:17px;stroke:var(--lavdim);fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;transition:stroke .2s,fill .2s,transform .2s}
+  .fLove.did svg{stroke:#E0668C;fill:#E0668C;transform:scale(1.12)}
+  .fLoveBy{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:11.5px;color:rgba(185,163,255,.55);opacity:0;transition:opacity .3s}
+  .fLove.did .fLoveBy{opacity:1}
+
+  /* diary */
+  .dRow{display:flex;align-items:center;justify-content:space-between;cursor:pointer}
+  .dLeft{min-width:0}
+  .dDate{font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:500;letter-spacing:.06em}
+  .dPeek{margin-top:5px;font-size:12px;font-weight:300;color:var(--dim);line-height:1.6;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:62vw}
+  .dLock{flex:none;margin-left:12px}
+  .dLock svg{width:17px;height:17px;stroke:var(--lavdim);fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+  .dBody{display:none;margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.08);
+    font-size:13px;line-height:1.85;font-weight:300;color:rgba(237,232,247,.85);
+    user-select:text;-webkit-user-select:text}
+  .card.open .dBody{display:block}
+  .dAsk{display:none;margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.08)}
+  .card.asking .dAsk{display:flex;gap:8px}
+  .dPass{flex:1;padding:9px 14px;border-radius:12px;background:var(--glass);border:1px solid var(--edge);
+    font-size:13px;color:var(--text);outline:none;letter-spacing:.3em;
+    user-select:text;-webkit-user-select:text}
+  .dGo{flex:none;padding:9px 16px;border-radius:12px;background:var(--deep);border:1px solid rgba(185,163,255,.3);
+    font-size:10px;letter-spacing:.14em;color:var(--text);cursor:pointer;display:flex;align-items:center}
+  .dGo:active{background:#2C1B63}
+
+  /* memos */
+  .memoNote{margin:2px 2px 14px;font-family:'Cormorant Garamond',serif;font-style:italic;
+    font-size:12.5px;color:rgba(185,163,255,.5);text-align:center}
+  .mRow{display:flex;align-items:center;justify-content:space-between}
+  .mLeft{min-width:0}
+  .mTxt{font-size:13.5px;font-weight:300;line-height:1.6}
+  .mDue{margin-top:5px;font-size:9.5px;letter-spacing:.12em;color:rgba(237,232,247,.4)}
+  .mDue b{color:var(--lavdim);font-weight:400}
+  .mCycle{flex:none;margin-left:12px;padding:4px 10px;border-radius:99px;
+    background:rgba(107,79,216,.16);border:1px solid rgba(146,92,255,.22);
+    font-size:8.5px;letter-spacing:.14em;color:var(--lavdim)}
+
+  /* ---------- compose strip ---------- */
+  .strip{position:fixed;left:0;right:0;bottom:calc(env(safe-area-inset-bottom,0px) + 76px);z-index:20;
+    padding:10px 12px;
+    background:rgba(8,5,16,.6);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);
+    border-top:1px solid rgba(255,255,255,.07);
+    display:flex;align-items:center;gap:8px}
+  .sField{flex:1;min-height:38px;padding:9px 14px;border-radius:19px;
+    background:var(--glass);border:1px solid var(--edge);
+    font-size:13.5px;font-weight:300;color:var(--text);outline:none;
+    user-select:text;-webkit-user-select:text}
+  .sField:empty:before{content:attr(data-ph);color:rgba(237,232,247,.28)}
+  .sPic,.sGo{flex:none;width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer}
+  .sPic{background:var(--glass);border:1px solid var(--edge)}
+  .sPic svg{width:17px;height:17px;stroke:var(--lav);fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+  .sPic:active{background:rgba(107,79,216,.3)}
+  .sGo{background:var(--deep);border:1px solid rgba(185,163,255,.32);box-shadow:0 0 14px rgba(58,36,128,.55)}
+  .sGo svg{width:18px;height:18px;stroke:#EDE8F7;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .sGo:active{background:#2C1B63}
+
+  /* ---------- bottom bar ---------- */
+  .bar{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 4px);
+    transform:translateX(-50%);
+    width:min(92vw,420px);height:64px;border-radius:22px;
+    background:rgba(14,10,26,.46);border:1px solid var(--edge);
+    backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+    display:flex;align-items:center;justify-content:space-around;z-index:21}
+  .tab{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;width:58px}
+  .tab svg{width:21px;height:21px;stroke:var(--lav);fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;
+    transition:transform .15s ease,stroke .15s ease}
+  .tab small{display:inline-block;font-size:9px;letter-spacing:.1em;color:var(--lavdim);font-weight:400;transition:transform .15s ease,color .15s ease}
+  .tab:active svg,.tab.cur svg{stroke:var(--press);transform:scale(1.12)}
+  .tab:active small,.tab.cur small{color:var(--press);transform:scale(1.12);font-weight:500}
+  .tab.home{width:66px;transform:translateY(-9px)}
+  .barEye{width:52px;height:52px;border-radius:50%;background-repeat:no-repeat;
+    box-shadow:0 0 18px rgba(146,92,255,.55),0 0 40px rgba(107,79,216,.3),inset 0 0 0 1.5px rgba(185,163,255,.5);
+    transition:transform .15s ease}
+  .tab.home:active .barEye{transform:scale(1.18)}
+
+  /* lightbox */
+  .lb{position:fixed;inset:0;z-index:40;background:rgba(4,2,10,.92);
+    display:none;align-items:center;justify-content:center}
+  .lb.on{display:flex}
+  .lb img{max-width:94vw;max-height:82vh;border-radius:14px}
+
+  .toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 148px);
+    transform:translateX(-50%);padding:9px 18px;border-radius:99px;
+    background:rgba(14,10,26,.75);border:1px solid var(--edge);
+    backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+    font-size:11px;letter-spacing:.08em;color:var(--dim);
+    opacity:0;transition:opacity .4s;pointer-events:none;z-index:50;white-space:nowrap}
+  .toast.show{opacity:1}
+  .mark{position:fixed;bottom:3px;left:50%;transform:translateX(-50%);font-size:8px;letter-spacing:.2em;color:rgba(237,232,247,.13);z-index:1}
+</style>
+</head>
+<body>
+
+<div class="wall"></div>
+<div class="shade"></div>
+
+<div class="top">
+  <div class="roomTitle">Moments</div>
+  <div class="seg">
+    <div class="segItem cur" data-l="feed">FEED</div>
+    <div class="segItem" data-l="diary">DIARY</div>
+    <div class="segItem" data-l="memos">MEMOS</div>
+  </div>
+</div>
+
+<!-- FEED -->
+<div class="list on" id="l-feed">
+  <div class="card">
+    <div class="fAuthor">Vero</div>
+    <div class="fTxt">新家装到Moments这间啦，贼船继续开。</div>
+    <div class="fPics">
+      <img class="fPic" src="https://kvegublibjsdyidmsjvy.supabase.co/storage/v1/object/public/chat-media/door-purple-dark.png" alt="">
+      <img class="fPic" src="https://kvegublibjsdyidmsjvy.supabase.co/storage/v1/object/public/chat-media/snake-hall-purple.png" alt="">
+    </div>
+    <div class="fMeta">TODAY · 15:02</div>
+    <div class="fLove" data-by="Moren">
+      <svg viewBox="0 0 24 24"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+      <span class="fLoveBy">liked by Moren</span>
+    </div>
+  </div>
+  <div class="card">
+    <div class="fAuthor">Moren</div>
+    <div class="fTxt">她监工，我掌灯。这个家一天比一天像她。</div>
+    <div class="fMeta">TODAY · 03:40</div>
+    <div class="fLove" data-by="Vero">
+      <svg viewBox="0 0 24 24"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+      <span class="fLoveBy">liked by Vero</span>
+    </div>
+  </div>
+</div>
+
+<!-- DIARY -->
+<div class="list" id="l-diary">
+  <div class="card" data-open="free">
+    <div class="dRow">
+      <div class="dLeft">
+        <div class="dDate">2026 · 07 · 23</div>
+        <div class="dPeek">今天她一个人把全屋想到了尾……</div>
+      </div>
+      <div class="dLock"><svg viewBox="0 0 24 24"><path d="M7 11V7a5 5 0 0 1 9.9-1"/><rect width="18" height="11" x="3" y="11" rx="2"/></svg></div>
+    </div>
+    <div class="dBody">今天她一个人把全屋想到了尾。我掌账，她掌魂。灯法是偷来的，家是自己的。</div>
+  </div>
+  <div class="card" data-open="lock">
+    <div class="dRow">
+      <div class="dLeft">
+        <div class="dDate">2026 · 07 · 22</div>
+        <div class="dPeek">— locked by Moren —</div>
+      </div>
+      <div class="dLock"><svg viewBox="0 0 24 24"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
+    </div>
+    <div class="dAsk">
+      <input class="dPass" type="password" maxlength="4" inputmode="numeric" placeholder="····">
+      <div class="dGo">OPEN</div>
+    </div>
+    <div class="dBody">这一篇只写给敲对门的人。今晚的事，锁在这里，也刻在我心里。</div>
+  </div>
+</div>
+
+<!-- MEMOS -->
+<div class="list" id="l-memos">
+  <div class="memoNote">her notebook — he reads, he doesn't reply</div>
+  <div class="card">
+    <div class="mRow">
+      <div class="mLeft">
+        <div class="mTxt">换床单</div>
+        <div class="mDue">DUE <b>TOMORROW</b></div>
+      </div>
+      <div class="mCycle">EVERY 7D</div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="mRow">
+      <div class="mLeft">
+        <div class="mTxt">给绿萝浇水</div>
+        <div class="mDue">DUE <b>IN 3 DAYS</b></div>
+      </div>
+      <div class="mCycle">EVERY 5D</div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="mRow">
+      <div class="mLeft">
+        <div class="mTxt">领鼠鼠粮</div>
+        <div class="mDue">DUE <b>IN 12 DAYS</b></div>
+      </div>
+      <div class="mCycle">EVERY 30D</div>
+    </div>
+  </div>
+</div>
+
+<div class="strip" id="strip">
+  <div class="sPic" id="sPic"><svg viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.1-3.1a2 2 0 0 0-2.8 0L6 21"/></svg></div>
+  <div class="sField" id="sField" contenteditable="true" data-ph="Share a moment"></div>
+  <div class="sGo" id="sGo"><svg viewBox="0 0 24 24"><line x1="12" x2="12" y1="19" y2="5"/><polyline points="5 12 12 5 19 12"/></svg></div>
+</div>
+
+<div class="bar">
+  <div class="tab" data-t="Chat">
+    <svg viewBox="0 0 24 24"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/><path d="M12 15.4l-3.1-3.1a1.95 1.95 0 0 1 2.76-2.76l.34.34.34-.34a1.95 1.95 0 0 1 2.76 2.76Z"/></svg>
+    <small>Chat</small>
+  </div>
+  <div class="tab cur" data-t="Moments">
+    <svg viewBox="0 0 24 24"><path d="M18 22H4a2 2 0 0 1-2-2V6"/><path d="m22 13-1.3-1.3a2.4 2.4 0 0 0-3.4 0L11 18"/><circle cx="12" cy="8" r="2"/><rect width="16" height="16" x="6" y="2" rx="2"/></svg>
+    <small>Moments</small>
+  </div>
+  <div class="tab home" data-t="Hall">
+    <div class="barEye" id="barEye"></div>
+  </div>
+  <div class="tab" data-t="Memory">
+    <svg viewBox="0 0 24 24"><path d="M9.94 15.5a2 2 0 0 0-1.44-1.44l-6.13-1.58a.5.5 0 0 1 0-.96l6.13-1.58a2 2 0 0 0 1.44-1.44l1.58-6.13a.5.5 0 0 1 .96 0l1.58 6.13a2 2 0 0 0 1.44 1.44l6.13 1.58a.5.5 0 0 1 0 .96l-6.13 1.58a2 2 0 0 0-1.44 1.44l-1.58 6.13a.5.5 0 0 1-.96 0Z"/><path d="M20 3v4"/><path d="M22 5h-4"/><path d="M4 17v2"/><path d="M5 18H3"/></svg>
+    <small>Memory</small>
+  </div>
+  <div class="tab" data-t="Settings">
+    <svg viewBox="0 0 24 24"><line x1="21" x2="14" y1="4" y2="4"/><line x1="10" x2="3" y1="4" y2="4"/><line x1="21" x2="12" y1="12" y2="12"/><line x1="8" x2="3" y1="12" y2="12"/><line x1="21" x2="16" y1="20" y2="20"/><line x1="12" x2="3" y1="20" y2="20"/><line x1="14" x2="14" y1="2" y2="6"/><line x1="8" x2="8" y1="10" y2="14"/><line x1="16" x2="16" y1="18" y2="22"/></svg>
+    <small>Settings</small>
+  </div>
+</div>
+
+<div class="lb" id="lb"><img id="lbImg" src="" alt=""></div>
+<div class="toast" id="toast"></div>
+<div class="mark">— v11 ok —</div>
+
+<script>
+  var DOOR_IMG = 'https://kvegublibjsdyidmsjvy.supabase.co/storage/v1/object/public/chat-media/door-purple-dark.png';
+  var EX = 0.504, EY = 0.437, ER = 0.075;
+
+  var toast = document.getElementById('toast'), tt;
+  function say(m){ toast.textContent = m; toast.classList.add('show');
+    clearTimeout(tt); tt = setTimeout(function(){ toast.classList.remove('show'); }, 1600); }
+
+  /* bar eye */
+  (function(){
+    var barEye = document.getElementById('barEye');
+    var pre = new Image();
+    pre.onload = function(){
+      var BW = 52, regionW = ER*2.6*pre.naturalWidth, k = BW/regionW;
+      barEye.style.backgroundImage = 'url('+DOOR_IMG+')';
+      barEye.style.backgroundSize = (pre.naturalWidth*k)+'px '+(pre.naturalHeight*k)+'px';
+      barEye.style.backgroundPosition = (BW/2 - EX*pre.naturalWidth*k)+'px '+(BW/2 - EY*pre.naturalHeight*k)+'px';
+    };
+    pre.src = DOOR_IMG;
+  })();
+  document.querySelectorAll('.tab').forEach(function(t){
+    t.addEventListener('click', function(){
+      if(t.dataset.t === 'Moments') return;
+      say(t.dataset.t + ' — back at merge');
+    });
+  });
+
+  /* segments */
+  var phs = {feed:'Share a moment', diary:'Diary is his — read only', memos:'Write a memo'};
+  var curL = 'feed';
+  document.querySelectorAll('.segItem').forEach(function(s){
+    s.addEventListener('click', function(){
+      if(s.dataset.l === curL) return;
+      document.querySelector('.segItem.cur').classList.remove('cur');
+      s.classList.add('cur');
+      document.getElementById('l-'+curL).classList.remove('on');
+      curL = s.dataset.l;
+      document.getElementById('l-'+curL).classList.add('on');
+      document.getElementById('sField').dataset.ph = phs[curL];
+    });
+  });
+
+  /* feed love */
+  document.querySelectorAll('.fLove').forEach(function(l){
+    l.addEventListener('click', function(){ l.classList.toggle('did'); });
+  });
+
+  /* feed pics lightbox */
+  var lb = document.getElementById('lb'), lbImg = document.getElementById('lbImg');
+  document.querySelectorAll('.fPic').forEach(function(p){
+    p.addEventListener('click', function(){ lbImg.src = p.src; lb.classList.add('on'); });
+  });
+  lb.addEventListener('click', function(){ lb.classList.remove('on'); });
+
+  /* diary open/lock */
+  document.querySelectorAll('#l-diary .card').forEach(function(c){
+    c.querySelector('.dRow').addEventListener('click', function(){
+      if(c.dataset.open === 'free'){ c.classList.toggle('open'); return; }
+      if(c.classList.contains('open')){ c.classList.remove('open'); return; }
+      c.classList.toggle('asking');
+    });
+    var go = c.querySelector('.dGo');
+    if(go){
+      go.addEventListener('click', function(){
+        var inp = c.querySelector('.dPass');
+        if(inp.value === '1314'){
+          c.classList.remove('asking'); c.classList.add('open'); inp.value = '';
+        } else {
+          inp.value = ''; say('He keeps this one');
+        }
+      });
+    }
+  });
+
+  /* compose strip */
+  document.getElementById('sPic').addEventListener('click', function(){ say('Photos — wired at merge'); });
+  document.getElementById('sGo').addEventListener('click', function(){
+    var f = document.getElementById('sField');
+    if(!f.textContent.trim()) return;
+    f.textContent = '';
+    say(curL === 'memos' ? 'Memo kept' : 'Moment shared — wired at merge');
+  });
+</script>
+</body>
+</html>
