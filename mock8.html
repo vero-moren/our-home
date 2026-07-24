@@ -57,6 +57,8 @@
     transition:transform .15s ease,stroke .15s ease}
   .tab small{font-size:9px;letter-spacing:.1em;color:var(--lavdim);font-weight:400}
   .tab:active svg,.tab.pressed svg{stroke:var(--press);transform:scale(1.12)}
+  .tab.cur svg{stroke:var(--press)}
+  .tab.cur small{color:var(--press)}
   .tab.cur small{opacity:1;color:#D4C6FF}
   .tab.home{width:66px;transform:translateY(-9px)}
   .barEye{width:52px;height:52px;border-radius:50%;background-repeat:no-repeat;
@@ -108,7 +110,7 @@
   </div>
 </div>
 
-<div class="mark">— v8.2 ok —</div>
+<div class="mark">— v8.3 ok —</div>
 
 <script>
   var DOOR_IMG = 'https://kvegublibjsdyidmsjvy.supabase.co/storage/v1/object/public/chat-media/door-purple-dark.png';
