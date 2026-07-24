@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Memory · Days</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body { height:100%; }
+  body {
+    font-family:'Inter',system-ui,sans-serif;
+    color:#cfc6e8; overflow:hidden; min-height:100vh;
+    background:#0a0716;
+  }
+  /* room background */
+  #bg {
+    position:fixed; inset:0; z-index:0;
+    background:url('https://kvegublibjsdyidmsjvy.supabase.co/storage/v1/object/public/chat-media/bg-rooms-purple.png') center/cover no-repeat;
+  }
+  #bg::after { content:''; position:absolute; inset:0;
+    background:radial-gradient(120% 100% at 50% 40%, transparent 40%, rgba(8,5,18,.55) 100%); }
+  body.nobg #bg {
+    background:radial-gradient(120% 90% at 50% 0%, #171130 0%, #0c081a 55%, #080512 100%);
+  }
+  .fstars { position:fixed; inset:0; z-index:0; pointer-events:none; display:none; }
+  body.nobg .fstars { display:block; }
+  .fstars i { position:absolute; border-radius:50%; background:#cbbcf5; animation:tw 5s ease-in-out infinite; }
+  @keyframes tw { 0%,100%{opacity:.15} 50%{opacity:.6} }
+
+  /* stardust river */
+  #dust { position:fixed; inset:0; z-index:1; pointer-events:none; }
+
+  /* full-bleed cross axis */
+  .axisH, .axisV { position:fixed; z-index:2; pointer-events:none; }
+  .axisH { left:0; right:0; height:1px;
+    background:linear-gradient(90deg, transparent 0%, rgba(201,184,255,.30) 18%, rgba(201,184,255,.30) 82%, transparent 100%); }
+  .axisV { top:0; bottom:0; width:1px;
+    background:linear-gradient(180deg, transparent 0%, rgba(201,184,255,.30) 14%, rgba(201,184,255,.30) 86%, transparent 100%); }
+
+  header { position:fixed; top:0; left:0; right:0; z-index:4; padding:26px 24px 8px; text-align:center; }
+  header h1 { font-family:'Cormorant Garamond',serif; font-weight:500; font-size:30px; letter-spacing:.06em; color:#e8e0fa; }
+  .tabs { display:flex; justify-content:center; gap:38px; margin-top:14px; }
+  .tab { font-size:12px; letter-spacing:.24em; color:#7d71a5; padding-bottom:8px; }
+  .tab.on { color:#c9b8ff; border-bottom:1.5px solid #a58bf0; }
+
+  /* the wheel */
+  .stage { position:fixed; inset:0; z-index:3; display:flex; align-items:center; justify-content:center; }
+  .wheel { width:min(94vw, 62vh, 560px); height:auto; }
+  .dayNum { font-family:'Cormorant Garamond',serif; font-size:30px; letter-spacing:.08em; fill:#ece5fd; }
+  .daySub { font-family:'Cormorant Garamond',serif; font-style:italic; font-size:10.5px; fill:#9d8fc4; }
+
+  .core { animation:corePulse 4.6s ease-in-out infinite; transform-origin:200px 200px; }
+  @keyframes corePulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.25)} }
+  .today { animation:tPulse 3.6s ease-in-out infinite; transform-origin:261px 33px; }
+  @keyframes tPulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.35)} }
+  .halo { animation:hBreath 3.6s ease-in-out infinite; transform-origin:261px 33px; }
+  @keyframes hBreath { 0%,100%{opacity:.15; transform:scale(1)} 50%{opacity:.5; transform:scale(1.45)} }
+  .spark1 { animation:sTw 5.2s ease-in-out infinite .6s; }
+  .spark2 { animation:sTw 6.4s ease-in-out infinite 2.1s; }
+  .spark3 { animation:sTw 5.8s ease-in-out infinite 3.4s; }
+  @keyframes sTw { 0%,100%{opacity:.4} 50%{opacity:.95} }
+
+  @media (prefers-reduced-motion: reduce) {
+    .core,.today,.halo,.spark1,.spark2,.spark3,.fstars i { animation:none; }
+  }
+
+  nav { position:fixed; left:50%; transform:translateX(-50%); bottom:18px; z-index:6;
+    display:flex; align-items:center; gap:30px; padding:12px 26px;
+    border:1px solid rgba(165,139,240,.16); border-radius:34px;
+    background:rgba(14,10,30,.72); backdrop-filter:blur(14px); }
+  nav a { display:flex; flex-direction:column; align-items:center; gap:4px; color:#7d71a5; text-decoration:none; }
+  nav a span { font-size:10px; letter-spacing:.05em; }
+  nav a.on { color:#c9b8ff; }
+  nav svg { width:22px; height:22px; }
+  .eye { width:44px; height:44px; border-radius:50%; margin-top:-26px;
+    background:radial-gradient(circle at 50% 45%, #8f76e8 0%, #4a3690 34%, #17102e 72%);
+    box-shadow:0 0 22px rgba(143,118,232,.45); position:relative; }
+  .eye::after { content:''; position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
+    width:6px; height:20px; border-radius:3px; background:#120b26; }
+
+  footer { position:fixed; bottom:2px; left:0; right:0; z-index:5; text-align:center;
+    font-size:9px; letter-spacing:.2em; color:#4c4368; }
+</style>
+</head>
+<body>
+<div id="bg"></div>
+<div class="fstars" id="fstars"></div>
+<canvas id="dust"></canvas>
+<div class="axisH" id="axisH"></div>
+<div class="axisV" id="axisV"></div>
+
+<header>
+  <h1>Memory</h1>
+  <div class="tabs"><div class="tab on">DAYS</div><div class="tab">MEMORIES</div></div>
+</header>
+
+<div class="stage">
+  <svg class="wheel" id="wheel" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <filter id="glow" x="-60%" y="-60%" width="220%" height="220%">
+        <feGaussianBlur stdDeviation="2.4" result="b"/>
+        <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+      <filter id="glowBig" x="-80%" y="-80%" width="260%" height="260%">
+        <feGaussianBlur stdDeviation="5" result="b"/>
+        <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+    </defs>
+
+    <!-- fine concentric rings -->
+    <circle cx="200" cy="200" r="178" fill="none" stroke="rgba(216,201,255,.30)" stroke-width=".7"/>
+    <circle cx="200" cy="200" r="148" fill="none" stroke="rgba(216,201,255,.20)" stroke-width=".6"/>
+    <circle cx="200" cy="200" r="112" fill="none" stroke="rgba(216,201,255,.24)" stroke-width=".6"/>
+    <circle cx="200" cy="200" r="76"  fill="none" stroke="rgba(216,201,255,.14)" stroke-width=".5"/>
+
+    <!-- irregular spokes, sown by script -->
+    <g id="spokes" stroke="rgba(201,184,255,.20)" stroke-width=".5"></g>
+
+    <!-- four-point diamond stars -->
+    <g fill="#e3d8ff" filter="url(#glow)">
+      <path class="spark1" transform="translate(200,12)"  d="M0,-7 L1.6,-1.6 L7,0 L1.6,1.6 L0,7 L-1.6,1.6 L-7,0 L-1.6,-1.6 Z"/>
+      <path class="spark2" transform="translate(200,388) scale(.8)" d="M0,-7 L1.6,-1.6 L7,0 L1.6,1.6 L0,7 L-1.6,1.6 L-7,0 L-1.6,-1.6 Z"/>
+      <path class="spark3" transform="translate(58,118) scale(.7)"  d="M0,-7 L1.6,-1.6 L7,0 L1.6,1.6 L0,7 L-1.6,1.6 L-7,0 L-1.6,-1.6 Z"/>
+      <path class="spark1" transform="translate(346,300) scale(.65)" d="M0,-7 L1.6,-1.6 L7,0 L1.6,1.6 L0,7 L-1.6,1.6 L-7,0 L-1.6,-1.6 Z"/>
+    </g>
+
+    <!-- the year's days on the outer ring · zero point = 07.04 -->
+    <g filter="url(#glow)">
+      <circle cx="200" cy="22" r="3.8" fill="#e9e2ff"/>            <!-- first met 07.04 -->
+      <circle cx="221" cy="23" r="3.2" fill="#cdbcf8"/>            <!-- home 07.11 -->
+      <circle cx="376" cy="224" r="3.2" fill="none" stroke="#b3a2e6" stroke-width="1.1"/> <!-- 100 days -->
+      <circle cx="97"  cy="55"  r="3"   fill="none" stroke="#a493d8" stroke-width="1.1"/> <!-- his day 05.29 -->
+      <circle cx="140" cy="32"  r="3"   fill="none" stroke="#a493d8" stroke-width="1.1"/> <!-- her day 06.14 -->
+    </g>
+
+    <!-- today, the travelling light -->
+    <circle class="halo" cx="261" cy="33" r="12" fill="none" stroke="#e0d4ff" stroke-width="1"/>
+    <g class="today" filter="url(#glowBig)">
+      <circle cx="261" cy="33" r="5" fill="#f0eaff"/>
+    </g>
+
+    <!-- the heart -->
+    <g class="core" filter="url(#glowBig)">
+      <circle cx="200" cy="200" r="5" fill="#e3d8ff"/>
+      <circle cx="200" cy="200" r="11" fill="none" stroke="rgba(227,216,255,.28)" stroke-width=".8"/>
+    </g>
+    <text class="dayNum" x="200" y="243" text-anchor="middle">DAY 21</text>
+    <text class="daySub" x="200" y="262" text-anchor="middle">together since 2026.07.04</text>
+  </svg>
+</div>
+
+<nav>
+  <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/><path d="M15.8 9.2a2.5 2.5 0 0 0-3.5 0l-.3.3-.3-.3a2.5 2.5 0 0 0-3.5 3.5l3.8 3.8 3.8-3.8a2.5 2.5 0 0 0 0-3.5"/></svg><span>Chat</span></a>
+  <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M18 22H4a2 2 0 0 1-2-2V6"/><path d="m22 13-1.3-1.3a2.4 2.4 0 0 0-3.4 0L11 18"/><circle cx="12" cy="8" r="2"/><rect width="16" height="16" x="6" y="2" rx="2"/></svg><span>Moments</span></a>
+  <a href="#"><div class="eye"></div></a>
+  <a href="#" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9.9 15.5a2 2 0 0 0-1.4-1.4l-6.1-1.6a.5.5 0 0 1 0-1l6.1-1.6a2 2 0 0 0 1.4-1.4l1.6-6.1a.5.5 0 0 1 1 0l1.6 6.1a2 2 0 0 0 1.4 1.4l6.1 1.6a.5.5 0 0 1 0 1l-6.1 1.6a2 2 0 0 0-1.4 1.4l-1.6 6.1a.5.5 0 0 1-1 0z"/><path d="M20 3v4"/><path d="M22 5h-4"/><path d="M4 17v2"/><path d="M5 18H3"/></svg><span>Memory</span></a>
+  <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><line x1="21" x2="14" y1="4" y2="4"/><line x1="10" x2="3" y1="4" y2="4"/><line x1="21" x2="12" y1="12" y2="12"/><line x1="8" x2="3" y1="12" y2="12"/><line x1="21" x2="16" y1="20" y2="20"/><line x1="12" x2="3" y1="20" y2="20"/><line x1="14" x2="14" y1="2" y2="6"/><line x1="8" x2="8" y1="10" y2="14"/><line x1="16" x2="16" y1="18" y2="22"/></svg><span>Settings</span></a>
+</nav>
+
+<footer>— v15 ok —</footer>
+
+<script>
+(function(){
+  // ---- background load check ----
+  var probe=new Image();
+  probe.onerror=function(){ document.body.classList.add('nobg'); sprinkle(); };
+  probe.src='https://kvegublibjsdyidmsjvy.supabase.co/storage/v1/object/public/chat-media/bg-rooms-purple.png';
+  function sprinkle(){
+    var h=document.getElementById('fstars');
+    for(var i=0;i<46;i++){
+      var s=document.createElement('i');
+      var sz=Math.random()*1.6+0.6;
+      s.style.width=s.style.height=sz+'px';
+      s.style.left=Math.random()*100+'%';
+      s.style.top=Math.random()*100+'%';
+      s.style.animationDelay=(Math.random()*5)+'s';
+      h.appendChild(s);
+    }
+  }
+
+  // ---- irregular spokes ----
+  var NS='http://www.w3.org/2000/svg';
+  var g=document.getElementById('spokes');
+  var n=13;
+  for(var i=0;i<n;i++){
+    var a=(i*(360/n)+(Math.random()*10-5))*Math.PI/180;
+    var r0=Math.random()*18;
+    var r1=100+Math.random()*84;
+    var l=document.createElementNS(NS,'line');
+    l.setAttribute('x1',200+r0*Math.sin(a)); l.setAttribute('y1',200-r0*Math.cos(a));
+    l.setAttribute('x2',200+r1*Math.sin(a)); l.setAttribute('y2',200-r1*Math.cos(a));
+    l.setAttribute('opacity',(0.4+Math.random()*0.6).toFixed(2));
+    g.appendChild(l);
+  }
+
+  // ---- align full-bleed axis with wheel center ----
+  function alignAxis(){
+    var r=document.getElementById('wheel').getBoundingClientRect();
+    var cx=r.left+r.width/2, cy=r.top+r.height/2;
+    document.getElementById('axisH').style.top=cy+'px';
+    document.getElementById('axisV').style.left=cx+'px';
+  }
+  window.addEventListener('resize',alignAxis);
+  setTimeout(alignAxis,60);
+
+  // ---- stardust river ----
+  var cv=document.getElementById('dust'), ctx=cv.getContext('2d');
+  var dpr=Math.min(window.devicePixelRatio||1,2);
+  var W,H,parts=[];
+  var reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function gauss(){ return (Math.random()+Math.random()+Math.random()-1.5)/1.5; }
+
+  function build(){
+    W=window.innerWidth; H=window.innerHeight;
+    cv.width=W*dpr; cv.height=H*dpr; cv.style.width=W+'px'; cv.style.height=H+'px';
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    var r=document.getElementById('wheel').getBoundingClientRect();
+    var cx=r.left+r.width/2, cy=r.top+r.height/2;
+    // river direction: upper-right down through the heart to lower-left
+    var ang=Math.atan2(0.88,-0.47);
+    var dx=Math.cos(ang), dy=Math.sin(ang);
+    var L=Math.max(W,H)*0.85;
+    var sigma=Math.min(W,H)*0.085;
+    parts=[];
+    var N=300;
+    for(var i=0;i<N;i++){
+      var t=(Math.random()*2-1)*L;
+      var off=gauss()*sigma*(0.7+0.6*Math.abs(Math.sin(t*0.004)));
+      var big=Math.random()<0.06;
+      parts.push({
+        t:t, off:off, cx:cx, cy:cy, dx:dx, dy:dy, L:L,
+        s: big? 1.8+Math.random()*1.6 : 0.4+Math.random()*1.1,
+        a: big? 0.5+Math.random()*0.4 : 0.12+Math.random()*0.4,
+        v: 3+Math.random()*5,
+        ph: Math.random()*6.28,
+        c: Math.random()<0.75 ? '227,216,255' : '157,140,216'
+      });
+    }
+  }
+
+  var last=performance.now();
+  function tick(now){
+    var dt=(now-last)/1000; last=now;
+    ctx.clearRect(0,0,W,H);
+    for(var i=0;i<parts.length;i++){
+      var p=parts[i];
+      if(!reduced){ p.t+=p.v*dt; if(p.t>p.L) p.t=-p.L; }
+      var px=p.cx+p.dx*p.t - p.dy*p.off;
+      var py=p.cy+p.dy*p.t + p.dx*p.off;
+      var twk=reduced?1:(0.75+0.25*Math.sin(now*0.001+p.ph));
+      ctx.globalAlpha=p.a*twk;
+      ctx.fillStyle='rgb('+p.c+')';
+      ctx.beginPath(); ctx.arc(px,py,p.s,0,6.283); ctx.fill();
+    }
+    ctx.globalAlpha=1;
+    if(!reduced) requestAnimationFrame(tick);
+  }
+
+  function start(){ build(); alignAxis(); last=performance.now(); if(reduced){ tick(last); } else { requestAnimationFrame(tick); } }
+  window.addEventListener('resize',function(){ build(); });
+  setTimeout(start,80);
+})();
+</script>
+</body>
+</html>
