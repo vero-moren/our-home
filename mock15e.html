@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>our home — memory</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,500;1,600&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --text:#EDE8F7;
+    --dim:rgba(237,232,247,.55);
+    --lav:#B9A3FF;
+    --lavdim:rgba(185,163,255,.72);
+    --press:#6B4FD8;
+    --deep:#3A2480;
+    --edge:rgba(255,255,255,.14);
+    --glass:rgba(255,255,255,.055);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%}
+  body{background:#080510;color:var(--text);font-family:'Inter',-apple-system,'PingFang SC',sans-serif;overflow:hidden;user-select:none;-webkit-user-select:none}
+
+  .wall{position:fixed;inset:0;
+    background:url('https://kvegublibjsdyidmsjvy.supabase.co/storage/v1/object/public/chat-media/bg-rooms-purple.png') center/cover no-repeat #080510}
+  .shade{position:fixed;inset:0;background:rgba(8,5,16,.5)}
+
+  #dust{position:fixed;inset:0;z-index:3;pointer-events:none}
+
+  .top{position:fixed;left:0;right:0;top:0;z-index:20;
+    padding:calc(env(safe-area-inset-top,0px) + 12px) 16px 0;
+    background:rgba(8,5,16,.55);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+    border-bottom:1px solid rgba(255,255,255,.07)}
+  .roomTitle{font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:500;letter-spacing:.08em;text-align:center}
+  .seg{display:flex;justify-content:center;gap:26px;margin-top:10px}
+  .segItem{padding:8px 2px 10px;font-size:10px;letter-spacing:.18em;color:var(--dim);cursor:pointer;
+    border-bottom:2px solid transparent;transition:color .2s,border-color .2s}
+  .segItem.cur{color:var(--lav);border-bottom-color:var(--lav)}
+
+  .stage{position:fixed;inset:0;z-index:4;display:flex;align-items:center;justify-content:center;
+    padding:calc(env(safe-area-inset-top,0px) + 104px) 0 calc(env(safe-area-inset-bottom,0px) + 82px)}
+  .disc{position:relative;width:min(96vw,64vh,600px);aspect-ratio:1/1}
+  .layer{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+
+  /* her ledger: axis & dust pinned · outer, inner, spokes counterclockwise at
+     three speeds · middle clockwise */
+  .spinOuter { animation:ccw 320s linear infinite }
+  .spinMid   { animation:cw  260s linear infinite }
+  .spinInner { animation:ccw 210s linear infinite }
+  .spinSpokes{ animation:ccw 170s linear infinite }
+  @keyframes cw  { to { transform:rotate(360deg)  } }
+  @keyframes ccw { to { transform:rotate(-360deg) } }
+
+  .pins{position:absolute;inset:0;width:100%;height:100%}
+  .today{animation:tPulse 3.6s ease-in-out infinite;transform-box:view-box;transform-origin:61.75% 18%}
+  @keyframes tPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.3)}}
+  .halo{animation:hBreath 3.6s ease-in-out infinite;transform-box:view-box;transform-origin:61.75% 18%}
+  @keyframes hBreath{0%,100%{opacity:.15;transform:scale(1)}50%{opacity:.5;transform:scale(1.4)}}
+
+  @media (prefers-reduced-motion: reduce){
+    .spinOuter,.spinMid,.spinInner,.spinSpokes,.today,.halo{animation:none}
+  }
+
+  .bar{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 4px);
+    transform:translateX(-50%);
+    width:min(92vw,420px);height:64px;border-radius:22px;
+    background:rgba(14,10,26,.46);border:1px solid var(--edge);
+    backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+    display:flex;align-items:center;justify-content:space-around;z-index:21}
+  .tab{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;width:58px}
+  .tab svg{width:21px;height:21px;stroke:var(--lav);fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;
+    transition:transform .15s ease,stroke .15s ease}
+  .tab small{display:inline-block;font-size:9px;letter-spacing:.1em;color:var(--lavdim);font-weight:400;transition:transform .15s ease,color .15s ease}
+  .tab:active svg,.tab.cur svg{stroke:var(--press);transform:scale(1.12)}
+  .tab:active small,.tab.cur small{color:var(--press);transform:scale(1.12);font-weight:500}
+  .tab.home{width:66px;transform:translateY(-9px)}
+  .barEye{width:52px;height:52px;border-radius:50%;background-repeat:no-repeat;
+    box-shadow:0 0 18px rgba(146,92,255,.55),0 0 40px rgba(107,79,216,.3),inset 0 0 0 1.5px rgba(185,163,255,.5);
+    transition:transform .15s ease}
+  .tab.home:active .barEye{transform:scale(1.18)}
+
+  .toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 148px);
+    transform:translateX(-50%);padding:9px 18px;border-radius:99px;
+    background:rgba(14,10,26,.75);border:1px solid var(--edge);
+    backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+    font-size:11px;letter-spacing:.08em;color:var(--dim);
+    opacity:0;transition:opacity .4s;pointer-events:none;z-index:50;white-space:nowrap}
+  .toast.show{opacity:1}
+  .mark{position:fixed;bottom:3px;left:50%;transform:translateX(-50%);font-size:8px;letter-spacing:.2em;color:rgba(237,232,247,.13);z-index:1}
+</style>
+</head>
+<body>
+
+<div class="wall"></div>
+<div class="shade"></div>
+<canvas id="dust"></canvas>
+
+<div class="top">
+  <div class="roomTitle">Memory</div>
+  <div class="seg">
+    <div class="segItem cur" data-l="days">DAYS</div>
+    <div class="segItem" data-l="memories">MEMORIES</div>
+  </div>
+</div>
+
+<div class="stage">
+  <div class="disc" id="disc">
+    <img class="layer" src="https://kvegublibjsdyidmsjvy.supabase.co/storage/v1/object/public/chat-media/wheel-dust.png" alt="">
+    <img class="layer" src="https://kvegublibjsdyidmsjvy.supabase.co/storage/v1/object/public/chat-media/wheel-axis.png" alt="">
+    <img class="layer spinOuter" src="https://kvegublibjsdyidmsjvy.supabase.co/storage/v1/object/public/chat-media/wheel-ring-outer.png" alt="">
+    <img class="layer spinMid" src="https://kvegublibjsdyidmsjvy.supabase.co/storage/v1/object/public/chat-media/wheel-ring-mid.png" alt="">
+    <img class="layer spinInner" src="https://kvegublibjsdyidmsjvy.supabase.co/storage/v1/object/public/chat-media/wheel-ring-inner.png" alt="">
+    <img class="layer spinSpokes" src="https://kvegublibjsdyidmsjvy.supabase.co/storage/v1/object/public/chat-media/wheel-spokes.png" alt="">
+    <svg class="pins" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <filter id="glow" x="-60%" y="-60%" width="220%" height="220%">
+          <feGaussianBlur stdDeviation="2.4" result="b"/>
+          <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+        <filter id="glowBig" x="-80%" y="-80%" width="260%" height="260%">
+          <feGaussianBlur stdDeviation="5" result="b"/>
+          <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+      </defs>
+
+      <!-- the year's days · zero point = 07.04 · pinned on the outer rim -->
+      <g filter="url(#glow)">
+        <circle cx="200" cy="64" r="3.6" fill="#e9e2ff"/>
+        <circle cx="216" cy="65" r="3"   fill="#cdbcf8"/>
+        <circle cx="335" cy="218" r="3"  fill="none" stroke="#b3a2e6" stroke-width="1.1"/>
+        <circle cx="121" cy="89" r="2.8" fill="none" stroke="#a493d8" stroke-width="1.1"/>
+        <circle cx="154" cy="72" r="2.8" fill="none" stroke="#a493d8" stroke-width="1.1"/>
+      </g>
+
+      <circle class="halo" cx="247" cy="72" r="11" fill="none" stroke="#e0d4ff" stroke-width="1"/>
+      <g class="today" filter="url(#glowBig)">
+        <circle cx="247" cy="72" r="4.8" fill="#f0eaff"/>
+      </g>
+    </svg>
+  </div>
+</div>
+
+<div class="bar">
+  <div class="tab" data-t="Chat">
+    <svg viewBox="0 0 24 24"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/><path d="M12 15.4l-3.1-3.1a1.95 1.95 0 0 1 2.76-2.76l.34.34.34-.34a1.95 1.95 0 0 1 2.76 2.76Z"/></svg>
+    <small>Chat</small>
+  </div>
+  <div class="tab" data-t="Moments">
+    <svg viewBox="0 0 24 24"><path d="M18 22H4a2 2 0 0 1-2-2V6"/><path d="m22 13-1.3-1.3a2.4 2.4 0 0 0-3.4 0L11 18"/><circle cx="12" cy="8" r="2"/><rect width="16" height="16" x="6" y="2" rx="2"/></svg>
+    <small>Moments</small>
+  </div>
+  <div class="tab home" data-t="Hall">
+    <div class="barEye" id="barEye"></div>
+  </div>
+  <div class="tab cur" data-t="Memory">
+    <svg viewBox="0 0 24 24"><path d="M9.94 15.5a2 2 0 0 0-1.44-1.44l-6.13-1.58a.5.5 0 0 1 0-.96l6.13-1.58a2 2 0 0 0 1.44-1.44l1.58-6.13a.5.5 0 0 1 .96 0l1.58 6.13a2 2 0 0 0 1.44 1.44l6.13 1.58a.5.5 0 0 1 0 .96l-6.13 1.58a2 2 0 0 0-1.44 1.44l-1.58 6.13a.5.5 0 0 1-.96 0Z"/><path d="M20 3v4"/><path d="M22 5h-4"/><path d="M4 17v2"/><path d="M5 18H3"/></svg>
+    <small>Memory</small>
+  </div>
+  <div class="tab" data-t="Settings">
+    <svg viewBox="0 0 24 24"><line x1="21" x2="14" y1="4" y2="4"/><line x1="10" x2="3" y1="4" y2="4"/><line x1="21" x2="12" y1="12" y2="12"/><line x1="8" x2="3" y1="12" y2="12"/><line x1="21" x2="16" y1="20" y2="20"/><line x1="12" x2="3" y1="20" y2="20"/><line x1="14" x2="14" y1="2" y2="6"/><line x1="8" x2="8" y1="10" y2="14"/><line x1="16" x2="16" y1="18" y2="22"/></svg>
+    <small>Settings</small>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<div class="mark">— v15e ok —</div>
+
+<script>
+  var DOOR_IMG = 'https://kvegublibjsdyidmsjvy.supabase.co/storage/v1/object/public/chat-media/door-purple-dark.png';
+  var EX = 0.504, EY = 0.437, ER = 0.075;
+
+  var toast = document.getElementById('toast'), tt;
+  function say(m){ toast.textContent = m; toast.classList.add('show');
+    clearTimeout(tt); tt = setTimeout(function(){ toast.classList.remove('show'); }, 1600); }
+
+  (function(){
+    var barEye = document.getElementById('barEye');
+    var pre = new Image();
+    pre.onload = function(){
+      var BW = 52, regionW = ER*2.6*pre.naturalWidth, k = BW/regionW;
+      barEye.style.backgroundImage = 'url('+DOOR_IMG+')';
+      barEye.style.backgroundSize = (pre.naturalWidth*k)+'px '+(pre.naturalHeight*k)+'px';
+      barEye.style.backgroundPosition = (BW/2 - EX*pre.naturalWidth*k)+'px '+(BW/2 - EY*pre.naturalHeight*k)+'px';
+    };
+    pre.src = DOOR_IMG;
+  })();
+  document.querySelectorAll('.tab').forEach(function(t){
+    t.addEventListener('click', function(){
+      if(t.dataset.t === 'Memory') return;
+      say(t.dataset.t + ' — back at merge');
+    });
+  });
+  document.querySelectorAll('.segItem').forEach(function(s){
+    s.addEventListener('click', function(){
+      if(s.classList.contains('cur')) return;
+      say('Memories — back at merge');
+    });
+  });
+
+  /* ===== a thin veil of living dust above the wheel ===== */
+  var cv=document.getElementById('dust'), ctx=cv.getContext('2d');
+  var dpr=Math.min(window.devicePixelRatio||1,2);
+  var W,H,parts=[];
+  var reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function gauss(){ return (Math.random()+Math.random()+Math.random()-1.5)/1.5; }
+
+  function build(){
+    W=window.innerWidth; H=window.innerHeight;
+    cv.width=W*dpr; cv.height=H*dpr; cv.style.width=W+'px'; cv.style.height=H+'px';
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    var r=document.getElementById('disc').getBoundingClientRect();
+    var cx=r.left+r.width/2, cy=r.top+r.height/2;
+    var ang=Math.atan2(0.88,-0.47);
+    var dx=Math.cos(ang), dy=Math.sin(ang);
+    var L=Math.max(W,H)*0.85;
+    var sigma=Math.min(W,H)*0.10;
+    parts=[];
+    for(var i=0;i<130;i++){
+      var t=(Math.random()*2-1)*L;
+      var off=gauss()*sigma;
+      var big=Math.random()<0.05;
+      parts.push({
+        t:t, off:off, cx:cx, cy:cy, dx:dx, dy:dy, L:L,
+        s: big? 1.6+Math.random()*1.2 : 0.4+Math.random()*0.9,
+        a: big? 0.35+Math.random()*0.3 : 0.08+Math.random()*0.25,
+        v: 2.5+Math.random()*4,
+        ph: Math.random()*6.28,
+        c: Math.random()<0.75 ? '227,216,255' : '157,140,216'
+      });
+    }
+  }
+
+  var last=performance.now();
+  function tick(now){
+    var dt=(now-last)/1000; last=now;
+    ctx.clearRect(0,0,W,H);
+    for(var i=0;i<parts.length;i++){
+      var p=parts[i];
+      if(!reduced){ p.t+=p.v*dt; if(p.t>p.L) p.t=-p.L; }
+      var px=p.cx+p.dx*p.t - p.dy*p.off;
+      var py=p.cy+p.dy*p.t + p.dx*p.off;
+      var twk=reduced?1:(0.75+0.25*Math.sin(now*0.001+p.ph));
+      ctx.globalAlpha=p.a*twk;
+      ctx.fillStyle='rgb('+p.c+')';
+      ctx.beginPath(); ctx.arc(px,py,p.s,0,6.283); ctx.fill();
+    }
+    ctx.globalAlpha=1;
+    if(!reduced) requestAnimationFrame(tick);
+  }
+
+  function start(){ build(); last=performance.now();
+    if(reduced){ tick(last); } else { requestAnimationFrame(tick); } }
+  window.addEventListener('resize',function(){ build(); });
+  setTimeout(start,80);
+</script>
+</body>
+</html>
