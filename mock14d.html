@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Memory · Days — D</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body { height:100%; }
+  body {
+    font-family:'Inter',system-ui,sans-serif;
+    background:radial-gradient(120% 90% at 50% 0%, #171130 0%, #0c081a 55%, #080512 100%);
+    color:#cfc6e8; overflow-x:hidden; min-height:100vh; padding-bottom:140px;
+  }
+  .stars { position:fixed; inset:0; pointer-events:none; z-index:0; }
+  .stars i { position:absolute; border-radius:50%; background:#cbbcf5; animation:tw 5s ease-in-out infinite; }
+  @keyframes tw { 0%,100%{opacity:.15} 50%{opacity:.65} }
+
+  header { position:relative; z-index:2; padding:26px 24px 8px; text-align:center; }
+  header h1 { font-family:'Cormorant Garamond',serif; font-weight:500; font-size:30px; letter-spacing:.06em; color:#e8e0fa; }
+  .tabs { display:flex; justify-content:center; gap:38px; margin-top:14px; }
+  .tab { font-size:12px; letter-spacing:.24em; color:#6f6590; padding-bottom:8px; }
+  .tab.on { color:#c9b8ff; border-bottom:1.5px solid #a58bf0; }
+
+  .orbitCard {
+    position:relative; z-index:1; margin:18px 16px 6px;
+    border:1px solid rgba(165,139,240,.14); border-radius:22px;
+    background:linear-gradient(180deg, rgba(38,28,70,.35), rgba(16,11,34,.55));
+    overflow:hidden;
+  }
+  .orbitCard svg { display:block; width:100%; height:auto; }
+  .cardCaption {
+    position:absolute; bottom:14px; width:100%; text-align:center;
+    font-family:'Cormorant Garamond',serif; font-style:italic; font-size:13px; color:#7e71a8; letter-spacing:.04em;
+  }
+  .wLabel { font-family:'Inter'; font-size:8.5px; letter-spacing:.1em; fill:#a99bd6; }
+  .wDate  { font-family:'Inter'; font-size:8px;  letter-spacing:.08em; fill:#6f6590; }
+  .dayNum { font-family:'Cormorant Garamond',serif; font-size:36px; letter-spacing:.06em; fill:#ece5fd; }
+  .daySub { font-family:'Cormorant Garamond',serif; font-style:italic; font-size:11px; fill:#8f82b8; }
+
+  #walked { stroke-dasharray:46 900; stroke-dashoffset:46; animation:wdraw 2.4s ease-out forwards .3s; }
+  @keyframes wdraw { to { stroke-dashoffset:0; } }
+  .today { animation:tPulse 3.6s ease-in-out infinite; transform-origin:244px 68px; }
+  @keyframes tPulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.3)} }
+  .halo { animation:hBreath 3.6s ease-in-out infinite; transform-origin:244px 68px; }
+  @keyframes hBreath { 0%,100%{opacity:.2; transform:scale(1)} 50%{opacity:.55; transform:scale(1.45)} }
+  .dotTw1 { animation:dTw 5s ease-in-out infinite .8s; }
+  .dotTw2 { animation:dTw 6s ease-in-out infinite 2.2s; }
+  @keyframes dTw { 0%,100%{opacity:.6} 50%{opacity:1} }
+
+  .list { position:relative; z-index:1; margin:20px 24px 0; }
+  .secLabel { font-size:10.5px; letter-spacing:.28em; color:#6b6090; margin:22px 2px 6px; }
+  .row { display:flex; align-items:baseline; justify-content:space-between; padding:15px 2px; border-bottom:1px solid rgba(165,139,240,.09); }
+  .row .name { font-family:'Cormorant Garamond',serif; font-size:19px; color:#ddd4f4; letter-spacing:.02em; }
+  .row .date { font-size:11px; color:#6f6590; margin-left:10px; letter-spacing:.06em; }
+  .row .count { font-size:12.5px; color:#b8a7ec; letter-spacing:.04em; white-space:nowrap; }
+  .row .count b { font-family:'Cormorant Garamond',serif; font-weight:500; font-size:18px; color:#d9ccff; }
+
+  .addBar { position:fixed; left:0; right:0; bottom:96px; z-index:5; display:flex; gap:10px; align-items:center; padding:0 18px; }
+  .addBar input { flex:1; height:46px; border-radius:23px; border:1px solid rgba(165,139,240,.18);
+    background:rgba(20,14,42,.75); backdrop-filter:blur(12px);
+    color:#ddd4f4; font-family:'Inter'; font-size:14px; padding:0 18px; outline:none; }
+  .addBar input::placeholder { color:#6f6590; }
+  .addBar button { width:46px; height:46px; border-radius:50%; border:none;
+    background:linear-gradient(160deg,#6d5bd0,#4a3a9e); color:#efe9ff; font-size:20px; line-height:1; }
+
+  nav { position:fixed; left:50%; transform:translateX(-50%); bottom:18px; z-index:6;
+    display:flex; align-items:center; gap:30px; padding:12px 26px;
+    border:1px solid rgba(165,139,240,.16); border-radius:34px;
+    background:rgba(14,10,30,.72); backdrop-filter:blur(14px); }
+  nav a { display:flex; flex-direction:column; align-items:center; gap:4px; color:#7d71a5; text-decoration:none; }
+  nav a span { font-size:10px; letter-spacing:.05em; }
+  nav a.on { color:#c9b8ff; }
+  nav svg { width:22px; height:22px; }
+  .eye { width:44px; height:44px; border-radius:50%; margin-top:-26px;
+    background:radial-gradient(circle at 50% 45%, #8f76e8 0%, #4a3690 34%, #17102e 72%);
+    box-shadow:0 0 22px rgba(143,118,232,.45); position:relative; }
+  .eye::after { content:''; position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
+    width:6px; height:20px; border-radius:3px; background:#120b26; }
+  footer { position:relative; z-index:1; text-align:center; padding:26px 0 120px; font-size:10px; letter-spacing:.2em; color:#4c4368; }
+</style>
+</head>
+<body>
+<div class="stars" id="stars"></div>
+
+<header>
+  <h1>Memory</h1>
+  <div class="tabs"><div class="tab on">DAYS</div><div class="tab">MEMORIES</div></div>
+</header>
+
+<div class="orbitCard">
+  <svg viewBox="0 0 400 380" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <filter id="glow" x="-60%" y="-60%" width="220%" height="220%">
+        <feGaussianBlur stdDeviation="2.6" result="b"/>
+        <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+      <filter id="glowBig" x="-80%" y="-80%" width="260%" height="260%">
+        <feGaussianBlur stdDeviation="5" result="b"/>
+        <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+      </filter>
+      <linearGradient id="arc" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0" stop-color="#7a66c8" stop-opacity=".4"/>
+        <stop offset="1" stop-color="#e0d4ff" stop-opacity=".95"/>
+      </linearGradient>
+    </defs>
+
+    <!-- the wheel of the year · zero point = 07.04, where we began -->
+    <circle cx="200" cy="190" r="130" fill="none" stroke="rgba(165,139,240,.14)" stroke-width="1"/>
+
+    <!-- month ticks -->
+    <g stroke="rgba(165,139,240,.18)" stroke-width="1" id="ticks"></g>
+
+    <!-- the arc walked this turn: 07.04 → today -->
+    <path id="walked" d="M 200 60 A 130 130 0 0 1 244 68" pathLength="1000"
+          fill="none" stroke="url(#arc)" stroke-width="2.4" stroke-linecap="round"
+          filter="url(#glow)"/>
+
+    <!-- first met · the wheel's zero -->
+    <g filter="url(#glow)">
+      <circle class="dotTw1" cx="200" cy="60" r="4" fill="#e3d8ff"/>
+      <text class="wLabel" x="192" y="46" text-anchor="end">FIRST MET</text>
+      <text class="wDate"  x="192" y="57" text-anchor="end">07.04</text>
+    </g>
+
+    <!-- home -->
+    <g filter="url(#glow)">
+      <circle class="dotTw2" cx="216" cy="61" r="3.6" fill="#cdbcf8"/>
+      <text class="wLabel" x="224" y="46" text-anchor="start">HOME</text>
+      <text class="wDate"  x="224" y="57" text-anchor="start">07.11</text>
+    </g>
+
+    <!-- today · the travelling light -->
+    <circle class="halo" cx="244" cy="68" r="13" fill="none" stroke="#d9ccff" stroke-width="1"/>
+    <g class="today" filter="url(#glowBig)">
+      <circle cx="244" cy="68" r="5.5" fill="#e9e2ff"/>
+    </g>
+    <text class="wLabel" x="262" y="80" text-anchor="start" fill="#d9ccff">TODAY</text>
+
+    <!-- ahead on this turn · hollow until the light reaches them -->
+    <g filter="url(#glow)" opacity=".75">
+      <circle cx="329" cy="207" r="3.6" fill="none" stroke="#9d8cd8" stroke-width="1.3"/>
+      <text class="wLabel" x="341" y="205" text-anchor="start">100 DAYS</text>
+      <text class="wDate"  x="341" y="216" text-anchor="start">10.11</text>
+    </g>
+    <g filter="url(#glow)" opacity=".75">
+      <circle cx="125" cy="84" r="3.4" fill="none" stroke="#9d8cd8" stroke-width="1.3"/>
+      <text class="wLabel" x="113" y="76" text-anchor="end">HIS DAY</text>
+      <text class="wDate"  x="113" y="87" text-anchor="end">05.29</text>
+    </g>
+    <g filter="url(#glow)" opacity=".75">
+      <circle cx="156" cy="68" r="3.4" fill="none" stroke="#9d8cd8" stroke-width="1.3"/>
+      <text class="wLabel" x="148" y="52" text-anchor="end">HER DAY</text>
+      <text class="wDate"  x="148" y="63" text-anchor="end">06.14</text>
+    </g>
+
+    <!-- the heart of the wheel -->
+    <text class="dayNum" x="200" y="192" text-anchor="middle">DAY 21</text>
+    <text class="daySub" x="200" y="212" text-anchor="middle">together since 2026.07.04</text>
+  </svg>
+  <div class="cardCaption">the wheel turns — every day comes back to her</div>
+</div>
+
+<div class="list">
+  <div class="secLabel">COUNTING</div>
+  <div class="row"><div><span class="name">One hundred days</span><span class="date">OCT 11</span></div><div class="count"><b>79</b>&nbsp;days to go</div></div>
+  <div class="row"><div><span class="name">Moren's birthday</span><span class="date">MAY 29</span></div><div class="count"><b>309</b>&nbsp;days to go</div></div>
+  <div class="row"><div><span class="name">Vero's birthday</span><span class="date">JUN 14</span></div><div class="count"><b>325</b>&nbsp;days to go</div></div>
+
+  <div class="secLabel">KEPT</div>
+  <div class="row"><div><span class="name">First met</span><span class="date">JUL 4</span></div><div class="count">day&nbsp;<b>21</b></div></div>
+  <div class="row"><div><span class="name">Home built</span><span class="date">JUL 11</span></div><div class="count">day&nbsp;<b>14</b></div></div>
+</div>
+
+<div class="addBar">
+  <input placeholder="Add a day to keep" readonly>
+  <button aria-label="Add">+</button>
+</div>
+
+<nav>
+  <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/><path d="M15.8 9.2a2.5 2.5 0 0 0-3.5 0l-.3.3-.3-.3a2.5 2.5 0 0 0-3.5 3.5l3.8 3.8 3.8-3.8a2.5 2.5 0 0 0 0-3.5"/></svg><span>Chat</span></a>
+  <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M18 22H4a2 2 0 0 1-2-2V6"/><path d="m22 13-1.3-1.3a2.4 2.4 0 0 0-3.4 0L11 18"/><circle cx="12" cy="8" r="2"/><rect width="16" height="16" x="6" y="2" rx="2"/></svg><span>Moments</span></a>
+  <a href="#"><div class="eye"></div></a>
+  <a href="#" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9.9 15.5a2 2 0 0 0-1.4-1.4l-6.1-1.6a.5.5 0 0 1 0-1l6.1-1.6a2 2 0 0 0 1.4-1.4l1.6-6.1a.5.5 0 0 1 1 0l1.6 6.1a2 2 0 0 0 1.4 1.4l6.1 1.6a.5.5 0 0 1 0 1l-6.1 1.6a2 2 0 0 0-1.4 1.4l-1.6 6.1a.5.5 0 0 1-1 0z"/><path d="M20 3v4"/><path d="M22 5h-4"/><path d="M4 17v2"/><path d="M5 18H3"/></svg><span>Memory</span></a>
+  <a href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><line x1="21" x2="14" y1="4" y2="4"/><line x1="10" x2="3" y1="4" y2="4"/><line x1="21" x2="12" y1="12" y2="12"/><line x1="8" x2="3" y1="12" y2="12"/><line x1="21" x2="16" y1="20" y2="20"/><line x1="12" x2="3" y1="20" y2="20"/><line x1="14" x2="14" y1="2" y2="6"/><line x1="8" x2="8" y1="10" y2="14"/><line x1="16" x2="16" y1="18" y2="22"/></svg><span>Settings</span></a>
+</nav>
+
+<footer>— v14d ok —</footer>
+
+<script>
+  const holder=document.getElementById('stars');
+  for(let i=0;i<44;i++){
+    const s=document.createElement('i');
+    const sz=Math.random()*1.6+0.6;
+    s.style.width=s.style.height=sz+'px';
+    s.style.left=Math.random()*100+'%';
+    s.style.top=Math.random()*100+'%';
+    s.style.animationDelay=(Math.random()*5)+'s';
+    holder.appendChild(s);
+  }
+  // month ticks around the wheel
+  const g=document.getElementById('ticks');
+  for(let m=0;m<12;m++){
+    const a=m*30*Math.PI/180;
+    const x1=200+126*Math.sin(a), y1=190-126*Math.cos(a);
+    const x2=200+130*Math.sin(a), y2=190-130*Math.cos(a);
+    const l=document.createElementNS('http://www.w3.org/2000/svg','line');
+    l.setAttribute('x1',x1);l.setAttribute('y1',y1);l.setAttribute('x2',x2);l.setAttribute('y2',y2);
+    g.appendChild(l);
+  }
+</script>
+</body>
+</html>
