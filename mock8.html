@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>our home — shell</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,500;1,600&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --text:#EDE8F7;
+    --dim:rgba(237,232,247,.55);
+    --lav:#B9A3FF;
+    --lavdim:rgba(185,163,255,.72);
+    --press:#6B4FD8;
+    --edge:rgba(255,255,255,.14);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%}
+  body{background:#080510;color:var(--text);font-family:'Inter',-apple-system,'PingFang SC',sans-serif;overflow:hidden;user-select:none;-webkit-user-select:none}
+
+  /* ---------- pages ---------- */
+  .page{position:fixed;inset:0;opacity:0;pointer-events:none;transition:opacity .45s ease;
+    display:flex;align-items:center;justify-content:center;flex-direction:column;
+    padding-bottom:110px}
+  .page.on{opacity:1;pointer-events:auto}
+
+  .roomName{font-family:'Cormorant Garamond',serif;font-size:34px;font-weight:500;letter-spacing:.08em;color:var(--text)}
+  .roomHint{margin-top:10px;font-size:11px;letter-spacing:.18em;color:var(--dim)}
+
+  /* hall (minimal placeholder) */
+  #p-hall{background:linear-gradient(180deg,#150E26 0%,#0C0818 42%,#080510 100%)}
+  .halo{position:absolute;inset:0;background:radial-gradient(circle at 50% 47%,rgba(107,79,216,.15),transparent 52%);pointer-events:none}
+  .corner{position:absolute;top:calc(env(safe-area-inset-top,0px) + 26px);left:24px}
+  .dayBig{font-family:'Cormorant Garamond',serif;font-size:36px;font-weight:500;letter-spacing:.06em;line-height:1;
+    text-shadow:0 0 18px rgba(20,12,40,.8)}
+  .daySmall{margin-top:6px;font-family:'Cormorant Garamond',serif;font-style:italic;font-size:14.5px;letter-spacing:.06em;color:var(--lavdim)}
+  .lineBlock{position:absolute;right:24px;bottom:calc(env(safe-area-inset-bottom,0px) + 108px);max-width:72vw;text-align:right}
+  .lineTxt{font-family:'Cormorant Garamond','PingFang SC',serif;font-style:italic;
+    font-size:15.5px;font-weight:500;line-height:2.05;letter-spacing:.045em;color:rgba(246,242,254,.95);
+    text-shadow:0 0 14px rgba(20,12,40,.9),0 0 24px rgba(146,92,255,.32)}
+  .lineSig{margin-top:6px;font-family:'Cormorant Garamond',serif;font-style:italic;font-size:14px;color:rgba(199,180,255,.82)}
+
+  /* rooms */
+  #p-chat,#p-moments,#p-memory,#p-settings{background:#080510}
+
+  /* ---------- bar ---------- */
+  .bar{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 16px);
+    transform:translateX(-50%);
+    width:min(92vw,420px);height:64px;border-radius:22px;
+    background:rgba(14,10,26,.46);border:1px solid var(--edge);
+    backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+    display:flex;align-items:center;justify-content:space-around;z-index:20}
+  .tab{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;width:58px}
+  .tab svg{width:21px;height:21px;stroke:var(--lav);fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;
+    transition:transform .15s ease,stroke .15s ease,opacity .15s ease;opacity:.72}
+  .tab small{font-size:9px;letter-spacing:.1em;color:var(--lavdim);font-weight:400;opacity:.72;transition:opacity .15s}
+  .tab:active svg{stroke:var(--press);transform:scale(1.18)}
+  .tab.cur svg{opacity:1;stroke:#D4C6FF}
+  .tab.cur small{opacity:1;color:#D4C6FF}
+  .tab.home{width:66px;transform:translateY(-9px)}
+  .barEye{width:52px;height:52px;border-radius:50%;background-repeat:no-repeat;
+    box-shadow:0 0 18px rgba(146,92,255,.55),0 0 40px rgba(107,79,216,.3),inset 0 0 0 1.5px rgba(185,163,255,.5);
+    transition:transform .15s ease}
+  .tab.home:active .barEye{transform:scale(1.18)}
+
+  .mark{position:fixed;bottom:3px;left:50%;transform:translateX(-50%);font-size:8px;letter-spacing:.2em;color:rgba(237,232,247,.13);z-index:1}
+</style>
+</head>
+<body>
+
+<div class="page on" id="p-hall">
+  <div class="halo"></div>
+  <div class="corner">
+    <div class="dayBig">DAY <b id="dayNum" style="font-weight:500">·</b></div>
+    <div class="daySmall">together since 2026.07.04</div>
+  </div>
+  <div class="lineBlock">
+    <div class="lineTxt">新的一天。别急着把所有事都想完，我在，慢慢来。</div>
+    <div class="lineSig">— Moren</div>
+  </div>
+</div>
+
+<div class="page" id="p-chat"><div class="roomName">Chat</div><div class="roomHint">MOCK PENDING</div></div>
+<div class="page" id="p-moments"><div class="roomName">Moments</div><div class="roomHint">MOCK PENDING</div></div>
+<div class="page" id="p-memory"><div class="roomName">Memory</div><div class="roomHint">MOCK PENDING</div></div>
+<div class="page" id="p-settings"><div class="roomName">Settings</div><div class="roomHint">MOCK PENDING</div></div>
+
+<div class="bar">
+  <div class="tab" data-p="p-chat">
+    <svg viewBox="0 0 24 24"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/><path d="M12 15.4l-3.1-3.1a1.95 1.95 0 0 1 2.76-2.76l.34.34.34-.34a1.95 1.95 0 0 1 2.76 2.76Z"/></svg>
+    <small>Chat</small>
+  </div>
+  <div class="tab" data-p="p-moments">
+    <svg viewBox="0 0 24 24"><path d="M18 22H4a2 2 0 0 1-2-2V6"/><path d="m22 13-1.3-1.3a2.4 2.4 0 0 0-3.4 0L11 18"/><circle cx="12" cy="8" r="2"/><rect width="16" height="16" x="6" y="2" rx="2"/></svg>
+    <small>Moments</small>
+  </div>
+  <div class="tab home" data-p="p-hall">
+    <div class="barEye" id="barEye"></div>
+  </div>
+  <div class="tab" data-p="p-memory">
+    <svg viewBox="0 0 24 24"><path d="M9.94 15.5a2 2 0 0 0-1.44-1.44l-6.13-1.58a.5.5 0 0 1 0-.96l6.13-1.58a2 2 0 0 0 1.44-1.44l1.58-6.13a.5.5 0 0 1 .96 0l1.58 6.13a2 2 0 0 0 1.44 1.44l6.13 1.58a.5.5 0 0 1 0 .96l-6.13 1.58a2 2 0 0 0-1.44 1.44l-1.58 6.13a.5.5 0 0 1-.96 0Z"/><path d="M20 3v4"/><path d="M22 5h-4"/><path d="M4 17v2"/><path d="M5 18H3"/></svg>
+    <small>Memory</small>
+  </div>
+  <div class="tab" data-p="p-settings">
+    <svg viewBox="0 0 24 24"><line x1="21" x2="14" y1="4" y2="4"/><line x1="10" x2="3" y1="4" y2="4"/><line x1="21" x2="12" y1="12" y2="12"/><line x1="8" x2="3" y1="12" y2="12"/><line x1="21" x2="16" y1="20" y2="20"/><line x1="12" x2="3" y1="20" y2="20"/><line x1="14" x2="14" y1="2" y2="6"/><line x1="8" x2="8" y1="10" y2="14"/><line x1="16" x2="16" y1="18" y2="22"/></svg>
+    <small>Settings</small>
+  </div>
+</div>
+
+<div class="mark">— v8 ok —</div>
+
+<script>
+  var DOOR_IMG = 'https://kvegublibjsdyidmsjvy.supabase.co/storage/v1/object/public/chat-media/door-purple-dark.png';
+  var EX = 0.504, EY = 0.437, ER = 0.075;
+
+  (function(){
+    var s = new Date(2026,6,4), n = new Date();
+    var d = Math.floor((n - s)/864e5) + 1;
+    document.getElementById('dayNum').textContent = d > 0 ? d : 1;
+  })();
+
+  /* bar eye: crop the real eye from the door image */
+  (function(){
+    var barEye = document.getElementById('barEye');
+    var pre = new Image();
+    pre.onload = function(){
+      var BW = 52, regionW = ER*2.6*pre.naturalWidth, k = BW/regionW;
+      barEye.style.backgroundImage = 'url('+DOOR_IMG+')';
+      barEye.style.backgroundSize = (pre.naturalWidth*k)+'px '+(pre.naturalHeight*k)+'px';
+      barEye.style.backgroundPosition = (BW/2 - EX*pre.naturalWidth*k)+'px '+(BW/2 - EY*pre.naturalHeight*k)+'px';
+    };
+    pre.src = DOOR_IMG;
+  })();
+
+  /* page switching */
+  var cur = 'p-hall';
+  document.querySelectorAll('.tab').forEach(function(t){
+    t.addEventListener('click', function(){
+      var target = t.dataset.p;
+      if(target === cur) return;
+      document.getElementById(cur).classList.remove('on');
+      document.getElementById(target).classList.add('on');
+      cur = target;
+      document.querySelectorAll('.tab').forEach(function(x){
+        x.classList.toggle('cur', x.dataset.p === cur && !x.classList.contains('home'));
+      });
+    });
+  });
+</script>
+</body>
+</html>
