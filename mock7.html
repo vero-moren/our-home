@@ -146,7 +146,7 @@
     transform:translateY(16px) scale(.96);transition:transform .6s ease}
   .mist.show p{transform:translateY(0) scale(1)}
   body.plain .mist p{font-style:normal;text-shadow:none}
-  .mist i{display:block;margin-top:18px;font-family:'Cormorant Garamond',serif;font-size:17px;color:rgba(199,180,255,.82)}
+  .mist i{display:block;margin-top:18px;font-family:'Cormorant Garamond',serif;font-style:italic;font-size:14.5px;letter-spacing:.06em;color:var(--lavdim)}
   .mist span{display:block;margin-top:14px;font-family:'Inter',sans-serif;font-style:normal;font-size:10px;letter-spacing:.28em;color:var(--dim)}
 
   /* bottom bar */
@@ -251,7 +251,7 @@
 
 <div class="mist" id="mist"><p id="lineFull"></p></div>
 <div class="toast" id="toast"></div>
-<div class="mark">— v7 ok —</div>
+<div class="mark">— v7.1 ok —</div>
 
 <script>
   /* ---------- mock data ---------- */
@@ -273,7 +273,7 @@
     document.getElementById('dayNum').textContent = d > 0 ? d : 1;
   })();
   document.getElementById('lineShort').textContent = DAILY;
-  document.getElementById('lineFull').innerHTML = DAILY + '<i>— Moren</i><span>' + new Date().toISOString().slice(0,10).replace(/-/g,'.') + '</span>';
+  document.getElementById('lineFull').innerHTML = DAILY + '<i>— Moren · ' + new Date().toISOString().slice(0,10).replace(/-/g,'.') + '</i>';
 
   /* ---------- eye placement ---------- */
   var lampHalo = document.getElementById('lampHalo'),
