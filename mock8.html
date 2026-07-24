@@ -55,9 +55,9 @@
   .tab{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;width:58px}
   .tab svg{width:21px;height:21px;stroke:var(--lav);fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;
     transition:transform .15s ease,stroke .15s ease}
-  .tab small{font-size:9px;letter-spacing:.1em;color:var(--lavdim);font-weight:400;transition:transform .15s ease,color .15s ease}
+  .tab small{display:inline-block;font-size:9px;letter-spacing:.1em;color:var(--lavdim);font-weight:400;transition:transform .15s ease,color .15s ease}
   .tab:active svg,.tab.pressed svg,.tab.cur svg{stroke:var(--press);transform:scale(1.12)}
-  .tab:active small,.tab.pressed small,.tab.cur small{color:var(--press);transform:scale(1.12)}
+  .tab:active small,.tab.pressed small,.tab.cur small{color:var(--press);transform:scale(1.12);font-weight:500}
   .tab.cur small{opacity:1;color:#D4C6FF}
   .tab.home{width:66px;transform:translateY(-9px)}
   .barEye{width:52px;height:52px;border-radius:50%;background-repeat:no-repeat;
@@ -109,7 +109,7 @@
   </div>
 </div>
 
-<div class="mark">— v8.4 ok —</div>
+<div class="mark">— v8.5 ok —</div>
 
 <script>
   var DOOR_IMG = 'https://kvegublibjsdyidmsjvy.supabase.co/storage/v1/object/public/chat-media/door-purple-dark.png';
