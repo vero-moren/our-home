@@ -38,6 +38,8 @@
     --whisper:rgba(122,98,190,.82);
     --shadow:0 6px 22px rgba(120,95,180,.14);
     --wall:url('https://kvegublibjsdyidmsjvy.supabase.co/storage/v1/object/public/chat-media/bg-rooms-lilac.png');
+    /* 眼睛调色钮 — 换这一行就换一只眼睛 */
+    --eyeFilter:brightness(1.55) saturate(1.05);
   }
   *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   html,body{height:100%}
@@ -210,8 +212,10 @@
   .tab:active svg,.tab.cur svg{stroke:var(--press);transform:scale(1.12)}
   .tab:active small,.tab.cur small{color:var(--press);transform:scale(1.12);font-weight:500}
   .tab.home{width:66px;transform:translateY(-9px)}
+  .tab.home{filter:drop-shadow(0 4px 12px rgba(120,95,180,.4))}
   .barEye{width:52px;height:52px;border-radius:50%;background-repeat:no-repeat;
-    box-shadow:0 4px 16px rgba(120,95,180,.35),inset 0 0 0 2px rgba(255,255,255,.9);
+    box-shadow:inset 0 0 0 2px rgba(255,255,255,.9);
+    filter:var(--eyeFilter);
     transition:transform .15s ease}
   .tab.home:active .barEye{transform:scale(1.18)}
 
@@ -432,7 +436,7 @@
 </div>
 
 <div class="toast" id="toast"></div>
-<div class="mark">— v16d lilac2 ok —</div>
+<div class="mark">— v16d lilac3 ok —</div>
 
 <script>
   var DOOR_IMG = 'https://kvegublibjsdyidmsjvy.supabase.co/storage/v1/object/public/chat-media/door-purple-dark.png';
