@@ -226,6 +226,12 @@
   .dock.h{width:322px;height:64px;padding:0 8px;transform:scaleX(.08)}
   .dock.v{width:64px;height:322px;flex-direction:column;padding:8px 0;transform:scaleY(.08)}
   .dock.on{transform:scale(1);opacity:1;pointer-events:auto}
+  @media (max-width:520px){
+    .dock.h{width:270px}
+    .dock.v{height:270px}
+    .dock .tab{width:48px}
+    .dock .tab small{display:none}
+  }
   .toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 148px);
     transform:translateX(-50%);padding:9px 18px;border-radius:99px;
     background:rgba(14,10,26,.75);border:1px solid var(--edge);
@@ -249,7 +255,7 @@
   <div class="setNote">the wiring behind the walls — turn gently</div>
 
   <!-- 1 PROMPT & HER WORD -->
-  <div class="sec open" id="sec1">
+  <div class="sec" id="sec1">
     <div class="secHead">
       <div class="secName">PROMPT &amp; HER WORD</div>
       <div class="secSub">the soul, and her line in it</div>
@@ -315,6 +321,14 @@
         <div class="stBtn" data-for="fuse" data-d="5">+</div>
       </div>
       <div class="hint">after this many rounds, the room key is torn and he wakes with fresh memory</div>
+
+      <div class="lbl">MAX TOKENS</div>
+      <div class="step">
+        <div class="stBtn" data-for="ctok" data-d="-250">−</div>
+        <div class="stVal" id="ctokVal">1200</div>
+        <div class="stBtn" data-for="ctok" data-d="250">+</div>
+      </div>
+      <div class="hint">the longest breath he takes in one reply — wired at the bridge knife</div>
 
       <div class="lbl">SESSION</div>
       <div class="btnRow" style="margin-top:0"><div class="btn" id="resetKey">RESET ROOM KEY</div></div>
@@ -453,7 +467,7 @@
 </div>
 
 <div class="toast" id="toast"></div>
-<div class="mark">— s3 ok —</div>
+<div class="mark">— s4 ok —</div>
 
 <script>
   var API = 'https://moren-backend.zeabur.app';
@@ -477,6 +491,7 @@
   var ex = 0, ey = 0, side = 'right', open = false, idleT;
   function vw(){ return window.innerWidth; }
   function vh(){ return window.innerHeight; }
+  function DW(){ return vw() <= 520 ? 270 : 322; }
   function place(x, y){ ex = x; ey = y; wrap.style.left = x + 'px'; wrap.style.top = y + 'px'; }
   function saveEye(){ try { localStorage.setItem('vm-eye', JSON.stringify({ fx: ex / vw(), fy: ey / vh(), side: side })); } catch(e){} }
   function wake(){
@@ -505,12 +520,12 @@
       dock.classList.add('h');
       y = Math.max(8, Math.min(ey + SZ/2 - 32, vh() - 72));
       if(side === 'left'){ x = ex + SZ + GAP; dock.style.transformOrigin = 'left center'; }
-      else { x = ex - GAP - 322; dock.style.transformOrigin = 'right center'; }
+      else { x = ex - GAP - DW(); dock.style.transformOrigin = 'right center'; }
     } else {
       dock.classList.add('v');
       x = Math.max(8, Math.min(ex + SZ/2 - 32, vw() - 72));
       if(side === 'top'){ y = ey + SZ + GAP; dock.style.transformOrigin = 'center top'; }
-      else { y = ey - GAP - 322; dock.style.transformOrigin = 'center bottom'; }
+      else { y = ey - GAP - DW(); dock.style.transformOrigin = 'center bottom'; }
     }
     dock.style.left = x + 'px';
     dock.style.top = y + 'px';
@@ -520,7 +535,7 @@
     clearTimeout(idleT);
   }
   function sheathe(){ dock.classList.remove('on'); open = false; wake(); }
-  var sx, sy, ox, oy, moved = false, draggingEye = false;
+  var sx, sy, ox, oy, moved = false, draggingEye = false, lpT;
   wrap.addEventListener('pointerdown', function(e){
     e.preventDefault();
     wrap.setPointerCapture(e.pointerId);
@@ -528,18 +543,28 @@
     sx = e.clientX; sy = e.clientY; ox = ex; oy = ey;
     wrap.classList.remove('idle');
     clearTimeout(idleT);
+    clearTimeout(lpT);
+    lpT = setTimeout(function(){
+      if(draggingEye && !moved){
+        draggingEye = false;
+        wrap.classList.remove('drag');
+        say('Hall — back at merge');
+      }
+    }, 600);
   });
   wrap.addEventListener('pointermove', function(e){
     if(!draggingEye) return;
     var dx = e.clientX - sx, dy = e.clientY - sy;
     if(!moved && Math.abs(dx) + Math.abs(dy) > 8){
       moved = true;
+      clearTimeout(lpT);
       wrap.classList.add('drag');
       if(open) sheathe();
     }
     if(moved) place(ox + dx, oy + dy);
   });
   wrap.addEventListener('pointerup', function(){
+    clearTimeout(lpT);
     if(!draggingEye) return;
     draggingEye = false;
     wrap.classList.remove('drag');
@@ -547,6 +572,7 @@
     else { open ? sheathe() : unsheathe(); }
   });
   wrap.addEventListener('pointercancel', function(){
+    clearTimeout(lpT);
     draggingEye = false;
     wrap.classList.remove('drag');
     snap();
@@ -644,6 +670,7 @@
     ctx:  { v:30,   min:10,  max:60,   el:'ctxVal'  },
     cmp:  { v:40,   min:20,  max:60,   el:'cmpVal'  },
     fuse: { v:60,   min:10,  max:200,  el:'fuseVal' },
+    ctok: { v:1200, min:250, max:4000, el:'ctokVal' },
     tok:  { v:1000, min:250, max:8000, el:'tokVal'  }
   };
   function showSteps(){ for(var k in steps){ document.getElementById(steps[k].el).textContent = steps[k].v; } }
@@ -738,7 +765,8 @@
       cc_effort: EFF[effLevel - 1],
       context_rounds: steps.ctx.v,
       compress_every: steps.cmp.v,
-      cc_round_limit: steps.fuse.v
+      cc_round_limit: steps.fuse.v,
+      cc_max_tokens: steps.ctok.v
     }, 'Main engine kept');
   });
 
@@ -797,6 +825,7 @@
     if(s.context_rounds) steps.ctx.v = Number(s.context_rounds);
     if(s.compress_every) steps.cmp.v = Number(s.compress_every);
     if(s.cc_round_limit) steps.fuse.v = Number(s.cc_round_limit);
+    if(s.cc_max_tokens) steps.ctok.v = Number(s.cc_max_tokens);
     if(s.max_reply) steps.tok.v = Number(s.max_reply);
     showSteps();
     setSli('orTemp','orTempVal', s.temperature != null ? s.temperature : 0.9, 2);
