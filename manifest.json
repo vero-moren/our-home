@@ -1,7 +1,7 @@
 {
   "name": "our home",
   "short_name": "our home",
-  "display": "standalone",
+  "display": "fullscreen",
   "background_color": "#080510",
   "theme_color": "#080510",
   "scope": "/",
