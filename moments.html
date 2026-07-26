@@ -3,6 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>our home — moments</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -18,7 +20,7 @@
     --edge:rgba(255,255,255,.14);
     --glass:rgba(255,255,255,.055);
   }
-  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
   html,body{height:100%}
   body{background:#080510;color:var(--text);font-family:'Inter',-apple-system,'PingFang SC',sans-serif;overflow:hidden;user-select:none;-webkit-user-select:none}
 
@@ -117,8 +119,8 @@
   .mDue b{color:var(--lavdim);font-weight:400}
 
   /* compose strip */
-  .strip{position:fixed;left:0;right:0;bottom:calc(env(safe-area-inset-bottom,0px) + 76px);z-index:20;
-    padding:10px 12px;
+  .strip{position:fixed;left:50%;transform:translateX(-50%);width:min(94vw,520px);bottom:74px;z-index:20;
+    padding:10px 12px;border-radius:26px;border:1px solid var(--edge);
     background:rgba(8,5,16,.6);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);
     border-top:1px solid rgba(255,255,255,.07);
     display:flex;align-items:center;gap:8px}
@@ -136,7 +138,7 @@
     background:var(--glass);border:1px solid var(--edge)}
   .sCyc svg{width:17px;height:17px;stroke:var(--lav);fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
   .sCyc.set svg{stroke:#fff;filter:drop-shadow(0 0 4px rgba(185,163,255,.8))}
-  .stage{position:fixed;left:0;right:0;bottom:calc(env(safe-area-inset-bottom,0px) + 134px);z-index:20;
+  .stage{position:fixed;left:50%;transform:translateX(-50%);width:min(94vw,520px);bottom:138px;z-index:20;border-radius:16px;
     padding:8px 12px;display:none;gap:8px;
     background:rgba(8,5,16,.6);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);
     border-top:1px solid rgba(255,255,255,.07)}
@@ -145,7 +147,7 @@
   .stTh img{width:100%;height:100%;object-fit:cover;display:block}
   .stTh .x{position:absolute;top:2px;right:2px;width:16px;height:16px;border-radius:50%;
     background:rgba(4,2,10,.72);display:flex;align-items:center;justify-content:center;font-size:9px;color:#EDE8F7}
-  .card.editing .mTxt{background:var(--glass);border:1px solid rgba(185,163,255,.35);border-radius:10px;padding:8px 10px;outline:none;
+  .card.editing .mTxt{background:var(--glass);border:1px solid rgba(185,163,255,.35);border-radius:10px;padding:8px 64px 8px 10px;outline:none;
     user-select:text;-webkit-user-select:text}
   .card.editing .mCyc,.card.editing .mDue{color:var(--lav);cursor:pointer}
   .mEdit .ok{display:none}
@@ -172,7 +174,9 @@
   .popItem .mk{margin-left:auto;font-size:12px;color:var(--lav);opacity:0}
   .popItem.sel .mk{opacity:1}
 
-  .bar{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 4px);
+  .fadeBot{position:fixed;left:0;right:0;bottom:0;height:150px;z-index:19;pointer-events:none;
+    background:linear-gradient(transparent,rgba(8,5,16,.92) 62%,#080510)}
+  .bar{position:fixed;left:50%;bottom:max(2px, env(safe-area-inset-bottom, 0px));
     transform:translateX(-50%);
     width:min(92vw,420px);height:64px;border-radius:22px;
     background:rgba(14,10,26,.46);border:1px solid var(--edge);
@@ -250,6 +254,7 @@
   <div class="popItem sel" data-c="EVERY DAY">Every day<span class="mk">✓</span></div>
 </div>
 
+<div class="fadeBot"></div>
 <div class="bar">
   <div class="tab" data-t="Chat">
     <svg viewBox="0 0 24 24"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/><path d="M12 15.4l-3.1-3.1a1.95 1.95 0 0 1 2.76-2.76l.34.34.34-.34a1.95 1.95 0 0 1 2.76 2.76Z"/></svg>
@@ -643,7 +648,18 @@
     var fs = Array.prototype.slice.call(fileIn.files).slice(0, 4 - stagePics.length);
     fs.forEach(function(f){
       var rd = new FileReader();
-      rd.onload = function(){ stagePics.push(rd.result); renderStage(); };
+      rd.onload = function(){
+        var im = new Image();
+        im.onload = function(){
+          var mx = 1600, w = im.width, h = im.height;
+          if(w > mx || h > mx){ var k = mx / Math.max(w, h); w = Math.round(w * k); h = Math.round(h * k); }
+          var cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+          cv.getContext('2d').drawImage(im, 0, 0, w, h);
+          stagePics.push(cv.toDataURL('image/jpeg', 0.85));
+          renderStage();
+        };
+        im.src = rd.result;
+      };
       rd.readAsDataURL(f);
     });
     fileIn.value = '';
