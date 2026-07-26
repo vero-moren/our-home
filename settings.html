@@ -439,6 +439,7 @@
   document.querySelectorAll('.tab').forEach(function(t){
     t.addEventListener('click', function(){
       if(t.dataset.t === 'Settings') return;
+      if(t.dataset.t === 'Moments'){ location.href = 'moments.html'; return; }
       say(t.dataset.t + ' — back at merge');
     });
   });
