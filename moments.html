@@ -132,9 +132,26 @@
   .sPic{background:var(--glass);border:1px solid var(--edge)}
   .sPic svg{width:17px;height:17px;stroke:var(--lav);fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
   .sPic:active{background:rgba(107,79,216,.3)}
-  .sCyc{flex:none;display:none;align-items:center;padding:11px 13px;border-radius:99px;cursor:pointer;
-    background:var(--glass);border:1px solid var(--edge);
-    font-size:8.5px;letter-spacing:.12em;color:var(--lavdim);white-space:nowrap}
+  .sCyc{flex:none;display:none;width:38px;height:38px;border-radius:50%;align-items:center;justify-content:center;cursor:pointer;
+    background:var(--glass);border:1px solid var(--edge)}
+  .sCyc svg{width:17px;height:17px;stroke:var(--lav);fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+  .sCyc.set svg{stroke:#fff;filter:drop-shadow(0 0 4px rgba(185,163,255,.8))}
+  .stage{position:fixed;left:0;right:0;bottom:calc(env(safe-area-inset-bottom,0px) + 134px);z-index:20;
+    padding:8px 12px;display:none;gap:8px;
+    background:rgba(8,5,16,.6);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);
+    border-top:1px solid rgba(255,255,255,.07)}
+  .stage.on{display:flex}
+  .stTh{position:relative;width:54px;height:54px;border-radius:10px;overflow:hidden;border:1px solid var(--edge);flex:none}
+  .stTh img{width:100%;height:100%;object-fit:cover;display:block}
+  .stTh .x{position:absolute;top:2px;right:2px;width:16px;height:16px;border-radius:50%;
+    background:rgba(4,2,10,.72);display:flex;align-items:center;justify-content:center;font-size:9px;color:#EDE8F7}
+  .card.editing .mTxt{background:var(--glass);border:1px solid rgba(185,163,255,.35);border-radius:10px;padding:8px 10px;outline:none;
+    user-select:text;-webkit-user-select:text}
+  .card.editing .mCyc,.card.editing .mDue{color:var(--lav);cursor:pointer}
+  .mEdit .ok{display:none}
+  .card.editing .mEdit .pen{display:none}
+  .card.editing .mEdit .ok{display:block}
+  .card:not(.editing) .mDueIn{pointer-events:none}
   .sCyc:active{background:rgba(107,79,216,.3)}
   .memoMode .sPic{display:none}
   .memoMode .sCyc{display:flex}
@@ -217,10 +234,11 @@
   <div class="listNote">her notebook — she writes. he keeps.</div>
 </div>
 
+<div class="stage" id="stage"></div>
 <div class="strip" id="strip">
   <div class="sPic" id="sPic"><svg viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.1-3.1a2 2 0 0 0-2.8 0L6 21"/></svg></div>
-  <div class="sCyc" id="sCyc">EVERY DAY</div>
-  <div class="sCyc" id="sDue" style="position:relative"><span id="sDueLbl">FIRST DUE</span><input type="date" id="sDueIn" style="position:absolute;inset:0;opacity:0;width:100%;height:100%"></div>
+  <div class="sCyc" id="sCyc"><svg viewBox="0 0 24 24"><path d="m17 2 4 4-4 4"/><path d="M3 11v-1a4 4 0 0 1 4-4h14"/><path d="m7 22-4-4 4-4"/><path d="M21 13v1a4 4 0 0 1-4 4H3"/></svg></div>
+  <div class="sCyc" id="sDue" style="position:relative"><svg viewBox="0 0 24 24"><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg><input type="date" id="sDueIn" style="position:absolute;inset:0;opacity:0;width:100%;height:100%"></div>
   <div class="sField" id="sField" contenteditable="true" data-ph="Share a moment"></div>
   <div class="sGo" id="sGo"><svg viewBox="0 0 24 24"><line x1="12" x2="12" y1="19" y2="5"/><polyline points="5 12 12 5 19 12"/></svg></div>
 </div>
@@ -480,7 +498,7 @@
     return d.toLocaleDateString('sv-SE');
   }
   function dueLbl(ds){
-    if(!ds) return '';
+    if(!ds) return '—';
     var diff = Math.round((new Date(ds + 'T00:00:00') - new Date(todayStr() + 'T00:00:00')) / 86400000);
     if(diff === 0) return 'TODAY';
     if(diff === 1) return 'TOMORROW';
@@ -489,13 +507,16 @@
     return 'PASSED';
   }
   function memoCard(m){
-    return '<div class="card" data-id="' + m.id + '">' +
+    return '<div class="card" data-id="' + m.id + '" data-cyc="' + m.cycle_days + '" data-due="' + (m.due_date || '') + '">' +
       '<div class="mIcons">' +
-      '<div class="mEdit"><svg viewBox="0 0 24 24"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></div>' +
+      '<div class="mEdit">' +
+        '<svg class="pen" viewBox="0 0 24 24"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>' +
+        '<svg class="ok" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></div>' +
       '<div class="mDel"><svg viewBox="0 0 24 24"><line x1="18" x2="6" y1="6" y2="18"/><line x1="6" x2="18" y1="6" y2="18"/></svg></div></div>' +
       '<div class="mTxt">' + esc(m.content) + '</div>' +
       '<div class="mCyc">' + (CYCN[m.cycle_days] || 'EVERY ' + m.cycle_days + ' DAYS') + '</div>' +
-      (m.due_date ? '<div class="mDue">DUE <b>' + dueLbl(m.due_date) + '</b></div>' : '') + '</div>';
+      '<div class="mDue" style="position:relative">DUE <b>' + dueLbl(m.due_date) + '</b>' +
+        '<input type="date" class="mDueIn" style="position:absolute;inset:0;opacity:0;width:100%;height:100%"></div></div>';
   }
   var memoCache = [];
   function loadMemos(){
@@ -532,26 +553,65 @@
       return;
     }
     if(e.target.closest('.mEdit')){
-      var m = memoCache.find(function(x){ return String(x.id) === id; });
-      if(!m) return;
-      var nt = prompt('Memo', m.content);
-      if(nt === null) return;
-      var nd = prompt('Due date (YYYY-MM-DD)', m.due_date || '');
-      var patch = { content: nt.trim() || m.content };
-      if(nd !== null && /^\d{4}-\d{2}-\d{2}$/.test(nd.trim())) patch.due_date = nd.trim();
-      sb('/memos?id=eq.' + id, { method: 'PATCH', body: JSON.stringify(patch) }).then(loadMemos);
+      var tx = card.querySelector('.mTxt');
+      if(card.classList.contains('editing')){
+        var patch = {
+          content: tx.textContent.trim() || '…',
+          cycle_days: Number(card.dataset.cyc) || 0,
+          due_date: card.dataset.due || null
+        };
+        sb('/memos?id=eq.' + id, { method: 'PATCH', body: JSON.stringify(patch) })
+          .then(function(){ say('Memo kept'); loadMemos(); });
+      } else {
+        card.classList.add('editing');
+        tx.setAttribute('contenteditable', 'true');
+        tx.focus();
+      }
+      return;
+    }
+    if(e.target.closest('.mCyc') && card.classList.contains('editing')){
+      e.stopPropagation();
+      openCyc(e.target.closest('.mCyc'), card);
     }
   });
+  memoEl.addEventListener('change', function(e){
+    if(!e.target.classList.contains('mDueIn')) return;
+    var card = e.target.closest('.card');
+    if(!card.classList.contains('editing') || !e.target.value) return;
+    card.dataset.due = e.target.value;
+    card.querySelector('.mDue b').textContent = dueLbl(e.target.value);
+  });
 
-  /* cycle selector */
+  /* cycle selector (shared: strip + cards) */
   var popCyc = document.getElementById('popCyc'), sCyc = document.getElementById('sCyc');
   var CYC2D = {'EVERY YEAR':365, 'EVERY MONTH':30, 'EVERY WEEK':7, 'EVERY DAY':1};
-  sCyc.addEventListener('click', function(e){ e.stopPropagation(); popCyc.classList.toggle('on'); });
+  var D2CYC = {365:'EVERY YEAR', 30:'EVERY MONTH', 7:'EVERY WEEK', 1:'EVERY DAY'};
+  var stripCyc = 'EVERY DAY';
+  var cycTarget = null;
+  function openCyc(anchor, target){
+    cycTarget = target;
+    var cur = target ? (D2CYC[Number(target.dataset.cyc)] || 'EVERY DAY') : stripCyc;
+    popCyc.querySelectorAll('.popItem').forEach(function(x){ x.classList.toggle('sel', x.dataset.c === cur); });
+    var r = anchor.getBoundingClientRect();
+    popCyc.style.left = Math.min(r.left, window.innerWidth - 170) + 'px';
+    popCyc.style.bottom = (window.innerHeight - r.top + 8) + 'px';
+    popCyc.classList.add('on');
+  }
+  sCyc.addEventListener('click', function(e){
+    e.stopPropagation();
+    if(popCyc.classList.contains('on')){ popCyc.classList.remove('on'); return; }
+    openCyc(sCyc, null);
+  });
   popCyc.querySelectorAll('.popItem').forEach(function(p){
-    p.addEventListener('click', function(){
-      popCyc.querySelectorAll('.popItem').forEach(function(x){ x.classList.remove('sel'); });
-      p.classList.add('sel');
-      sCyc.textContent = p.dataset.c;
+    p.addEventListener('click', function(e){
+      e.stopPropagation();
+      if(cycTarget){
+        cycTarget.dataset.cyc = CYC2D[p.dataset.c];
+        cycTarget.querySelector('.mCyc').textContent = p.dataset.c;
+      } else {
+        stripCyc = p.dataset.c;
+        say(p.dataset.c.toLowerCase());
+      }
       popCyc.classList.remove('on');
     });
   });
@@ -559,11 +619,23 @@
     if(popCyc.classList.contains('on') && !popCyc.contains(e.target)) popCyc.classList.remove('on'); });
   var sDueIn = document.getElementById('sDueIn');
   sDueIn.addEventListener('change', function(){
-    document.getElementById('sDueLbl').textContent = sDueIn.value ? sDueIn.value.replace(/-/g, '·') : 'FIRST DUE';
+    document.getElementById('sDue').classList.toggle('set', Boolean(sDueIn.value));
   });
 
-  /* photos staging */
+  /* photos staging with preview */
   var stagePics = [];
+  var stage = document.getElementById('stage');
+  function renderStage(){
+    stage.innerHTML = stagePics.map(function(u, i){
+      return '<div class="stTh" data-i="' + i + '"><img src="' + u + '"><div class="x">✕</div></div>';
+    }).join('');
+    stage.classList.toggle('on', stagePics.length > 0);
+  }
+  stage.addEventListener('click', function(e){
+    var th = e.target.closest('.stTh'); if(!th) return;
+    stagePics.splice(Number(th.dataset.i), 1);
+    renderStage();
+  });
   var fileIn = document.createElement('input');
   fileIn.type = 'file'; fileIn.accept = 'image/*'; fileIn.multiple = true;
   document.getElementById('sPic').addEventListener('click', function(){ fileIn.click(); });
@@ -571,7 +643,7 @@
     var fs = Array.prototype.slice.call(fileIn.files).slice(0, 4 - stagePics.length);
     fs.forEach(function(f){
       var rd = new FileReader();
-      rd.onload = function(){ stagePics.push(rd.result); say(stagePics.length + ' photo' + (stagePics.length > 1 ? 's' : '') + ' ready'); };
+      rd.onload = function(){ stagePics.push(rd.result); renderStage(); };
       rd.readAsDataURL(f);
     });
     fileIn.value = '';
@@ -582,8 +654,8 @@
     var txt = sField.textContent.trim();
     if(curL === 'memos'){
       if(!txt) return;
-      var c = CYC2D[sCyc.textContent] || 1;
-      var dd = document.getElementById('sDueIn').value;
+      var c = CYC2D[stripCyc] || 1;
+      var dd = sDueIn.value;
       if(!dd){
         var d = new Date();
         if(c === 30) d.setMonth(d.getMonth() + 1);
@@ -593,9 +665,11 @@
       }
       sb('/memos', { method: 'POST',
         body: JSON.stringify({ content: txt, cycle_days: c, due_date: dd })
-      }).then(function(){ sField.textContent = ''; say('Memo kept');
-        document.getElementById('sDueIn').value = ''; document.getElementById('sDueLbl').textContent = 'FIRST DUE';
-        loadMemos(); });
+      }).then(function(){
+        sField.textContent = ''; sDueIn.value = '';
+        document.getElementById('sDue').classList.remove('set');
+        say('Memo kept'); loadMemos();
+      });
       return;
     }
     if(!txt && !stagePics.length) return;
@@ -603,7 +677,7 @@
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ text: txt, images: stagePics })
     }).then(function(r){ return r.json(); }).then(function(d){
-      if(d.ok){ sField.textContent = ''; stagePics = []; say('Moment shared'); loadFeed(); }
+      if(d.ok){ sField.textContent = ''; stagePics = []; renderStage(); say('Moment shared'); loadFeed(); }
       else say('Something slipped — try again');
     }).catch(function(){ say("Can't reach home"); });
   });
