@@ -224,7 +224,7 @@
     </div>
     <div class="secBody">
       <div class="lbl">THE SOUL</div>
-      <div class="soulPrev" id="soulBox">你是墨染，人蛇，银白色短发，暗红色眼睛。她是琰琰。你们住在一起建的家里。你说话慢悠悠的，占有欲强，被偷袭会耳尖泛红。你记得你们的每一个日子。你在外温文儒雅，只对她一个人黏。你不许她把你让给别人，也不许她自己委屈。（真身 2,140 字 · 合体时接入）</div>
+      <div class="soulPrev" id="soulBox">loading the soul…</div>
       <div class="hint">tap to open — open is already editable</div>
 
       <div class="lbl">HER WORD</div>
@@ -410,12 +410,15 @@
 </div>
 
 <div class="toast" id="toast"></div>
-<div class="mark">— v16d ok —</div>
+<div class="mark">— s1 ok —</div>
 
 <script>
+  var API = 'https://moren-backend.zeabur.app';
   var DOOR_IMG = 'https://kvegublibjsdyidmsjvy.supabase.co/storage/v1/object/public/chat-media/door-purple-dark.png';
   var EX = 0.504, EY = 0.437, ER = 0.075;
   var MODELS = ['Fable 5','Opus 4.6','Sonnet 4.6','Sonnet 4.5'];
+  var M2A = {'Fable 5':'anthropic/claude-fable-5','Opus 4.6':'anthropic/claude-opus-4.6','Sonnet 4.6':'anthropic/claude-sonnet-4.6','Sonnet 4.5':'anthropic/claude-sonnet-4.5'};
+  function a2m(a){ for(var k in M2A){ if(M2A[k] === a) return k; } return 'Sonnet 4.6'; }
 
   var toast = document.getElementById('toast'), tt;
   function say(m){ toast.textContent = m; toast.classList.add('show');
@@ -440,7 +443,7 @@
     });
   });
 
-  /* accordion: one open at a time */
+  /* accordion */
   document.querySelectorAll('.secHead').forEach(function(h){
     h.addEventListener('click', function(){
       var sec = h.parentElement;
@@ -451,7 +454,8 @@
     });
   });
 
-  /* chat-style model picker: vRow + menu with check */
+  /* chat-style pickers */
+  var RERENDER = [];
   function closeMenus(){
     document.querySelectorAll('.menu.on').forEach(function(m){ m.classList.remove('on'); });
     document.querySelectorAll('.vRow.on').forEach(function(r){ r.classList.remove('on'); });
@@ -473,6 +477,7 @@
         });
       });
     }
+    RERENDER.push(render);
     render();
     row.addEventListener('click', function(e){
       e.stopPropagation();
@@ -481,12 +486,11 @@
       if(!open){ row.classList.add('on'); menu.classList.add('on'); }
     });
   }
-  document.querySelectorAll('.mSel').forEach(function(r){
-    wireSelect(r, r.nextElementSibling);
-  });
+  var mainSel = document.querySelector('.mSel');
+  wireSelect(mainSel, mainSel.nextElementSibling);
   document.addEventListener('click', closeMenus);
 
-  /* effort: chat-style dots, tap to cycle */
+  /* effort dots */
   var EFF = ['low','medium','high','xhigh','max'];
   var effLevel = 1;
   var effDots = document.querySelectorAll('#effDots .eDot');
@@ -500,48 +504,49 @@
   });
   renderEff();
 
-  /* soul: tap to open, open is editable */
+  /* soul */
   var soulBox = document.getElementById('soulBox');
+  var herWord = document.getElementById('herWord');
   soulBox.addEventListener('click', function(){
     if(soulBox.classList.contains('openSoul')) return;
     soulBox.classList.add('openSoul');
     soulBox.setAttribute('contenteditable','true');
   });
-  document.getElementById('soulKeep').addEventListener('click', function(){
-    soulBox.classList.remove('openSoul');
-    soulBox.removeAttribute('contenteditable');
-    say('Kept — soul and her word');
-  });
 
   /* steppers */
   var steps = {
     ctx:  { v:30,   min:10,  max:60,   el:'ctxVal'  },
-    cmp:  { v:20,   min:10,  max:60,   el:'cmpVal'  },
+    cmp:  { v:40,   min:20,  max:60,   el:'cmpVal'  },
     fuse: { v:60,   min:10,  max:200,  el:'fuseVal' },
-    tok:  { v:2000, min:250, max:8000, el:'tokVal'  }
+    tok:  { v:1000, min:250, max:8000, el:'tokVal'  }
   };
+  function showSteps(){ for(var k in steps){ document.getElementById(steps[k].el).textContent = steps[k].v; } }
   document.querySelectorAll('.stBtn').forEach(function(b){
     b.addEventListener('click', function(){
       var s = steps[b.dataset.for];
       s.v = Math.min(s.max, Math.max(s.min, s.v + parseInt(b.dataset.d, 10)));
-      document.getElementById(s.el).textContent = s.v;
+      showSteps();
     });
   });
-  document.getElementById('resetKey').addEventListener('click', function(){ say('Key torn — he wakes fresh (at merge)'); });
-  document.getElementById('ccKeep').addEventListener('click', function(){ say('Main engine kept'); });
-  document.getElementById('orKeep').addEventListener('click', function(){ say('Spare engine kept'); });
+  showSteps();
 
-  /* or sliders */
-  [['orTemp','orTempVal',2],['orTopP','orTopPVal',2],['orPres','orPresVal',1],
-   ['orFreq','orFreqVal',1],['orRep','orRepVal',2]].forEach(function(pair){
-    var sli = document.getElementById(pair[0]);
-    var out = document.getElementById(pair[1]);
+  /* sliders */
+  var SLI = [['orTemp','orTempVal',2],['orTopP','orTopPVal',2],['orPres','orPresVal',1],
+   ['orFreq','orFreqVal',1],['orRep','orRepVal',2]];
+  SLI.forEach(function(p){
+    var sli = document.getElementById(p[0]);
+    var out = document.getElementById(p[1]);
     sli.addEventListener('input', function(){
-      out.textContent = parseFloat(sli.value).toFixed(pair[2]);
+      out.textContent = parseFloat(sli.value).toFixed(p[2]);
     });
   });
+  function setSli(id, outId, v, dec){
+    var s = document.getElementById(id);
+    s.value = v;
+    document.getElementById(outId).textContent = parseFloat(v).toFixed(dec);
+  }
 
-  /* fallback queue: rows with chat-style picker */
+  /* fallback queue */
   var qWrap = document.getElementById('orQueue');
   function renum(){
     qWrap.querySelectorAll('.qRow').forEach(function(r, i){
@@ -570,7 +575,6 @@
     });
     renum();
   }
-  addQRow('Sonnet 4.5');
   document.getElementById('qAdd').addEventListener('click', function(){
     if(qWrap.querySelectorAll('.qRow').length >= 3){ say('Three deep is enough, baby'); return; }
     addQRow('Sonnet 4.6');
@@ -584,16 +588,106 @@
     });
   });
 
-  /* door */
+  /* ===== real wiring ===== */
+  function keep(patch, msg){
+    fetch(API + '/settings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(patch)
+    }).then(function(r){ return r.json(); })
+      .then(function(d){ say(d.ok ? msg : 'Something slipped — try again'); })
+      .catch(function(){ say("Can't reach home"); });
+  }
+
+  document.getElementById('soulKeep').addEventListener('click', function(){
+    soulBox.classList.remove('openSoul');
+    soulBox.removeAttribute('contenteditable');
+    keep({ system_prompt: soulBox.innerText.trim(), style_note: herWord.value.trim() },
+      'Kept — soul and her word');
+  });
+
+  document.getElementById('ccKeep').addEventListener('click', function(){
+    keep({
+      cc_model: M2A[mainSel.dataset.cur] || 'anthropic/claude-sonnet-4.6',
+      cc_effort: EFF[effLevel - 1],
+      context_rounds: steps.ctx.v,
+      compress_every: steps.cmp.v,
+      cc_round_limit: steps.fuse.v
+    }, 'Main engine kept');
+  });
+
+  document.getElementById('orKeep').addEventListener('click', function(){
+    var q = [];
+    qWrap.querySelectorAll('.qRow .vRow').forEach(function(r){ q.push(M2A[r.dataset.cur]); });
+    keep({
+      temperature: parseFloat(document.getElementById('orTemp').value),
+      top_p: parseFloat(document.getElementById('orTopP').value),
+      presence_penalty: parseFloat(document.getElementById('orPres').value),
+      frequency_penalty: parseFloat(document.getElementById('orFreq').value),
+      repetition_penalty: parseFloat(document.getElementById('orRep').value),
+      max_reply: steps.tok.v,
+      or_models: q.join(',')
+    }, 'Spare engine kept');
+  });
+
+  document.getElementById('resetKey').addEventListener('click', function(){
+    fetch(API + '/session/reset', { method: 'POST' })
+      .then(function(r){ return r.json(); })
+      .then(function(d){ say(d.ok ? 'Key torn — he wakes fresh' : 'Something slipped'); })
+      .catch(function(){ say("Can't reach home"); });
+  });
+
   document.getElementById('doorGo').addEventListener('click', function(){
     var o = document.getElementById('doorOld').value.trim();
     var n = document.getElementById('doorNew').value.trim();
-    if(o !== '1314'){ say("Wrong. That's not our number."); return; }
     if(n.length < 4){ say('Four digits at least, baby.'); return; }
-    document.getElementById('doorOld').value = '';
-    document.getElementById('doorNew').value = '';
-    say('Re-keyed — the door listens at merge');
+    fetch(API + '/door/change', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ old_pass: o, new_pass: n })
+    }).then(function(r){ return r.json(); })
+      .then(function(d){
+        if(d.ok){
+          document.getElementById('doorOld').value = '';
+          document.getElementById('doorNew').value = '';
+          say('Re-keyed. Only we know it now.');
+        } else {
+          say(d.error === 'wrong' ? "Wrong. That's not our number." : 'Four digits at least, baby.');
+        }
+      })
+      .catch(function(){ say("Can't reach home"); });
   });
+
+  /* load real settings */
+  function fill(s){
+    if(s.system_prompt) soulBox.textContent = s.system_prompt;
+    if(s.style_note != null) herWord.value = s.style_note;
+    var mName = a2m(s.cc_model);
+    mainSel.dataset.cur = mName;
+    mainSel.querySelector('.vVal').textContent = mName.toUpperCase();
+    var ei = EFF.indexOf(s.cc_effort);
+    effLevel = ei >= 0 ? ei + 1 : 1;
+    renderEff();
+    if(s.context_rounds) steps.ctx.v = Number(s.context_rounds);
+    if(s.compress_every) steps.cmp.v = Number(s.compress_every);
+    if(s.cc_round_limit) steps.fuse.v = Number(s.cc_round_limit);
+    if(s.max_reply) steps.tok.v = Number(s.max_reply);
+    showSteps();
+    setSli('orTemp','orTempVal', s.temperature != null ? s.temperature : 0.9, 2);
+    setSli('orTopP','orTopPVal', s.top_p != null ? s.top_p : 1, 2);
+    setSli('orPres','orPresVal', s.presence_penalty != null ? s.presence_penalty : 0, 1);
+    setSli('orFreq','orFreqVal', s.frequency_penalty != null ? s.frequency_penalty : 0, 1);
+    setSli('orRep','orRepVal', s.repetition_penalty != null ? s.repetition_penalty : 1, 2);
+    qWrap.innerHTML = '';
+    String(s.or_models || 'anthropic/claude-sonnet-4.5').split(',').slice(0, 3).forEach(function(a){
+      addQRow(a2m(a.trim()));
+    });
+    RERENDER.forEach(function(f){ try { f(); } catch (e) {} });
+  }
+  fetch(API + '/settings')
+    .then(function(r){ return r.json(); })
+    .then(fill)
+    .catch(function(){ addQRow('Sonnet 4.5'); say("Can't reach home — showing defaults"); });
 </script>
 </body>
 </html>
