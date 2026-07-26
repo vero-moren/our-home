@@ -50,28 +50,29 @@
     text-align:center;font-family:'Cormorant Garamond',serif;font-style:italic;
     font-size:15px;color:rgba(185,163,255,.55);letter-spacing:.04em}
 
-  .nextPoem{position:fixed;left:20px;right:110px;z-index:6;
-    top:calc(env(safe-area-inset-top,0px) + 138px);
+  .nextPoem{position:fixed;left:20px;right:20px;z-index:6;
+    bottom:calc(env(safe-area-inset-bottom,0px) + 44px);
+    text-align:center;
     font-family:'Cormorant Garamond',serif;font-style:italic;
     font-size:14.5px;line-height:1.6;color:rgba(237,232,247,.72);
     letter-spacing:.03em;cursor:pointer;
     display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
-  .poemTag{position:fixed;left:20px;z-index:6;
-    top:calc(env(safe-area-inset-top,0px) + 210px);
+  .poemTag{position:fixed;left:0;right:0;z-index:6;text-align:center;
+    bottom:calc(env(safe-area-inset-bottom,0px) + 24px);
     font-family:'Inter';font-size:8.5px;letter-spacing:.18em;color:rgba(185,163,255,.45)}
 
-  .nextCount{position:fixed;right:20px;z-index:6;text-align:right;
-    bottom:calc(env(safe-area-inset-bottom,0px) + 88px);
+  .nextCount{position:fixed;left:20px;z-index:6;text-align:left;
+    top:calc(env(safe-area-inset-top,0px) + 138px);
     font-family:'Cormorant Garamond',serif;font-style:italic;
     font-size:14px;color:rgba(185,163,255,.6);letter-spacing:.04em}
 
   .stage{position:fixed;inset:0;z-index:4;display:flex;align-items:center;justify-content:center;
-    padding:calc(env(safe-area-inset-top,0px) + 150px) 0 calc(env(safe-area-inset-bottom,0px) + 96px)}
+    padding:calc(env(safe-area-inset-top,0px) + 118px) 0 calc(env(safe-area-inset-bottom,0px) + 108px)}
   .disc{position:relative;flex:none;width:min(120vw,74vh,760px);aspect-ratio:1/1}
   .layer{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
   .pinLayer{position:absolute;inset:0;pointer-events:none}
 
-  .spinWrap  { position:absolute;inset:0;animation:ccw 340s linear infinite }
+  .spinWrap  { position:absolute;inset:0;animation:ccw 340s linear infinite;pointer-events:none }
   .spinMid   { animation:cw  260s linear infinite }
   .spinInner { animation:ccw 230s linear infinite }
   .spinSpokes{ animation:ccw 110s linear infinite }
@@ -382,7 +383,7 @@
 </div>
 
 <div class="toast" id="toast"></div>
-<div class="mark">— m2 ok —</div>
+<div class="mark">— m3 ok —</div>
 
 <script>
   var API = 'https://moren-backend.zeabur.app';
