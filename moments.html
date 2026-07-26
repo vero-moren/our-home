@@ -841,19 +841,4 @@
 
   loadFeed(); loadDiary(); loadMemos();
 </script>
-<div id="rl" style="position:fixed;left:12px;top:130px;z-index:99;color:#0f0;font:14px monospace;line-height:1.8;white-space:pre-wrap"></div>
-<div style="position:fixed;left:0;right:0;bottom:0;height:6px;background:#0f0;z-index:99"></div>
-<script>
-function rlm(){
-  var v = window.visualViewport;
-  document.getElementById('rl').textContent =
-    'innerH ' + window.innerHeight +
-    '\nclientH ' + document.documentElement.clientHeight +
-    '\nvvH ' + (v ? Math.round(v.height) : '-') +
-    '\nscreenH ' + screen.height +
-    '\nstandalone ' + (navigator.standalone === true);
-}
-rlm(); addEventListener('resize', rlm);
-if(window.visualViewport) visualViewport.addEventListener('resize', rlm);
-</script>
 </body>
