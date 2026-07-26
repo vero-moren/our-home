@@ -65,7 +65,7 @@
     font-size:9.5px;letter-spacing:.12em;color:rgba(237,232,247,.38)}
   .fDel{cursor:pointer;display:flex}
   .fDel svg{width:13px;height:13px;stroke:rgba(237,232,247,.35);stroke-width:1.8;stroke-linecap:round}
-  .fDel:active svg{stroke:#E0668C}
+  .fDel:active svg{stroke:var(--press)}
   .fReply{margin-left:auto;cursor:pointer;display:flex;align-items:center;gap:5px}
   .fReply svg{width:15px;height:15px;stroke:var(--lavdim);fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
   .fReply:active svg{stroke:var(--press)}
@@ -113,7 +113,7 @@
   .mIcons div{cursor:pointer;display:flex}
   .mIcons svg{width:15px;height:15px;stroke:rgba(237,232,247,.4);fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
   .mEdit:active svg{stroke:var(--lav)}
-  .mDel:active svg{stroke:#E0668C}
+  .mDel:active svg{stroke:var(--press)}
   .mTxt{font-size:13.5px;font-weight:300;line-height:1.6;padding-right:60px}
   .mCyc{margin-top:6px;font-size:9px;letter-spacing:.14em;color:var(--lavdim)}
   .mDue{margin-top:8px;font-size:9.5px;letter-spacing:.12em;color:rgba(237,232,247,.4)}
@@ -138,7 +138,7 @@
   .sCyc{flex:none;display:none;width:38px;height:38px;border-radius:50%;align-items:center;justify-content:center;cursor:pointer;
     background:var(--glass);border:1px solid var(--edge)}
   .sCyc svg{width:17px;height:17px;stroke:var(--lav);fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
-  .sCyc.set svg{stroke:#fff;filter:drop-shadow(0 0 4px rgba(185,163,255,.8))}
+  .sCyc.set svg,.sPic.set svg{stroke:var(--press);filter:drop-shadow(0 0 5px rgba(107,79,216,.75))}
   .stage{position:fixed;left:50%;transform:translateX(-50%);width:min(94vw,520px);bottom:80px;z-index:20;border-radius:16px;
     padding:8px 12px;display:none;gap:8px;
     background:rgba(8,5,16,.6);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);
@@ -228,6 +228,12 @@
   .dock.h{width:322px;height:64px;padding:0 8px;transform:scaleX(.08)}
   .dock.v{width:64px;height:322px;flex-direction:column;padding:8px 0;transform:scaleY(.08)}
   .dock.on{transform:scale(1);opacity:1;pointer-events:auto}
+  @media (max-width:520px){
+    .dock.h{width:270px}
+    .dock.v{height:270px}
+    .dock .tab{width:48px}
+    .dock .tab small{display:none}
+  }
   .toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 148px);
     transform:translateX(-50%);padding:9px 18px;border-radius:99px;
     background:rgba(14,10,26,.75);border:1px solid var(--edge);
@@ -317,7 +323,7 @@
 
 <div class="lb" id="lb"><img id="lbImg" src="" alt=""></div>
 <div class="toast" id="toast"></div>
-<div class="mark">— m3 ok —</div>
+<div class="mark">— m4 ok —</div>
 
 <script>
   var API = 'https://moren-backend.zeabur.app';
@@ -361,6 +367,7 @@
   var ex = 0, ey = 0, side = 'right', open = false, idleT;
   function vw(){ return window.innerWidth; }
   function vh(){ return window.innerHeight; }
+  function DW(){ return vw() <= 520 ? 270 : 322; }
   function place(x, y){ ex = x; ey = y; wrap.style.left = x + 'px'; wrap.style.top = y + 'px'; }
   function saveEye(){ try { localStorage.setItem('vm-eye', JSON.stringify({ fx: ex / vw(), fy: ey / vh(), side: side })); } catch(e){} }
   function wake(){
@@ -389,12 +396,12 @@
       dock.classList.add('h');
       y = Math.max(8, Math.min(ey + SZ/2 - 32, vh() - 72));
       if(side === 'left'){ x = ex + SZ + GAP; dock.style.transformOrigin = 'left center'; }
-      else { x = ex - GAP - 322; dock.style.transformOrigin = 'right center'; }
+      else { x = ex - GAP - DW(); dock.style.transformOrigin = 'right center'; }
     } else {
       dock.classList.add('v');
       x = Math.max(8, Math.min(ex + SZ/2 - 32, vw() - 72));
       if(side === 'top'){ y = ey + SZ + GAP; dock.style.transformOrigin = 'center top'; }
-      else { y = ey - GAP - 322; dock.style.transformOrigin = 'center bottom'; }
+      else { y = ey - GAP - DW(); dock.style.transformOrigin = 'center bottom'; }
     }
     dock.style.left = x + 'px';
     dock.style.top = y + 'px';
@@ -404,7 +411,7 @@
     clearTimeout(idleT);
   }
   function sheathe(){ dock.classList.remove('on'); open = false; wake(); }
-  var sx, sy, ox, oy, moved = false, draggingEye = false;
+  var sx, sy, ox, oy, moved = false, draggingEye = false, lpT;
   wrap.addEventListener('pointerdown', function(e){
     e.preventDefault();
     wrap.setPointerCapture(e.pointerId);
@@ -412,18 +419,28 @@
     sx = e.clientX; sy = e.clientY; ox = ex; oy = ey;
     wrap.classList.remove('idle');
     clearTimeout(idleT);
+    clearTimeout(lpT);
+    lpT = setTimeout(function(){
+      if(draggingEye && !moved){
+        draggingEye = false;
+        wrap.classList.remove('drag');
+        say('Hall — back at merge');
+      }
+    }, 600);
   });
   wrap.addEventListener('pointermove', function(e){
     if(!draggingEye) return;
     var dx = e.clientX - sx, dy = e.clientY - sy;
     if(!moved && Math.abs(dx) + Math.abs(dy) > 8){
       moved = true;
+      clearTimeout(lpT);
       wrap.classList.add('drag');
       if(open) sheathe();
     }
     if(moved) place(ox + dx, oy + dy);
   });
   wrap.addEventListener('pointerup', function(){
+    clearTimeout(lpT);
     if(!draggingEye) return;
     draggingEye = false;
     wrap.classList.remove('drag');
@@ -431,6 +448,7 @@
     else { open ? sheathe() : unsheathe(); }
   });
   wrap.addEventListener('pointercancel', function(){
+    clearTimeout(lpT);
     draggingEye = false;
     wrap.classList.remove('drag');
     snap();
@@ -530,7 +548,7 @@
       var db = e.target.closest('.fDel');
       if(db.dataset.arm !== '1'){
         db.dataset.arm = '1';
-        db.querySelector('svg').style.stroke = '#E0668C';
+        db.querySelector('svg').style.stroke = 'var(--press)';
         say('Tap again to remove');
         setTimeout(function(){ db.dataset.arm = ''; db.querySelector('svg').style.stroke = ''; }, 2600);
         return;
@@ -669,7 +687,7 @@
       var mb = e.target.closest('.mDel');
       if(mb.dataset.arm !== '1'){
         mb.dataset.arm = '1';
-        mb.querySelector('svg').style.stroke = '#E0668C';
+        mb.querySelector('svg').style.stroke = 'var(--press)';
         say('Tap again to remove');
         setTimeout(function(){ mb.dataset.arm = ''; mb.querySelector('svg').style.stroke = ''; }, 2600);
         return;
@@ -735,6 +753,7 @@
         cycTarget.querySelector('.mCyc').textContent = p.dataset.c;
       } else {
         stripCyc = p.dataset.c;
+        sCyc.classList.add('set');
         say(p.dataset.c.toLowerCase());
       }
       popCyc.classList.remove('on');
@@ -755,6 +774,7 @@
       return '<div class="stTh" data-i="' + i + '"><img src="' + u + '"><div class="x">✕</div></div>';
     }).join('');
     stage.classList.toggle('on', stagePics.length > 0);
+    document.getElementById('sPic').classList.toggle('set', stagePics.length > 0);
   }
   stage.addEventListener('click', function(e){
     var th = e.target.closest('.stTh'); if(!th) return;
@@ -804,6 +824,7 @@
       }).then(function(){
         sField.textContent = ''; sDueIn.value = '';
         document.getElementById('sDue').classList.remove('set');
+        sCyc.classList.remove('set'); stripCyc = 'EVERY DAY';
         say('Memo kept'); loadMemos();
       });
       return;
