@@ -3,6 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>our home — settings</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -18,7 +20,7 @@
     --edge:rgba(255,255,255,.14);
     --glass:rgba(255,255,255,.055);
   }
-  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
   html,body{height:100%}
   body{background:#080510;color:var(--text);font-family:'Inter',-apple-system,'PingFang SC',sans-serif;overflow:hidden;user-select:none;-webkit-user-select:none}
 
@@ -175,7 +177,9 @@
   .pwd{letter-spacing:.5em;text-align:center;font-size:16px}
 
   /* ===== shared ===== */
-  .bar{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 4px);
+  .fadeBot{position:fixed;left:0;right:0;bottom:0;height:150px;z-index:19;pointer-events:none;
+    background:linear-gradient(transparent,rgba(8,5,16,.92) 62%,#080510)}
+  .bar{position:fixed;left:50%;bottom:max(2px, env(safe-area-inset-bottom, 0px));
     transform:translateX(-50%);
     width:min(92vw,420px);height:64px;border-radius:22px;
     background:rgba(14,10,26,.46);border:1px solid var(--edge);
@@ -387,6 +391,7 @@
   </div>
 </div>
 
+<div class="fadeBot"></div>
 <div class="bar">
   <div class="tab" data-t="Chat">
     <svg viewBox="0 0 24 24"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/><path d="M12 15.4l-3.1-3.1a1.95 1.95 0 0 1 2.76-2.76l.34.34.34-.34a1.95 1.95 0 0 1 2.76 2.76Z"/></svg>
