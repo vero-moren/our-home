@@ -4,7 +4,6 @@
   "display": "standalone",
   "background_color": "#080510",
   "theme_color": "#080510",
-  "start_url": "/moments.html",
   "scope": "/",
   "icons": [
     { "src": "/icon.PNG", "sizes": "512x512", "type": "image/png" }
