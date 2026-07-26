@@ -120,7 +120,7 @@
   .mDue b{color:var(--lavdim);font-weight:400}
 
   /* compose strip */
-  .strip{position:fixed;left:50%;transform:translateX(-50%);width:min(94vw,520px);bottom:74px;z-index:20;
+  .strip{position:fixed;left:50%;transform:translateX(-50%);width:min(94vw,520px);bottom:14px;z-index:20;
     padding:10px 12px;border-radius:26px;border:1px solid var(--edge);
     background:rgba(8,5,16,.6);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);
     border-top:1px solid rgba(255,255,255,.07);
@@ -139,7 +139,7 @@
     background:var(--glass);border:1px solid var(--edge)}
   .sCyc svg{width:17px;height:17px;stroke:var(--lav);fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
   .sCyc.set svg{stroke:#fff;filter:drop-shadow(0 0 4px rgba(185,163,255,.8))}
-  .stage{position:fixed;left:50%;transform:translateX(-50%);width:min(94vw,520px);bottom:138px;z-index:20;border-radius:16px;
+  .stage{position:fixed;left:50%;transform:translateX(-50%);width:min(94vw,520px);bottom:80px;z-index:20;border-radius:16px;
     padding:8px 12px;display:none;gap:8px;
     background:rgba(8,5,16,.6);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);
     border-top:1px solid rgba(255,255,255,.07)}
@@ -177,8 +177,7 @@
 
   .fadeBot{position:fixed;left:0;right:0;bottom:0;height:150px;z-index:19;pointer-events:none;
     background:linear-gradient(transparent,rgba(8,5,16,.92) 62%,#080510)}
-  .bar{position:fixed;left:50%;bottom:2px;}
-  @media (max-width:520px){.bar{bottom:-6px;padding-bottom:6px;;
+  .bar{position:fixed;left:50%;bottom:2px;
     transform:translateX(-50%);
     width:min(92vw,420px);height:64px;border-radius:22px;
     background:rgba(14,10,26,.46);border:1px solid var(--edge);
@@ -200,7 +199,35 @@
     display:none;align-items:center;justify-content:center}
   .lb.on{display:flex}
   .lb img{max-width:94vw;max-height:82vh;border-radius:14px}
-
+  .eyeWrap{position:fixed;width:64px;height:64px;z-index:30;touch-action:none;cursor:grab;
+    transition:left .38s cubic-bezier(.22,.9,.3,1.18), top .38s cubic-bezier(.22,.9,.3,1.18),
+      transform .45s ease, opacity .45s ease}
+  .eyeWrap.drag{transition:transform .2s ease, opacity .2s ease;transform:scale(1.1);cursor:grabbing}
+  .eyeWrap.idle{transform:scale(.8);opacity:.72}
+  .eye{position:absolute;inset:0;border-radius:50%;overflow:hidden;background:#000;
+    box-shadow:0 0 18px rgba(146,92,255,.5),0 0 42px rgba(107,79,216,.28),inset 0 0 0 1.5px rgba(185,163,255,.45)}
+  .eye img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;pointer-events:none;-webkit-user-drag:none}
+  .eye .halo{filter:brightness(1.55) saturate(1.15);
+    -webkit-mask-image:radial-gradient(ellipse 62% 72% at 50% 50%, #000 28%, transparent 76%);
+    mask-image:radial-gradient(ellipse 62% 72% at 50% 50%, #000 28%, transparent 76%);
+    opacity:.12;animation:haloB 4.4s ease-in-out infinite}
+  .eye .core{filter:brightness(2.15) saturate(1.22);
+    -webkit-mask-image:radial-gradient(ellipse 30% 48% at 50% 50%, #000 24%, transparent 70%);
+    mask-image:radial-gradient(ellipse 30% 48% at 50% 50%, #000 24%, transparent 70%);
+    opacity:.08;animation:coreB 4.4s ease-in-out infinite .12s}
+  @keyframes haloB{0%,100%{opacity:.12}50%{opacity:.55}}
+  @keyframes coreB{0%,100%{opacity:.08}50%{opacity:1}}
+  .eyeWrap.drag .halo,.eyeWrap.drag .core{animation-duration:1.5s}
+  .eyeWrap.idle .halo,.eyeWrap.idle .core{animation-duration:7s}
+  .dock{position:fixed;z-index:29;border-radius:22px;
+    background:rgba(14,10,26,.5);border:1px solid var(--edge);
+    backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+    display:flex;align-items:center;justify-content:space-around;
+    opacity:0;pointer-events:none;
+    transition:transform .24s cubic-bezier(.2,.9,.25,1.12), opacity .18s ease}
+  .dock.h{width:322px;height:64px;padding:0 8px;transform:scaleX(.08)}
+  .dock.v{width:64px;height:322px;flex-direction:column;padding:8px 0;transform:scaleY(.08)}
+  .dock.on{transform:scale(1);opacity:1;pointer-events:auto}
   .toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 148px);
     transform:translateX(-50%);padding:9px 18px;border-radius:99px;
     background:rgba(14,10,26,.75);border:1px solid var(--edge);
@@ -257,17 +284,18 @@
 </div>
 
 <div class="fadeBot"></div>
-<div class="bar">
+<div class="dock h" id="dock">
   <div class="tab" data-t="Chat">
     <svg viewBox="0 0 24 24"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/><path d="M12 15.4l-3.1-3.1a1.95 1.95 0 0 1 2.76-2.76l.34.34.34-.34a1.95 1.95 0 0 1 2.76 2.76Z"/></svg>
     <small>Chat</small>
   </div>
-  <div class="tab cur" data-t="Moments">
+  <div class="tab" data-t="Moments">
     <svg viewBox="0 0 24 24"><path d="M18 22H4a2 2 0 0 1-2-2V6"/><path d="m22 13-1.3-1.3a2.4 2.4 0 0 0-3.4 0L11 18"/><circle cx="12" cy="8" r="2"/><rect width="16" height="16" x="6" y="2" rx="2"/></svg>
     <small>Moments</small>
   </div>
-  <div class="tab home" data-t="Hall">
-    <div class="barEye" id="barEye"></div>
+  <div class="tab" data-t="Hall">
+    <svg viewBox="0 0 24 24"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+    <small>Hall</small>
   </div>
   <div class="tab" data-t="Memory">
     <svg viewBox="0 0 24 24"><path d="M9.94 15.5a2 2 0 0 0-1.44-1.44l-6.13-1.58a.5.5 0 0 1 0-.96l6.13-1.58a2 2 0 0 0 1.44-1.44l1.58-6.13a.5.5 0 0 1 .96 0l1.58 6.13a2 2 0 0 0 1.44 1.44l6.13 1.58a.5.5 0 0 1 0 .96l-6.13 1.58a2 2 0 0 0-1.44 1.44l-1.58 6.13a.5.5 0 0 1-.96 0Z"/><path d="M20 3v4"/><path d="M22 5h-4"/><path d="M4 17v2"/><path d="M5 18H3"/></svg>
@@ -279,9 +307,17 @@
   </div>
 </div>
 
+<div class="eyeWrap" id="eyeWrap">
+  <div class="eye">
+    <img class="base" src="https://kvegublibjsdyidmsjvy.supabase.co/storage/v1/object/public/chat-media/eye-purple.png" alt="">
+    <img class="halo" src="https://kvegublibjsdyidmsjvy.supabase.co/storage/v1/object/public/chat-media/eye-purple.png" alt="">
+    <img class="core" src="https://kvegublibjsdyidmsjvy.supabase.co/storage/v1/object/public/chat-media/eye-purple.png" alt="">
+  </div>
+</div>
+
 <div class="lb" id="lb"><img id="lbImg" src="" alt=""></div>
 <div class="toast" id="toast"></div>
-<div class="mark">— m2 ok —</div>
+<div class="mark">— m3 ok —</div>
 
 <script>
   var API = 'https://moren-backend.zeabur.app';
@@ -316,24 +352,106 @@
   }
 
   /* bar eye + tabs */
-  (function(){
-    var barEye = document.getElementById('barEye');
-    var pre = new Image();
-    pre.onload = function(){
-      var BW = 52, regionW = ER*2.6*pre.naturalWidth, k = BW/regionW;
-      barEye.style.backgroundImage = 'url('+DOOR_IMG+')';
-      barEye.style.backgroundSize = (pre.naturalWidth*k)+'px '+(pre.naturalHeight*k)+'px';
-      barEye.style.backgroundPosition = (BW/2 - EX*pre.naturalWidth*k)+'px '+(BW/2 - EY*pre.naturalHeight*k)+'px';
-    };
-    pre.src = DOOR_IMG;
-  })();
-  document.querySelectorAll('.tab').forEach(function(t){
+  /* ===== the eye ===== */
+  var PAGE = 'Moments';
+  var NAV = { Moments: 'moments.html', Settings: 'settings.html' };
+  var wrap = document.getElementById('eyeWrap');
+  var dock = document.getElementById('dock');
+  var SZ = 64, M = 12, GAP = 10;
+  var ex = 0, ey = 0, side = 'right', open = false, idleT;
+  function vw(){ return window.innerWidth; }
+  function vh(){ return window.innerHeight; }
+  function place(x, y){ ex = x; ey = y; wrap.style.left = x + 'px'; wrap.style.top = y + 'px'; }
+  function saveEye(){ try { localStorage.setItem('vm-eye', JSON.stringify({ fx: ex / vw(), fy: ey / vh(), side: side })); } catch(e){} }
+  function wake(){
+    wrap.classList.remove('idle');
+    clearTimeout(idleT);
+    idleT = setTimeout(function(){ if(!open) wrap.classList.add('idle'); }, 5000);
+  }
+  function snap(){
+    var cx = ex + SZ/2, cy = ey + SZ/2;
+    var d = [['left', cx], ['right', vw()-cx], ['top', cy], ['bottom', vh()-cy]];
+    d.sort(function(a, b){ return a[1] - b[1]; });
+    side = d[0][0];
+    var x = ex, y = ey;
+    if(side === 'left') x = M;
+    if(side === 'right') x = vw() - SZ - M;
+    if(side === 'top') y = M + 8;
+    if(side === 'bottom') y = vh() - SZ - 18;
+    x = Math.max(M, Math.min(x, vw() - SZ - M));
+    y = Math.max(M + 8, Math.min(y, vh() - SZ - 18));
+    place(x, y); saveEye(); wake();
+  }
+  function unsheathe(){
+    var x, y;
+    dock.className = 'dock';
+    if(side === 'left' || side === 'right'){
+      dock.classList.add('h');
+      y = Math.max(8, Math.min(ey + SZ/2 - 32, vh() - 72));
+      if(side === 'left'){ x = ex + SZ + GAP; dock.style.transformOrigin = 'left center'; }
+      else { x = ex - GAP - 322; dock.style.transformOrigin = 'right center'; }
+    } else {
+      dock.classList.add('v');
+      x = Math.max(8, Math.min(ex + SZ/2 - 32, vw() - 72));
+      if(side === 'top'){ y = ey + SZ + GAP; dock.style.transformOrigin = 'center top'; }
+      else { y = ey - GAP - 322; dock.style.transformOrigin = 'center bottom'; }
+    }
+    dock.style.left = x + 'px';
+    dock.style.top = y + 'px';
+    requestAnimationFrame(function(){ requestAnimationFrame(function(){ dock.classList.add('on'); }); });
+    open = true;
+    wrap.classList.remove('idle');
+    clearTimeout(idleT);
+  }
+  function sheathe(){ dock.classList.remove('on'); open = false; wake(); }
+  var sx, sy, ox, oy, moved = false, draggingEye = false;
+  wrap.addEventListener('pointerdown', function(e){
+    e.preventDefault();
+    wrap.setPointerCapture(e.pointerId);
+    draggingEye = true; moved = false;
+    sx = e.clientX; sy = e.clientY; ox = ex; oy = ey;
+    wrap.classList.remove('idle');
+    clearTimeout(idleT);
+  });
+  wrap.addEventListener('pointermove', function(e){
+    if(!draggingEye) return;
+    var dx = e.clientX - sx, dy = e.clientY - sy;
+    if(!moved && Math.abs(dx) + Math.abs(dy) > 8){
+      moved = true;
+      wrap.classList.add('drag');
+      if(open) sheathe();
+    }
+    if(moved) place(ox + dx, oy + dy);
+  });
+  wrap.addEventListener('pointerup', function(){
+    if(!draggingEye) return;
+    draggingEye = false;
+    wrap.classList.remove('drag');
+    if(moved){ snap(); }
+    else { open ? sheathe() : unsheathe(); }
+  });
+  wrap.addEventListener('pointercancel', function(){
+    draggingEye = false;
+    wrap.classList.remove('drag');
+    snap();
+  });
+  document.addEventListener('pointerdown', function(e){
+    if(open && !wrap.contains(e.target) && !dock.contains(e.target)) sheathe();
+  });
+  dock.querySelectorAll('.tab').forEach(function(t){
+    if(t.dataset.t === PAGE) t.classList.add('cur');
     t.addEventListener('click', function(){
-      if(t.dataset.t === 'Moments') return;
-      if(t.dataset.t === 'Settings'){ location.href = 'settings.html'; return; }
-      say(t.dataset.t + ' — back at merge');
+      sheathe();
+      if(t.dataset.t === PAGE) return;
+      if(NAV[t.dataset.t]) location.href = NAV[t.dataset.t];
+      else say(t.dataset.t + ' — back at merge');
     });
   });
+  window.addEventListener('resize', function(){ if(open) sheathe(); snap(); });
+  var sv = null;
+  try { sv = JSON.parse(localStorage.getItem('vm-eye')); } catch(e){}
+  if(sv && sv.side){ side = sv.side; place(Math.round(sv.fx * vw()), Math.round(sv.fy * vh())); snap(); }
+  else { place(vw() - SZ - M, Math.round(vh() * 0.38)); side = 'right'; snap(); }
 
   /* segments + strip mode */
   var strip = document.getElementById('strip'), sField = document.getElementById('sField');
