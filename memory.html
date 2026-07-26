@@ -275,7 +275,7 @@
 
       <div class="pinLayer spinInner">
         <img class="layer" src="https://kvegublibjsdyidmsjvy.supabase.co/storage/v1/object/public/chat-media/wheel-ring-inner.png" alt="">
-        <svg class="pins" id="pinsIn" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg"></svg>
+        <svg class="pins" id="pinsIn" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg"><defs><filter id="glowIn" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="2.4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs></svg>
       </div>
 
       <img class="layer spinSpokes" src="https://kvegublibjsdyidmsjvy.supabase.co/storage/v1/object/public/chat-media/wheel-spokes.png" alt="">
@@ -382,7 +382,7 @@
 </div>
 
 <div class="toast" id="toast"></div>
-<div class="mark">— m1 ok —</div>
+<div class="mark">— m2 ok —</div>
 
 <script>
   var API = 'https://moren-backend.zeabur.app';
@@ -615,14 +615,14 @@
       ring.setAttribute('fill', 'none');
       ring.setAttribute('stroke', opts.phase === 'new' ? '#e6dcff' : '#efe8ff');
       ring.setAttribute('stroke-width', opts.phase === 'new' ? '1.4' : '1.35');
-      ring.setAttribute('filter', 'url(#glow)');
+      ring.setAttribute('filter', 'url(#' + (opts.f || 'glow') + ')');
       g.appendChild(ring);
       if(opts.phase === 'wane' || opts.phase === 'wax'){
         var half = document.createElementNS(NS, 'path');
         var r = 6.0, sweep = opts.phase === 'wane' ? 0 : 1;
         half.setAttribute('d', 'M' + opts.x + ' ' + (opts.y - r) + ' A' + r + ' ' + r + ' 0 0 ' + sweep + ' ' + opts.x + ' ' + (opts.y + r) + ' Z');
         half.setAttribute('fill', '#f4efff');
-        half.setAttribute('filter', 'url(#glow)');
+        half.setAttribute('filter', 'url(#' + (opts.f || 'glow') + ')');
         g.appendChild(half);
       }
     }
@@ -645,7 +645,7 @@
         var y = Math.round((200 - R_IN * Math.cos(ang)) * 10) / 10;
         var dd = dayDiff(td, it.day);
         var cnt = dd === 0 ? 'today' : dd > 0 ? 'in ' + dd + ' days' : (-dd) + ' days ago';
-        mkStar(pinsIn, { name: it.label, dateTxt: fmtDate(it.day), count: cnt, id: it.id, x: x, y: y, phase: 'new' });
+        mkStar(pinsIn, { name: it.label, dateTxt: fmtDate(it.day), count: cnt, id: it.id, x: x, y: y, phase: 'new', f: 'glowIn' });
       } else {
         var x2 = Math.round((200 + R_OUT * Math.sin(ang)) * 10) / 10;
         var y2 = Math.round((200 - R_OUT * Math.cos(ang)) * 10) / 10;
@@ -766,7 +766,7 @@
     return MONTHS[d.getMonth()] + ' ' + d.getDate();
   }
   function isFrag(m){
-    return (m.name + ' ' + m.domains + ' ' + m.content.slice(0, 30)).indexOf('当日碎片') !== -1;
+    return (m.name + ' ' + m.domains + ' ' + (m.preview || '').slice(0, 40) + ' ' + (m.content || '').slice(0, 40)).indexOf('当日碎片') !== -1;
   }
   function kindLabel(m, archived){
     if(archived) return 'ARCHIVED';
@@ -873,7 +873,7 @@
         (curF === 'pinned' && m.pinned) ||
         (curF === 'deep' && m.importance >= 9) ||
         (curF === 'fragment' && isFrag(m));
-      var okQ = !q || ((m.name + ' ' + m.content).toLowerCase().indexOf(q) !== -1);
+      var okQ = !q || ((m.name + ' ' + (m.content || '') + ' ' + (m.preview || '')).toLowerCase().indexOf(q) !== -1);
       c.classList.toggle('hid', !(okF && okQ));
     });
   }
