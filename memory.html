@@ -218,6 +218,8 @@
   .popItem:active{background:rgba(107,79,216,.25)}
   .popItem .mk{margin-left:auto;font-size:12px;color:var(--lav);opacity:0}
   .popItem.sel .mk{opacity:1}
+  .sCal{overflow:hidden}
+  .sKindBtn{position:relative;z-index:2}
 
   /* ============ MEMORIES ============ */
   .memWrap{position:fixed;inset:0;z-index:4;overflow-y:auto;-webkit-overflow-scrolling:touch;
@@ -404,11 +406,11 @@
     <div class="mgTitle">All Days</div>
   </div>
   <div class="mgStrip">
+    <div class="sKindBtn" id="sKind"><svg viewBox="0 0 24 24"><path d="m17 2 4 4-4 4"/><path d="M3 11v-1a4 4 0 0 1 4-4h14"/><path d="m7 22-4-4 4-4"/><path d="M21 13v1a4 4 0 0 1-4 4H3"/></svg></div>
     <div class="sCal" id="sCal">
       <svg viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h18"/></svg>
       <input type="date" id="sCalIn">
     </div>
-    <div class="sKindBtn" id="sKind"><svg viewBox="0 0 24 24"><path d="m17 2 4 4-4 4"/><path d="M3 11v-1a4 4 0 0 1 4-4h14"/><path d="m7 22-4-4 4-4"/><path d="M21 13v1a4 4 0 0 1-4 4H3"/></svg></div>
     <div class="sName" id="sName" contenteditable="true"></div>
     <div class="sSend" id="sSend"><svg viewBox="0 0 24 24"><line x1="12" x2="12" y1="19" y2="5"/><polyline points="5 12 12 5 19 12"/></svg></div>
   </div>
@@ -450,7 +452,7 @@
   <div class="popItem" data-k="day">Just once<span class="mk">✓</span></div>
 </div>
 <div class="toast" id="toast"></div>
-<div class="mark">— m9 ok —</div>
+<div class="mark">— m10 ok —</div>
 
 <script>
   var API = 'https://moren-backend.zeabur.app';
@@ -770,28 +772,26 @@
   function buildWheel(){
     var td = todayStr();
     var dayN = dayDiff(ORIGIN, td) + 1;
-    var list = [];
+    var list = [{ name: 'Today', date: fmtDate(td), kind: 'THIS MOMENT',
+      extra: 'day ' + dayN + ' of us', sort: 0 }];
     daysAll.forEach(function(it){
-      if(it.kind === 'day'){
-        var d = dayDiff(td, it.day);
-        list.push({ name: it.label, date: fmtDate(it.day), kind: 'JUST ONCE',
-          count: d === 0 ? 'today' : d > 0 ? 'in ' + d + ' days' : (-d) + ' days ago', sort: d });
-      } else {
-        var od = occDelta(it.day);
-        var since = dayDiff(it.day, td), cnt;
-        if(since < 0) cnt = (-since) + ' days to go';
-        else if(od === 0) cnt = it.day >= ORIGIN ? 'day ' + (since + 1) + ' — today' : 'today';
-        else cnt = od > 0 ? 'in ' + od + ' days' : 'came back ' + (-od) + ' days ago';
-        list.push({ name: it.label, date: fmtDate(it.day), kind: 'EVERY YEAR', count: cnt, sort: od });
-      }
+      if(it.kind === 'day') return;
+      var mmdd = it.day.slice(5,7) + ' · ' + it.day.slice(8,10);
+      var y = Number(td.slice(0,4));
+      [y - 1, y, y + 1].forEach(function(yy){
+        var occ = yy + '-' + it.day.slice(5);
+        if(occ < it.day) return;
+        var d = dayDiff(td, occ);
+        if(Math.abs(d) > 365) return;
+        list.push({ name: it.label, date: mmdd, kind: 'EVERY YEAR',
+          extra: '', sort: d === 0 ? 0.5 : d });
+      });
     });
-    if(!list.some(function(e){ return e.sort === 0; }))
-      list.push({ name: 'Today', date: fmtDate(td), kind: 'THIS MOMENT', count: 'day ' + dayN + ' of us', sort: 0 });
     list.sort(function(a, b){ return a.sort - b.sort; });
     scRoll.innerHTML = list.map(function(e){
       return '<div class="scItem"><div class="fName">' + e.name + '</div>' +
         '<div class="fDate">' + e.date + '</div>' +
-        '<div class="fCount">' + e.count + '</div>' +
+        (e.extra ? '<div class="fCount">' + e.extra + '</div>' : '') +
         '<div class="fKind">' + e.kind + '</div></div>';
     }).join('');
     var idx = 0;
