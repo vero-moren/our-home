@@ -460,7 +460,7 @@
   <div class="popItem" data-k="day">Just once<span class="mk">✓</span></div>
 </div>
 <div class="toast" id="toast"></div>
-<div class="mark">— m14 ok —</div>
+<div class="mark">— m16 ok —</div>
 
 <script>
   var API = 'https://moren-backend.zeabur.app';
@@ -689,6 +689,18 @@
     });
     return list;
   }
+  function stagger(list){
+    list.forEach(function(s){ s.deg = ((s.ang * 180 / Math.PI) % 360 + 360) % 360; });
+    list.sort(function(a, b){ return a.deg - b.deg; });
+    var prevDeg = -999, prevOff = 1;
+    list.forEach(function(s){
+      s.off = 0;
+      if(s.deg - prevDeg < 5) s.off = prevOff === 0 ? 1 : 0;
+      if(s.phase === 'full') s.off = 0;
+      prevDeg = s.deg; prevOff = s.off;
+    });
+    return list;
+  }
   function renderStars(items){
     var pinsOut = document.getElementById('pins');
     var pinsMid = document.getElementById('pinsMid');
@@ -696,25 +708,26 @@
     pinsOut.querySelectorAll('g.dayStar').forEach(function(g){ g.remove(); });
     pinsMid.querySelectorAll('g.dayStar').forEach(function(g){ g.remove(); });
     pinsIn.querySelectorAll('g.dayStar').forEach(function(g){ g.remove(); });
-    var td = todayStr();
+    var TAU = Math.PI * 2;
     var outStars = [], midStars = [], inStars = [];
 
     items.forEach(function(it){
-      var ang = angleFor(it.day);
       if(it.kind === 'day'){
-        inStars.push({ ang: ang });
+        inStars.push({ ang: angleFor(it.day) });
       } else {
         var od = occDelta(it.day);
         if(od >= -30 && od <= 30){
-          outStars.push({ ang: ang, phase: od === 0 ? 'full' : od < 0 ? 'wane' : 'wax' });
+          outStars.push({ ang: ((od / 60) * TAU + TAU) % TAU,
+            phase: od === 0 ? 'full' : od < 0 ? 'wane' : 'wax' });
         } else {
-          midStars.push({ ang: ang });
+          var d = od < 0 ? od + 365 : od;
+          midStars.push({ ang: ((d - 31) / 305) * TAU });
         }
       }
     });
 
     var hasFull = outStars.some(function(s){ return s.phase === 'full'; });
-    if(!hasFull) outStars.push({ ang: angleFor(td), phase: 'full' });
+    if(!hasFull) outStars.push({ ang: 0, phase: 'full' });
 
     stagger(outStars).forEach(function(s){
       var r = R_OUT + s.off * 9;
