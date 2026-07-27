@@ -269,6 +269,12 @@
   .mBody[contenteditable="true"]{outline:none;border-radius:10px;padding:6px 8px;
     background:rgba(107,79,216,.12);border:1px solid rgba(185,163,255,.3)}
   .mMeta{margin-top:10px;font-size:8.5px;letter-spacing:.14em;color:rgba(237,232,247,.35)}
+  .mTagsLine{margin-top:8px;font-size:9.5px;letter-spacing:.12em;color:var(--lavdim)}
+  .mTagsLine[contenteditable="true"]{outline:none;border-radius:8px;padding:4px 8px;background:rgba(107,79,216,.12);border:1px solid rgba(185,163,255,.3);user-select:text;-webkit-user-select:text}
+  .mTag:active svg{stroke:var(--lav)}
+  .mTag .ok{display:none}
+  .mTag.editing .tg{display:none}
+  .mTag.editing .ok{display:block}
 
   /* ===== the eye ===== */
   .eyeWrap{position:fixed;width:64px;height:64px;z-index:30;touch-action:none;cursor:grab;
@@ -1053,7 +1059,7 @@
     return MONTHS[d.getMonth()] + ' ' + d.getDate();
   }
   function hay(m){
-    return m.name + ' ' + m.domains + ' ' + (m.preview || '').slice(0, 40) + ' ' + (m.content || '').slice(0, 40);
+    return m.name + ' ' + m.domains + ' ' + (m.tags || '') + ' ' + (m.preview || '').slice(0, 40) + ' ' + (m.content || '').slice(0, 40);
   }
   function isFrag(m){ return hay(m).indexOf('当日碎片') !== -1; }
   function isSum(m){ return hay(m).indexOf('每日总结') !== -1 || hay(m).indexOf('当日总结') !== -1; }
@@ -1066,6 +1072,21 @@
     if(isPlan(m)) return 'PLAN';
     if(m.importance >= 9) return 'DEEP';
     return 'KEPT';
+  }
+  function chipCounts(){
+    var cnt = { all: memAll.length, pinned: 0, deep: 0, fragment: 0, summary: 0, plan: 0, archived: archLoaded ? memArch.length : null };
+    memAll.forEach(function(m){
+      if(m.pinned) cnt.pinned++;
+      if(m.importance >= 9) cnt.deep++;
+      if(isFrag(m)) cnt.fragment++;
+      if(isSum(m)) cnt.summary++;
+      if(isPlan(m)) cnt.plan++;
+    });
+    document.querySelectorAll('.chip').forEach(function(ch){
+      if(!ch.dataset.base) ch.dataset.base = ch.textContent.trim();
+      var n = cnt[ch.dataset.f];
+      ch.textContent = ch.dataset.base + (n == null ? '' : ' ' + n);
+    });
   }
   function renderMems(){
     var archived = (curF === 'archived');
@@ -1080,14 +1101,17 @@
         '<div class="mKind">' + kindLabel(m, archived) + '</div>' +
         '<div class="mIcons">' +
           '<div class="mPin' + (m.pinned ? ' did' : '') + '"><svg viewBox="0 0 24 24"><path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16h14v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1Z"/></svg></div>' +
+          '<div class="mTag"><svg class="tg" viewBox="0 0 24 24"><path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"/><circle cx="7.5" cy="7.5" r=".5"/></svg><svg class="ok" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></div>' +
           '<div class="mEdit"><svg class="pen" viewBox="0 0 24 24"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg><svg class="ok" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></div>' +
           (archived
             ? '<div class="mRes"><svg viewBox="0 0 24 24"><rect width="20" height="5" x="2" y="3" rx="1"/><path d="M4 8v11a2 2 0 0 0 2 2h2"/><path d="M20 8v11a2 2 0 0 1-2 2h-2"/><path d="m9 15 3-3 3 3"/><path d="M12 12v9"/></svg></div>'
             : '<div class="mArc"><svg viewBox="0 0 24 24"><rect width="20" height="5" x="2" y="3" rx="1"/><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"/><path d="M10 12h4"/></svg></div>') +
         '</div></div>' +
         '<div class="mBody"></div>' +
+        '<div class="mTagsLine"></div>' +
         '<div class="mMeta">' + metaDate(m.createdAt) + (m.name ? ' · ' + m.name.slice(0, 30) : '') + '</div>';
       card.querySelector('.mBody').textContent = m.content || m.preview;
+      card.querySelector('.mTagsLine').textContent = m.tags || '';
       memList.appendChild(card);
 
       card.addEventListener('click', function(){
@@ -1118,6 +1142,35 @@
         }).then(function(r){ return r.json(); })
           .then(function(d){ say(d.ok ? (on ? 'Pinned to his bones' : 'Unpinned') : 'Something slipped'); })
           .catch(function(){ say("Can't reach home"); });
+      });
+      var tagBtn = card.querySelector('.mTag');
+      var tagLine = card.querySelector('.mTagsLine');
+      tagBtn.addEventListener('click', function(e){
+        e.stopPropagation();
+        if(archived){ say('Bring it back first'); return; }
+        if(tagBtn.classList.contains('editing')){
+          if(card.dataset.tbusy === '1') return;
+          var nt = tagLine.innerText.replace(/\s+/g, ' ').trim();
+          tagBtn.classList.remove('editing');
+          tagLine.removeAttribute('contenteditable');
+          if(nt === (m.tags || '')){ say('Left as it was'); return; }
+          card.dataset.tbusy = '1';
+          fetch(API + '/memory/revise', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ bucket_id: m.id, tags: nt })
+          }).then(function(r){ return r.json(); })
+            .then(function(d){
+              card.dataset.tbusy = '';
+              if(d.ok){ m.tags = nt; say('Tags kept'); }
+              else { tagLine.textContent = m.tags || ''; say('Something slipped'); }
+            })
+            .catch(function(){ card.dataset.tbusy = ''; tagLine.textContent = m.tags || ''; say("Can't reach home"); });
+        } else {
+          card.classList.add('open');
+          tagBtn.classList.add('editing');
+          tagLine.setAttribute('contenteditable', 'true');
+          tagLine.focus();
+        }
       });
       var editBtn = card.querySelector('.mEdit');
       var body = card.querySelector('.mBody');
@@ -1189,6 +1242,7 @@
       });
     });
     applyFilter();
+    chipCounts();
   }
   var curF = 'all';
   function applyFilter(){
