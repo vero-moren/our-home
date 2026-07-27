@@ -62,10 +62,11 @@
     bottom:calc(env(safe-area-inset-bottom,0px) + 24px);
     font-family:'Inter';font-size:8.5px;letter-spacing:.18em;color:rgba(185,163,255,.45)}
 
-  .nextCount{position:fixed;left:20px;z-index:6;text-align:left;
+  .nextCount{position:fixed;left:20px;z-index:6;text-align:left;cursor:pointer;
     top:calc(env(safe-area-inset-top,0px) + 138px);
     font-family:'Cormorant Garamond',serif;font-style:italic;
     font-size:14px;color:rgba(185,163,255,.6);letter-spacing:.04em}
+  .nextCount:active{color:var(--lav)}
 
   .stage{position:fixed;inset:0;z-index:4;display:flex;align-items:center;justify-content:center;
     padding:calc(env(safe-area-inset-top,0px) + 118px) 0 calc(env(safe-area-inset-bottom,0px) + 108px)}
@@ -90,15 +91,15 @@
   }
 
   .pins{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
-  .dayStar{pointer-events:auto;cursor:pointer}
+  .dayStar{pointer-events:none}
   .today{animation:tPulse 3.6s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
   @keyframes tPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.25)}}
   .halo{animation:hBreath 3.6s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
   @keyframes hBreath{0%,100%{opacity:.15;transform:scale(1)}50%{opacity:.5;transform:scale(1.4)}}
 
-  .addCore{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
-    width:60px;height:60px;border-radius:50%;cursor:pointer;z-index:5}
-  .addCore:active{background:radial-gradient(circle,rgba(185,163,255,.18),transparent 70%)}
+  .coreBtn{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+    width:64px;height:64px;border-radius:50%;cursor:pointer;z-index:5}
+  .coreBtn:active{background:radial-gradient(circle,rgba(185,163,255,.18),transparent 70%)}
 
   @media (prefers-reduced-motion: reduce){
     .spinWrap,.spinMid,.spinInner,.spinSpokes,.today,.halo,.flowA,.flowB{animation:none}
@@ -107,7 +108,7 @@
   /* cards */
   .float{position:fixed;left:50%;transform:translateX(-50%) translateY(8px);
     bottom:calc(env(safe-area-inset-bottom,0px) + 156px);z-index:30;
-    min-width:240px;max-width:86vw;padding:15px 24px;border-radius:16px;text-align:center;
+    min-width:250px;max-width:86vw;padding:15px 24px;border-radius:16px;text-align:center;
     background:rgba(14,10,26,.88);border:1px solid var(--edge);
     backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
     opacity:0;pointer-events:none;transition:opacity .25s,transform .25s}
@@ -116,41 +117,88 @@
   .fDate{margin-top:5px;font-size:9.5px;letter-spacing:.18em;color:var(--dim)}
   .fCount{margin-top:7px;font-family:'Cormorant Garamond',serif;font-style:italic;
     font-size:13.5px;color:var(--lav)}
-  .fDel{margin-top:12px;display:inline-flex;align-items:center;gap:6px;
-    padding:7px 16px;border-radius:99px;cursor:pointer;
-    background:var(--glass);border:1px solid var(--edge);
-    font-size:8.5px;letter-spacing:.16em;color:rgba(237,232,247,.45)}
-  .fDel.arm{color:#ff9aa8;border-color:rgba(255,120,140,.4)}
-  .fDel svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+  .fKind{margin-top:8px;font-size:8px;letter-spacing:.18em;color:rgba(237,232,247,.4)}
   .fPoem{font-size:13.5px;line-height:1.9;font-weight:300;color:rgba(237,232,247,.88);text-align:left;
     font-family:'Cormorant Garamond',serif;font-style:italic}
   .fFor{margin-top:10px;font-family:'Cormorant Garamond',serif;font-style:italic;
     font-size:11.5px;color:rgba(185,163,255,.6);text-align:right}
 
-  .aRow{display:flex;gap:8px;align-items:center;margin-top:12px}
-  .aCal{flex:none;width:38px;height:38px;border-radius:12px;cursor:pointer;position:relative;
+  /* the wheel-in-a-wheel: day scroller */
+  .scHint{font-size:8px;letter-spacing:.2em;color:rgba(185,163,255,.35)}
+  .scRoll{height:150px;margin:4px 0;overflow-y:auto;scroll-snap-type:y mandatory;
+    -webkit-overflow-scrolling:touch;scrollbar-width:none;-ms-overflow-style:none;
+    -webkit-mask-image:linear-gradient(transparent,#000 16%,#000 84%,transparent);
+    mask-image:linear-gradient(transparent,#000 16%,#000 84%,transparent)}
+  .scRoll::-webkit-scrollbar{display:none;width:0;height:0}
+  .scItem{height:150px;scroll-snap-align:start;display:flex;flex-direction:column;
+    align-items:center;justify-content:center}
+
+  /* ============ ALL DAYS (manage page, memos制式) ============ */
+  .manage{position:fixed;inset:0;z-index:26;display:none;
+    background:rgba(8,5,16,.9);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px)}
+  .manage.on{display:block}
+  .mgTop{position:fixed;left:0;right:0;top:0;z-index:27;
+    padding:calc(env(safe-area-inset-top,0px) + 12px) 16px 12px;
+    display:flex;align-items:center;justify-content:center;
+    border-bottom:1px solid rgba(255,255,255,.07)}
+  .mgBack{position:absolute;left:14px;top:calc(env(safe-area-inset-top,0px) + 10px);
+    width:34px;height:34px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+  .mgBack svg{width:18px;height:18px;stroke:var(--lavdim);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+  .mgBack:active svg{stroke:var(--press)}
+  .mgTitle{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:500;letter-spacing:.08em}
+  .mgList{position:absolute;inset:0;overflow-y:auto;-webkit-overflow-scrolling:touch;
+    padding:calc(env(safe-area-inset-top,0px) + 70px) 14px 150px}
+  .mgNote{margin:2px 2px 14px;font-family:'Cormorant Garamond',serif;font-style:italic;
+    font-size:12.5px;color:rgba(185,163,255,.5);text-align:center}
+
+  .dCard{position:relative;margin-bottom:12px;padding:15px 16px;border-radius:18px;
+    background:rgba(10,7,20,.55);border:1px solid rgba(255,255,255,.1);
+    backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+  .dIcons{position:absolute;top:14px;right:14px;display:flex;gap:12px}
+  .dIcons div{cursor:pointer;display:flex}
+  .dIcons svg{width:15px;height:15px;stroke:rgba(237,232,247,.4);fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+  .dEditB:active svg{stroke:var(--lav)}
+  .dDelB:active svg{stroke:var(--press)}
+  .dEditB .ok{display:none}
+  .dCard.editing .dEditB .pen{display:none}
+  .dCard.editing .dEditB .ok{display:block}
+  .dName{font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:500;letter-spacing:.04em;padding-right:60px}
+  .dCard.editing .dName{background:var(--glass);border:1px solid rgba(185,163,255,.35);border-radius:10px;
+    padding:8px 10px;margin-right:74px;outline:none;user-select:text;-webkit-user-select:text}
+  .dKind{margin-top:6px;font-size:9px;letter-spacing:.14em;color:var(--lavdim)}
+  .dCard.editing .dKind{color:var(--lav);cursor:pointer}
+  .dDue{margin-top:8px;font-size:9.5px;letter-spacing:.12em;color:rgba(237,232,247,.4);position:relative}
+  .dDue b{color:var(--lavdim);font-weight:400}
+  .dDueIn{position:absolute;inset:0;opacity:0;width:100%;height:100%}
+  .dCard:not(.editing) .dDueIn{pointer-events:none}
+  .dCard.editing .dDue{color:var(--lav);cursor:pointer}
+
+  /* manage bottom strip (moments制式) */
+  .mgStrip{position:fixed;left:50%;transform:translateX(-50%);width:min(94vw,520px);
+    bottom:calc(env(safe-area-inset-bottom,0px) + 14px);z-index:28;
+    padding:10px 12px;border-radius:26px;border:1px solid var(--edge);
+    background:rgba(8,5,16,.6);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);
+    display:flex;align-items:center;gap:8px}
+  .sCal{flex:none;width:38px;height:38px;border-radius:50%;position:relative;cursor:pointer;
     background:var(--glass);border:1px solid var(--edge);
     display:flex;align-items:center;justify-content:center}
-  .aCal svg{width:16px;height:16px;stroke:var(--lav);fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
-  .aCal:active{background:rgba(107,79,216,.3)}
-  .aCal.did{background:rgba(107,79,216,.45);border-color:rgba(185,163,255,.5)}
-  .aCal.did svg{stroke:#fff}
-  .aCal input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer}
-  .aField{flex:1;padding:9px 14px;border-radius:12px;
+  .sCal svg{width:17px;height:17px;stroke:var(--lav);fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+  .sCal:active{background:rgba(107,79,216,.3)}
+  .sCal.set svg{stroke:var(--press);filter:drop-shadow(0 0 5px rgba(107,79,216,.75))}
+  .sCal input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer}
+  .sKind{flex:none;padding:9px 12px;border-radius:99px;cursor:pointer;white-space:nowrap;
     background:var(--glass);border:1px solid var(--edge);
-    font-size:13px;font-weight:300;color:var(--text);outline:none;text-align:left;
+    font-size:8px;letter-spacing:.14em;color:var(--lavdim)}
+  .sKind:active{background:rgba(107,79,216,.3)}
+  .sName{flex:1;min-height:38px;padding:9px 14px;border-radius:19px;
+    background:var(--glass);border:1px solid var(--edge);
+    font-size:13px;font-weight:300;color:var(--text);outline:none;
     user-select:text;-webkit-user-select:text}
-  .aField:empty:before{content:attr(data-ph);color:rgba(237,232,247,.28)}
-  .aDate{margin-top:9px;font-family:'Cormorant Garamond',serif;font-style:italic;
-    font-size:12px;color:rgba(185,163,255,.6);min-height:15px}
-  .aKinds{display:flex;gap:8px;justify-content:center;margin-top:11px}
-  .aKind{padding:7px 14px;border-radius:99px;font-size:8.5px;letter-spacing:.14em;cursor:pointer;
-    color:var(--lavdim);background:var(--glass);border:1px solid var(--edge)}
-  .aKind.cur{color:#fff;background:rgba(107,79,216,.4);border-color:rgba(185,163,255,.4)}
-  .aGo{margin-top:12px;display:inline-block;padding:9px 26px;border-radius:12px;
-    background:var(--deep);border:1px solid rgba(185,163,255,.3);
-    font-size:10px;letter-spacing:.16em;color:var(--text);cursor:pointer}
-  .aGo:active{background:#2C1B63}
+  .sName:empty:before{content:'Name a day';color:rgba(237,232,247,.28)}
+  .sSend{flex:none;width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;
+    background:var(--deep);border:1px solid rgba(185,163,255,.32);box-shadow:0 0 14px rgba(58,36,128,.55)}
+  .sSend svg{width:18px;height:18px;stroke:#EDE8F7;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .sSend:active{background:#2C1B63}
 
   /* ============ MEMORIES ============ */
   .memWrap{position:fixed;inset:0;z-index:4;overflow-y:auto;-webkit-overflow-scrolling:touch;
@@ -263,8 +311,8 @@
 <div class="view on" id="v-days">
   <div class="listNote">the wheel turns — every day comes back to her</div>
 
-  <div class="nextPoem" id="nextPoem">…</div>
-  <div class="poemTag">— MOREN · FOR THE NEXT DAY</div>
+  <div class="nextPoem" id="nextPoem"></div>
+  <div class="poemTag" id="poemTag" style="display:none">— MOREN · FOR THE NEXT DAY</div>
 
   <div class="nextCount" id="nextCount"></div>
 
@@ -298,7 +346,9 @@
         </svg>
       </div>
 
-      <div class="addCore" id="addCore" title="keep a day"></div>
+      <svg class="pins" id="calRings" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg"></svg>
+
+      <div class="coreBtn" id="coreBtn" title="this moment"></div>
     </div>
   </div>
 </div>
@@ -319,15 +369,11 @@
   </div>
 </div>
 
-<!-- cards -->
-<div class="float" id="dayCard">
-  <div class="fName" id="dcName"></div>
-  <div class="fDate" id="dcDate"></div>
-  <div class="fCount" id="dcCount"></div>
-  <div class="fDel" id="dcDel" style="display:none">
-    <svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-    <span id="dcDelTxt">UNPIN THIS DAY</span>
-  </div>
+<!-- day scroller (wheel in the wheel) -->
+<div class="float" id="wheelCard">
+  <div class="scHint">˄ &nbsp;PAST</div>
+  <div class="scRoll" id="scRoll"></div>
+  <div class="scHint">FUTURE &nbsp;˅</div>
 </div>
 
 <div class="float" id="poemCard">
@@ -335,21 +381,24 @@
   <div class="fFor" id="pcFor"></div>
 </div>
 
-<div class="float" id="addCard">
-  <div class="fName">Keep a day</div>
-  <div class="aRow">
-    <div class="aCal" id="aCal">
+<!-- ALL DAYS manage page -->
+<div class="manage" id="manage">
+  <div class="mgList" id="mgList">
+    <div class="mgNote">every day we keep — name, date, kind</div>
+  </div>
+  <div class="mgTop">
+    <div class="mgBack" id="mgBack"><svg viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg></div>
+    <div class="mgTitle">All Days</div>
+  </div>
+  <div class="mgStrip">
+    <div class="sCal" id="sCal">
       <svg viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h18"/></svg>
-      <input type="date" id="aDateIn">
+      <input type="date" id="sCalIn">
     </div>
-    <div class="aField" id="aName" contenteditable="true" data-ph="What shall we call it"></div>
+    <div class="sKind" id="sKind">EVERY YEAR</div>
+    <div class="sName" id="sName" contenteditable="true"></div>
+    <div class="sSend" id="sSend"><svg viewBox="0 0 24 24"><line x1="12" x2="12" y1="19" y2="5"/><polyline points="5 12 12 5 19 12"/></svg></div>
   </div>
-  <div class="aDate" id="aDateShow"></div>
-  <div class="aKinds">
-    <div class="aKind cur" data-k="anniv">EVERY YEAR</div>
-    <div class="aKind" data-k="day">JUST ONCE</div>
-  </div>
-  <div class="aGo" id="addGo">KEEP</div>
 </div>
 
 <div class="dock h" id="dock">
@@ -384,17 +433,19 @@
 </div>
 
 <div class="toast" id="toast"></div>
-<div class="mark">— m3 ok —</div>
+<div class="mark">— m6 ok —</div>
 
 <script>
   var API = 'https://moren-backend.zeabur.app';
   var ORIGIN = '2026-07-04';
+  var CAL = true;            /* 内环校准圈:报数后关掉 */
+  var R_OUT = 136, R_IN = 64; /* R_IN待校准 */
 
   var toast = document.getElementById('toast'), tt;
   function say(m){ toast.textContent = m; toast.classList.add('show');
     clearTimeout(tt); tt = setTimeout(function(){ toast.classList.remove('show'); }, 1600); }
 
-  /* ===== the eye (verbatim from settings) ===== */
+  /* ===== the eye (verbatim) ===== */
   var PAGE = 'Memory';
   var NAV = { Moments: 'moments.html', Settings: 'settings.html', Memory: 'memory.html' };
   var wrap = document.getElementById('eyeWrap');
@@ -546,55 +597,15 @@
   }
 
   /* ===== floats ===== */
-  var dayCard = document.getElementById('dayCard');
+  var wheelCard = document.getElementById('wheelCard');
   var poemCard = document.getElementById('poemCard');
-  var addCard = document.getElementById('addCard');
-  function hideFloats(){ [dayCard,poemCard,addCard].forEach(function(c){ c.classList.remove('on'); });
-    dcDel.style.display = 'none'; delArmed = false; dcDelTxt.textContent = 'UNPIN THIS DAY'; dcDel.classList.remove('arm'); }
+  function hideFloats(){ [wheelCard, poemCard].forEach(function(c){ c.classList.remove('on'); }); }
 
-  var dcName = document.getElementById('dcName');
-  var dcDate = document.getElementById('dcDate');
-  var dcCount = document.getElementById('dcCount');
-  var dcDel = document.getElementById('dcDel');
-  var dcDelTxt = document.getElementById('dcDelTxt');
-  var curStarId = null, delArmed = false;
-
-  function starTap(e){
-    e.stopPropagation(); hideFloats();
-    dcName.textContent = this.dataset.name;
-    dcDate.textContent = this.dataset.date;
-    dcCount.textContent = this.dataset.count;
-    curStarId = this.dataset.id || null;
-    dcDel.style.display = curStarId ? 'inline-flex' : 'none';
-    dayCard.classList.add('on');
-  }
-  dcDel.addEventListener('click', function(e){
-    e.stopPropagation();
-    if(!curStarId) return;
-    if(!delArmed){ delArmed = true; dcDelTxt.textContent = 'SURE? TAP AGAIN'; dcDel.classList.add('arm'); return; }
-    fetch(API + '/days/' + curStarId, { method: 'DELETE' })
-      .then(function(r){ return r.json(); })
-      .then(function(d){
-        if(d.ok){ say('Unpinned from the wheel'); hideFloats(); loadDays(); }
-        else say('Something slipped');
-      })
-      .catch(function(){ say("Can't reach home"); });
-  });
-
-  /* ===== star rendering ===== */
+  /* ===== star rendering (风景,不可点) ===== */
   var NS = 'http://www.w3.org/2000/svg';
-  var R_OUT = 136, R_IN = 64;
   function mkStar(svg, opts){
     var g = document.createElementNS(NS, 'g');
     g.setAttribute('class', 'dayStar');
-    g.dataset.name = opts.name;
-    g.dataset.date = opts.dateTxt;
-    g.dataset.count = opts.count;
-    if(opts.id) g.dataset.id = opts.id;
-    var hit = document.createElementNS(NS, 'circle');
-    hit.setAttribute('cx', opts.x); hit.setAttribute('cy', opts.y);
-    hit.setAttribute('r', opts.isToday ? 17 : 15); hit.setAttribute('fill', 'transparent');
-    g.appendChild(hit);
     if(opts.isToday){
       var halo = document.createElementNS(NS, 'circle');
       halo.setAttribute('class', 'halo');
@@ -628,7 +639,6 @@
         g.appendChild(half);
       }
     }
-    g.addEventListener('click', starTap);
     svg.appendChild(g);
   }
 
@@ -645,23 +655,13 @@
       if(it.kind === 'day'){
         var x = Math.round((200 + R_IN * Math.sin(ang)) * 10) / 10;
         var y = Math.round((200 - R_IN * Math.cos(ang)) * 10) / 10;
-        var dd = dayDiff(td, it.day);
-        var cnt = dd === 0 ? 'today' : dd > 0 ? 'in ' + dd + ' days' : (-dd) + ' days ago';
-        mkStar(pinsIn, { name: it.label, dateTxt: fmtDate(it.day), count: cnt, id: it.id, x: x, y: y, phase: 'new', f: 'glowIn' });
+        mkStar(pinsIn, { x: x, y: y, phase: 'new', f: 'glowIn' });
       } else {
         var x2 = Math.round((200 + R_OUT * Math.sin(ang)) * 10) / 10;
         var y2 = Math.round((200 - R_OUT * Math.cos(ang)) * 10) / 10;
         var od = occDelta(it.day);
         var phase = od === 0 ? 'full' : od < 0 && od >= -30 ? 'wane' : od > 0 && od <= 30 ? 'wax' : 'new';
-        var since = dayDiff(it.day, td), cnt2;
-        if(since < 0) cnt2 = (-since) + ' days to go';
-        else if(it.day >= ORIGIN) cnt2 = 'day ' + (since + 1);
-        else cnt2 = od === 0 ? 'today!' : 'in ' + od + ' days';
-        if(phase === 'full'){
-          mkStar(pinsOut, { name: it.label, dateTxt: fmtDate(it.day), count: cnt2, id: it.id, x: x2, y: y2, isToday: true });
-        } else {
-          mkStar(pinsOut, { name: it.label, dateTxt: fmtDate(it.day), count: cnt2, id: it.id, x: x2, y: y2, phase: phase });
-        }
+        mkStar(pinsOut, { x: x2, y: y2, isToday: phase === 'full', phase: phase });
       }
     });
 
@@ -670,91 +670,257 @@
       var angT = angleFor(td);
       var xt = Math.round((200 + R_OUT * Math.sin(angT)) * 10) / 10;
       var yt = Math.round((200 - R_OUT * Math.cos(angT)) * 10) / 10;
-      mkStar(pinsOut, { name: 'Today', dateTxt: fmtDate(td), count: 'day ' + dayN + ' of us', x: xt, y: yt, isToday: true });
+      mkStar(pinsOut, { x: xt, y: yt, isToday: true });
+    }
+
+    if(CAL){
+      var cs = document.getElementById('calRings');
+      cs.innerHTML = '';
+      [48, 64, 80, 96, 112].forEach(function(r){
+        var c = document.createElementNS(NS, 'circle');
+        c.setAttribute('cx', 200); c.setAttribute('cy', 200); c.setAttribute('r', r);
+        c.setAttribute('fill', 'none'); c.setAttribute('stroke', '#7fff7f');
+        c.setAttribute('stroke-width', '0.7'); c.setAttribute('stroke-dasharray', '3 4');
+        cs.appendChild(c);
+        var t = document.createElementNS(NS, 'text');
+        t.setAttribute('x', 203); t.setAttribute('y', 200 - r - 2);
+        t.setAttribute('fill', '#7fff7f'); t.setAttribute('font-size', '9');
+        t.textContent = r;
+        cs.appendChild(t);
+      });
     }
   }
 
-  /* ===== poem ===== */
-  var pcBody = document.getElementById('pcBody');
-  var pcFor = document.getElementById('pcFor');
+  /* ===== days data + countdown door + poem gate ===== */
+  var daysAll = [];
+  function entryDelta(it){
+    if(it.kind === 'day') return dayDiff(todayStr(), it.day);
+    var od = occDelta(it.day);
+    return od < 0 ? od + 365 : od;
+  }
+  function updCount(){
+    var next = null;
+    daysAll.forEach(function(it){
+      var d = entryDelta(it);
+      if(d >= 0 && (next === null || d < next.d)) next = { d: d, it: it };
+    });
+    var nc = document.getElementById('nextCount');
+    if(!next) nc.textContent = 'all days ›';
+    else nc.textContent = next.it.label + (next.d === 0 ? ' — today' : ' — in ' + next.d + ' days') + '  ›';
+    var poemEl = document.getElementById('nextPoem');
+    var tagEl = document.getElementById('poemTag');
+    if(next && next.d <= 14){
+      tagEl.style.display = '';
+      poemEl.style.display = '-webkit-box';
+      loadPoem();
+    } else {
+      tagEl.style.display = 'none';
+      poemEl.style.display = 'none';
+    }
+  }
+  function loadDays(){
+    fetch(API + '/days?t=' + Date.now())
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        daysAll = d.items || [];
+        renderStars(daysAll);
+        updCount();
+        if(document.getElementById('manage').classList.contains('on')) renderManage();
+      })
+      .catch(function(){ say("Can't reach home"); });
+  }
+
+  /* ===== poem (14天点灯) ===== */
   function loadPoem(){
+    var poemEl = document.getElementById('nextPoem');
+    if(!poemEl.textContent) poemEl.textContent = "ink still wet — he's writing the next one";
     fetch(API + '/days/poem')
       .then(function(r){ return r.json(); })
       .then(function(d){
         if(d.poem){
-          document.getElementById('nextPoem').textContent = d.poem.replace(/\n+/g, ' / ');
-          pcBody.innerHTML = d.poem.split(/\n+/).map(function(l){ return l.trim(); }).filter(Boolean).join('<br>');
-          pcFor.textContent = '— for ' + (d.label || '') + ' · ' + (d.target ? d.target.slice(5).replace('-', ' · ') : '');
-          if(d.target){
-            var dd = dayDiff(todayStr(), d.target);
-            document.getElementById('nextCount').textContent =
-              (d.label || 'next day') + (dd === 0 ? ' — today' : ' — in ' + dd + ' days');
-          }
-        } else {
-          document.getElementById('nextPoem').textContent = 'no next day on the wheel yet — keep one';
-          document.getElementById('nextCount').textContent = '';
+          poemEl.textContent = d.poem.replace(/\n+/g, ' / ');
+          document.getElementById('pcBody').innerHTML = d.poem.split(/\n+/).map(function(l){ return l.trim(); }).filter(Boolean).join('<br>');
+          document.getElementById('pcFor').textContent = '— for ' + (d.label || '') + ' · ' + (d.target ? d.target.slice(5).replace('-', ' · ') : '');
         }
       })
-      .catch(function(){ document.getElementById('nextPoem').textContent = '…'; });
+      .catch(function(){});
   }
   document.getElementById('nextPoem').addEventListener('click', function(e){
     e.stopPropagation(); hideFloats(); poemCard.classList.add('on');
   });
 
-  /* ===== days data ===== */
-  function loadDays(){
-    fetch(API + '/days')
-      .then(function(r){ return r.json(); })
-      .then(function(d){ renderStars(d.items || []); })
-      .catch(function(){ say("Can't reach home"); renderStars([]); });
-  }
-
-  /* ===== add a day ===== */
-  var aDateIn = document.getElementById('aDateIn');
-  var aCal = document.getElementById('aCal');
-  var addKind = 'anniv';
-  document.getElementById('addCore').addEventListener('click', function(e){
-    e.stopPropagation(); hideFloats(); addCard.classList.add('on');
-  });
-  aDateIn.addEventListener('change', function(){
-    if(aDateIn.value){
-      aCal.classList.add('did');
-      document.getElementById('aDateShow').textContent = fmtDate(aDateIn.value);
-    }
-  });
-  document.querySelectorAll('.aKind').forEach(function(k){
-    k.addEventListener('click', function(e){
-      e.stopPropagation();
-      document.querySelector('.aKind.cur').classList.remove('cur');
-      k.classList.add('cur');
-      addKind = k.dataset.k;
+  /* ===== 轮心 = 此刻:日子滚轮 ===== */
+  var scRoll = document.getElementById('scRoll');
+  function buildWheel(){
+    var td = todayStr();
+    var dayN = dayDiff(ORIGIN, td) + 1;
+    var list = [];
+    daysAll.forEach(function(it){
+      if(it.kind === 'day'){
+        var d = dayDiff(td, it.day);
+        list.push({ name: it.label, date: fmtDate(it.day), kind: 'JUST ONCE',
+          count: d === 0 ? 'today' : d > 0 ? 'in ' + d + ' days' : (-d) + ' days ago', sort: d });
+      } else {
+        var od = occDelta(it.day);
+        var since = dayDiff(it.day, td), cnt;
+        if(since < 0) cnt = (-since) + ' days to go';
+        else if(od === 0) cnt = it.day >= ORIGIN ? 'day ' + (since + 1) + ' — today' : 'today';
+        else cnt = od > 0 ? 'in ' + od + ' days' : 'came back ' + (-od) + ' days ago';
+        list.push({ name: it.label, date: fmtDate(it.day), kind: 'EVERY YEAR', count: cnt, sort: od });
+      }
     });
-  });
-  document.getElementById('addGo').addEventListener('click', function(e){
+    if(!list.some(function(e){ return e.sort === 0; }))
+      list.push({ name: 'Today', date: fmtDate(td), kind: 'THIS MOMENT', count: 'day ' + dayN + ' of us', sort: 0 });
+    list.sort(function(a, b){ return a.sort - b.sort; });
+    scRoll.innerHTML = list.map(function(e){
+      return '<div class="scItem"><div class="fName">' + e.name + '</div>' +
+        '<div class="fDate">' + e.date + '</div>' +
+        '<div class="fCount">' + e.count + '</div>' +
+        '<div class="fKind">' + e.kind + '</div></div>';
+    }).join('');
+    var idx = 0;
+    for(var i = 0; i < list.length; i++){ if(list[i].sort === 0){ idx = i; break; } }
+    requestAnimationFrame(function(){ scRoll.scrollTop = idx * 150; });
+  }
+  document.getElementById('coreBtn').addEventListener('click', function(e){
     e.stopPropagation();
-    var nameF = document.getElementById('aName');
-    var nm = nameF.textContent.trim();
-    if(!nm){ say('Give it a name first, baby'); return; }
-    if(!aDateIn.value){ say('Pick a date first, baby'); return; }
-    fetch(API + '/days', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ label: nm, day: aDateIn.value, kind: addKind })
-    }).then(function(r){ return r.json(); })
-      .then(function(d){
-        if(d.ok){
-          nameF.textContent = ''; aDateIn.value = '';
-          aCal.classList.remove('did');
-          document.getElementById('aDateShow').textContent = '';
-          hideFloats(); loadDays(); loadPoem();
-          say('Kept — it rides the wheel now');
-        } else say('Something slipped');
-      })
-      .catch(function(){ say("Can't reach home"); });
+    if(wheelCard.classList.contains('on')){ hideFloats(); return; }
+    hideFloats(); buildWheel(); wheelCard.classList.add('on');
   });
 
   document.addEventListener('click', function(e){
-    if(!dayCard.contains(e.target) && !poemCard.contains(e.target) && !addCard.contains(e.target)) hideFloats();
+    if(!wheelCard.contains(e.target) && !poemCard.contains(e.target)) hideFloats();
+  });
+
+  /* ===== ALL DAYS 管理页(memos制式) ===== */
+  var manage = document.getElementById('manage');
+  var mgList = document.getElementById('mgList');
+  document.getElementById('nextCount').addEventListener('click', function(e){
+    e.stopPropagation(); hideFloats(); renderManage(); manage.classList.add('on');
+  });
+  document.getElementById('mgBack').addEventListener('click', function(){ manage.classList.remove('on'); });
+
+  function dueTxt(it){
+    var d = entryDelta(it);
+    if(d === 0) return 'TODAY';
+    if(d === 1) return 'TOMORROW';
+    if(d > 1) return 'IN ' + d + ' DAYS';
+    return (-d) + ' DAYS AGO';
+  }
+  function renderManage(){
+    var note = mgList.querySelector('.mgNote');
+    mgList.innerHTML = '';
+    mgList.appendChild(note);
+    var sorted = daysAll.slice().sort(function(a, b){ return entryDelta(a) - entryDelta(b); });
+    if(!sorted.length){
+      mgList.insertAdjacentHTML('beforeend', '<div class="mgNote">no days kept yet — name one below</div>');
+      return;
+    }
+    sorted.forEach(function(it){
+      var card = document.createElement('div');
+      card.className = 'dCard';
+      card.dataset.id = it.id;
+      card.dataset.day = it.day;
+      card.dataset.kind = it.kind === 'day' ? 'day' : 'anniv';
+      card.innerHTML =
+        '<div class="dIcons">' +
+        '<div class="dEditB">' +
+          '<svg class="pen" viewBox="0 0 24 24"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>' +
+          '<svg class="ok" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></div>' +
+        '<div class="dDelB"><svg viewBox="0 0 24 24"><line x1="18" x2="6" y1="6" y2="18"/><line x1="6" x2="18" y1="6" y2="18"/></svg></div></div>' +
+        '<div class="dName"></div>' +
+        '<div class="dKind">' + (it.kind === 'day' ? 'JUST ONCE' : 'EVERY YEAR') + '</div>' +
+        '<div class="dDue">' + fmtDate(it.day) + ' — <b>' + dueTxt(it) + '</b>' +
+          '<input type="date" class="dDueIn" value="' + it.day + '"></div>';
+      card.querySelector('.dName').textContent = it.label;
+      mgList.appendChild(card);
+    });
+  }
+  mgList.addEventListener('click', function(e){
+    var card = e.target.closest('.dCard'); if(!card) return;
+    if(e.target.closest('.dDelB')){
+      var db = e.target.closest('.dDelB');
+      if(db.dataset.arm !== '1'){
+        db.dataset.arm = '1';
+        db.querySelector('svg').style.stroke = 'var(--press)';
+        say('Tap again to remove');
+        setTimeout(function(){ db.dataset.arm = ''; db.querySelector('svg').style.stroke = ''; }, 2600);
+        return;
+      }
+      fetch(API + '/days/' + card.dataset.id, { method: 'DELETE' })
+        .then(function(r){ return r.json(); })
+        .then(function(d){
+          if(d.ok){ say('Removed from the wheel'); loadDays(); }
+          else say('Something slipped');
+        })
+        .catch(function(){ say("Can't reach home"); });
+      return;
+    }
+    if(e.target.closest('.dEditB')){
+      var nm = card.querySelector('.dName');
+      if(card.classList.contains('editing')){
+        var label = nm.textContent.trim() || '…';
+        var day = card.dataset.day;
+        var kind = card.dataset.kind;
+        fetch(API + '/days', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ label: label, day: day, kind: kind })
+        }).then(function(r){ return r.json(); })
+          .then(function(d){
+            if(!d.ok) throw 0;
+            return fetch(API + '/days/' + card.dataset.id, { method: 'DELETE' });
+          })
+          .then(function(){ say('Day kept'); loadDays(); })
+          .catch(function(){ say('Something slipped'); loadDays(); });
+      } else {
+        card.classList.add('editing');
+        nm.setAttribute('contenteditable', 'true');
+        nm.focus();
+        say('Editing — tap ✓ to keep');
+      }
+      return;
+    }
+    if(e.target.closest('.dKind') && card.classList.contains('editing')){
+      var nk = card.dataset.kind === 'day' ? 'anniv' : 'day';
+      card.dataset.kind = nk;
+      card.querySelector('.dKind').textContent = nk === 'day' ? 'JUST ONCE' : 'EVERY YEAR';
+    }
+  });
+  mgList.addEventListener('change', function(e){
+    if(!e.target.classList.contains('dDueIn')) return;
+    var card = e.target.closest('.dCard');
+    if(!card.classList.contains('editing') || !e.target.value) return;
+    card.dataset.day = e.target.value;
+    card.querySelector('.dDue b').textContent = fmtDate(e.target.value);
+  });
+
+  /* manage strip: 加日子 */
+  var sCal = document.getElementById('sCal'), sCalIn = document.getElementById('sCalIn');
+  var sKind = document.getElementById('sKind'), stripKind = 'anniv';
+  sCalIn.addEventListener('change', function(){
+    sCal.classList.toggle('set', Boolean(sCalIn.value));
+  });
+  sKind.addEventListener('click', function(){
+    stripKind = stripKind === 'anniv' ? 'day' : 'anniv';
+    sKind.textContent = stripKind === 'anniv' ? 'EVERY YEAR' : 'JUST ONCE';
+  });
+  document.getElementById('sSend').addEventListener('click', function(){
+    var nm = document.getElementById('sName').textContent.trim();
+    if(!nm){ say('Give it a name first, baby'); return; }
+    if(!sCalIn.value){ say('Pick a date first, baby'); return; }
+    fetch(API + '/days', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ label: nm, day: sCalIn.value, kind: stripKind })
+    }).then(function(r){ return r.json(); })
+      .then(function(d){
+        if(d.ok){
+          document.getElementById('sName').textContent = '';
+          sCalIn.value = ''; sCal.classList.remove('set');
+          say('Kept — it rides the wheel now');
+          loadDays();
+        } else say('Something slipped');
+      })
+      .catch(function(){ say("Can't reach home"); });
   });
 
   /* ===== MEMORIES ===== */
@@ -972,7 +1138,6 @@
 
   /* ===== go ===== */
   loadDays();
-  loadPoem();
   loadMems();
 </script>
 </body>
