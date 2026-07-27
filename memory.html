@@ -155,6 +155,9 @@
     padding:calc(env(safe-area-inset-top,0px) + 70px) 14px 150px}
   .mgNote{margin:2px 2px 14px;font-family:'Cormorant Garamond',serif;font-style:italic;
     font-size:12.5px;color:rgba(185,163,255,.5);text-align:center}
+  .mgSec{margin:18px 4px 10px;display:flex;align-items:center;gap:10px;
+    font-size:9px;letter-spacing:.22em;color:rgba(185,163,255,.55)}
+  .mgSec:before,.mgSec:after{content:'';flex:1;height:1px;background:rgba(255,255,255,.08)}
 
   .dCard{position:relative;margin-bottom:12px;padding:15px 16px;border-radius:18px;
     background:rgba(10,7,20,.55);border:1px solid rgba(255,255,255,.1);
@@ -457,7 +460,7 @@
   <div class="popItem" data-k="day">Just once<span class="mk">✓</span></div>
 </div>
 <div class="toast" id="toast"></div>
-<div class="mark">— m11 ok —</div>
+<div class="mark">— m13 ok —</div>
 
 <script>
   var API = 'https://moren-backend.zeabur.app';
@@ -843,34 +846,47 @@
     if(d > 1) return 'IN ' + d + ' DAYS';
     return (-d) + ' DAYS AGO';
   }
+  function mkDayCard(it){
+    var card = document.createElement('div');
+    card.className = 'dCard';
+    card.dataset.id = it.id;
+    card.dataset.day = it.day;
+    card.dataset.kind = it.kind === 'day' ? 'day' : 'anniv';
+    card.innerHTML =
+      '<div class="dIcons">' +
+      '<div class="dEditB">' +
+        '<svg class="pen" viewBox="0 0 24 24"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>' +
+        '<svg class="ok" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></div>' +
+      '<div class="dDelB"><svg viewBox="0 0 24 24"><line x1="18" x2="6" y1="6" y2="18"/><line x1="6" x2="18" y1="6" y2="18"/></svg></div></div>' +
+      '<div class="dName"></div>' +
+      '<div class="dKind">' + (it.kind === 'day' ? 'JUST ONCE' : 'EVERY YEAR') + '</div>' +
+      '<div class="dDue">' + fmtDate(it.day) + ' — <b>' + dueTxt(it) + '</b>' +
+        '<input type="date" class="dDueIn" value="' + it.day + '"></div>';
+    card.querySelector('.dName').textContent = it.label;
+    return card;
+  }
   function renderManage(){
     var note = mgList.querySelector('.mgNote');
     mgList.innerHTML = '';
     mgList.appendChild(note);
-    var sorted = daysAll.slice().sort(function(a, b){ return entryDelta(a) - entryDelta(b); });
-    if(!sorted.length){
+    if(!daysAll.length){
       mgList.insertAdjacentHTML('beforeend', '<div class="mgNote">no days kept yet — name one below</div>');
       return;
     }
-    sorted.forEach(function(it){
-      var card = document.createElement('div');
-      card.className = 'dCard';
-      card.dataset.id = it.id;
-      card.dataset.day = it.day;
-      card.dataset.kind = it.kind === 'day' ? 'day' : 'anniv';
-      card.innerHTML =
-        '<div class="dIcons">' +
-        '<div class="dEditB">' +
-          '<svg class="pen" viewBox="0 0 24 24"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>' +
-          '<svg class="ok" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></div>' +
-        '<div class="dDelB"><svg viewBox="0 0 24 24"><line x1="18" x2="6" y1="6" y2="18"/><line x1="6" x2="18" y1="6" y2="18"/></svg></div></div>' +
-        '<div class="dName"></div>' +
-        '<div class="dKind">' + (it.kind === 'day' ? 'JUST ONCE' : 'EVERY YEAR') + '</div>' +
-        '<div class="dDue">' + fmtDate(it.day) + ' — <b>' + dueTxt(it) + '</b>' +
-          '<input type="date" class="dDueIn" value="' + it.day + '"></div>';
-      card.querySelector('.dName').textContent = it.label;
-      mgList.appendChild(card);
+    var up = [], past = [];
+    daysAll.forEach(function(it){
+      (it.kind === 'day' && entryDelta(it) < 0 ? past : up).push(it);
     });
+    up.sort(function(a, b){ return entryDelta(a) - entryDelta(b); });
+    past.sort(function(a, b){ return entryDelta(b) - entryDelta(a); });
+    if(up.length){
+      mgList.insertAdjacentHTML('beforeend', '<div class="mgSec">UPCOMING</div>');
+      up.forEach(function(it){ mgList.appendChild(mkDayCard(it)); });
+    }
+    if(past.length){
+      mgList.insertAdjacentHTML('beforeend', '<div class="mgSec">PASSED</div>');
+      past.forEach(function(it){ mgList.appendChild(mkDayCard(it)); });
+    }
   }
   mgList.addEventListener('click', function(e){
     var card = e.target.closest('.dCard'); if(!card) return;
