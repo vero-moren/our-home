@@ -68,12 +68,18 @@
     font-size:14px;color:rgba(185,163,255,.6);letter-spacing:.04em}
   .nextCount:active{color:var(--lav)}
 
-  .wheelGlow{position:fixed;left:0;right:0;bottom:0;height:220px;z-index:5;pointer-events:none;
-    background:radial-gradient(ellipse 160% 100% at 50% 118%,
-      rgba(146,92,255,.26), rgba(107,79,216,.13) 45%, rgba(58,36,128,.05) 68%, transparent 85%);
-    animation:glowB 4.4s ease-in-out infinite}
-  @keyframes glowB{0%,100%{opacity:.4}50%{opacity:1}}
-  @media (prefers-reduced-motion: reduce){.wheelGlow{animation:none}}
+  .wheelGlow{position:fixed;left:0;right:0;bottom:0;height:280px;z-index:5;pointer-events:none;
+    background:radial-gradient(ellipse 170% 115% at 50% 122%,
+      rgba(176,130,255,.60), rgba(128,92,240,.32) 42%, rgba(74,48,170,.13) 66%, transparent 86%);
+    animation:glowB 2.4s ease-in-out infinite}
+  .wheelGlow:after{content:'';position:absolute;inset:0;
+    background:
+      radial-gradient(ellipse 70% 85% at 26% 120%, rgba(146,92,255,.42), transparent 68%),
+      radial-gradient(ellipse 70% 85% at 74% 120%, rgba(196,150,255,.36), transparent 68%);
+    animation:glowC 3.4s ease-in-out infinite alternate}
+  @keyframes glowB{0%,100%{opacity:.5}50%{opacity:1}}
+  @keyframes glowC{0%{opacity:.25;transform:translateX(-7%)}100%{opacity:1;transform:translateX(7%)}}
+  @media (prefers-reduced-motion: reduce){.wheelGlow,.wheelGlow:after{animation:none}}
   .stage{position:fixed;inset:0;z-index:4;display:flex;align-items:center;justify-content:center;
     padding:calc(env(safe-area-inset-top,0px) + 118px) 0 calc(env(safe-area-inset-bottom,0px) + 108px)}
   .disc{position:relative;flex:none;width:min(120vw,74vh,760px);aspect-ratio:1/1}
