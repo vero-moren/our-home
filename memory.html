@@ -1199,7 +1199,7 @@
         }
       });
       var pinBtn = card.querySelector('.mPin');
-      pinBtn.addEventListener('click', function(e){
+      if(pinBtn) pinBtn.addEventListener('click', function(e){
         e.stopPropagation();
         if(archived){ say('Bring it back first'); return; }
         var on = !pinBtn.classList.contains('did');
@@ -1213,7 +1213,7 @@
           .catch(function(){ say("Can't reach home"); });
       });
       var tagBtn = card.querySelector('.mTag');
-      tagBtn.addEventListener('click', function(e){
+      if(tagBtn) tagBtn.addEventListener('click', function(e){
         e.stopPropagation();
         if(archived){ say('Bring it back first'); return; }
         if(tagBtn.classList.contains('editing')){
@@ -1252,7 +1252,7 @@
       });
       var editBtn = card.querySelector('.mEdit');
       var body = card.querySelector('.mBody');
-      editBtn.addEventListener('click', function(e){
+      if(editBtn) editBtn.addEventListener('click', function(e){
         e.stopPropagation();
         if(archived){ say('Archived — read only'); return; }
         if(editBtn.classList.contains('editing')){
