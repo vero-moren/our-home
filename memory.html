@@ -1091,8 +1091,19 @@
       memList.appendChild(card);
 
       card.addEventListener('click', function(){
-        if(card.querySelector('.mBody').getAttribute('contenteditable') === 'true') return;
+        var bd = card.querySelector('.mBody');
+        if(bd.getAttribute('contenteditable') === 'true') return;
         card.classList.toggle('open');
+        if(card.classList.contains('open') && !card.dataset.full){
+          card.dataset.full = '1';
+          fetch(API + '/ombre/buckets/' + m.id)
+            .then(function(r){ return r.json(); })
+            .then(function(d){
+              if(d && d.content){ m.content = d.content;
+                if(bd.getAttribute('contenteditable') !== 'true') bd.textContent = d.content; }
+            })
+            .catch(function(){});
+        }
       });
       var pinBtn = card.querySelector('.mPin');
       pinBtn.addEventListener('click', function(e){
