@@ -953,20 +953,16 @@
         card.dataset.busy = '1';
         card.classList.remove('editing');
         nm.removeAttribute('contenteditable');
-        say('Keeping…');
-        var label = nm.textContent.trim() || '…';
-        var day = card.dataset.day;
-        var kind = card.dataset.kind;
-        fetch(API + '/days', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ label: label, day: day, kind: kind })
+        fetch(API + '/days/' + card.dataset.id, {
+          method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ label: nm.textContent.trim() || '…', day: card.dataset.day, kind: card.dataset.kind })
         }).then(function(r){ return r.json(); })
           .then(function(d){
-            if(!d.ok) throw 0;
-            return fetch(API + '/days/' + card.dataset.id, { method: 'DELETE' });
+            card.dataset.busy = '';
+            if(d.ok){ say('Day kept'); loadDays(); }
+            else { say('Something slipped'); loadDays(); }
           })
-          .then(function(){ say('Day kept'); loadDays(); })
-          .catch(function(){ card.dataset.busy = ''; say('Something slipped'); loadDays(); });
+          .catch(function(){ card.dataset.busy = ''; say("Can't reach home"); loadDays(); });
       } else {
         card.classList.add('editing');
         nm.setAttribute('contenteditable', 'true');
