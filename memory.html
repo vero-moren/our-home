@@ -257,7 +257,11 @@
   .mPin.did svg{stroke:var(--lav);fill:rgba(185,163,255,.35)}
   .mEdit:active svg{stroke:var(--lav)}
   .mEdit.editing svg{stroke:var(--lav)}
+  .mEdit .ok{display:none}
+  .mEdit.editing .pen{display:none}
+  .mEdit.editing .ok{display:block}
   .mArc:active svg{stroke:var(--lav)}
+  .mRes:active svg{stroke:var(--lav)}
   .mBody{font-size:13.5px;font-weight:300;line-height:1.75;color:rgba(237,232,247,.88);
     max-height:3.6em;overflow:hidden;
     user-select:text;-webkit-user-select:text}
@@ -385,14 +389,16 @@
 <div class="view" id="v-memories">
   <div class="memWrap">
     <div class="memNote" id="memNote">reading his mind…</div>
+    <input class="mSearch" id="mSearch" placeholder="Search his memory">
     <div class="chips">
       <div class="chip cur" data-f="all">ALL</div>
       <div class="chip" data-f="pinned">PINNED</div>
       <div class="chip" data-f="deep">DEEP</div>
       <div class="chip" data-f="fragment">FRAGMENTS</div>
+      <div class="chip" data-f="summary">SUMMARY</div>
+      <div class="chip" data-f="plan">PLAN</div>
       <div class="chip" data-f="archived">ARCHIVED</div>
     </div>
-    <input class="mSearch" id="mSearch" placeholder="Search his memory">
     <div id="memList"></div>
   </div>
 </div>
@@ -460,7 +466,7 @@
   <div class="popItem" data-k="day">Just once<span class="mk">✓</span></div>
 </div>
 <div class="toast" id="toast"></div>
-<div class="mark">— m16 ok —</div>
+<div class="mark">— m17 ok —</div>
 
 <script>
   var API = 'https://moren-backend.zeabur.app';
@@ -1033,6 +1039,7 @@
         if(d.ok){
           document.getElementById('sName').textContent = '';
           sCalIn.value = ''; sCal.classList.remove('set');
+          stripKind = 'anniv'; sKind.classList.remove('once');
           say('Kept — it rides the wheel now');
           loadDays();
         } else say('Something slipped');
@@ -1050,13 +1057,18 @@
     if(isNaN(d)) return '';
     return MONTHS[d.getMonth()] + ' ' + d.getDate();
   }
-  function isFrag(m){
-    return (m.name + ' ' + m.domains + ' ' + (m.preview || '').slice(0, 40) + ' ' + (m.content || '').slice(0, 40)).indexOf('当日碎片') !== -1;
+  function hay(m){
+    return m.name + ' ' + m.domains + ' ' + (m.preview || '').slice(0, 40) + ' ' + (m.content || '').slice(0, 40);
   }
+  function isFrag(m){ return hay(m).indexOf('当日碎片') !== -1; }
+  function isSum(m){ return hay(m).indexOf('每日总结') !== -1 || hay(m).indexOf('当日总结') !== -1; }
+  function isPlan(m){ return String(m.domains || '').toLowerCase().indexOf('plan') !== -1 || hay(m).indexOf('建家·') !== -1; }
   function kindLabel(m, archived){
     if(archived) return 'ARCHIVED';
     if(m.pinned) return 'PINNED';
     if(isFrag(m)) return 'FRAGMENT';
+    if(isSum(m)) return 'SUMMARY';
+    if(isPlan(m)) return 'PLAN';
     if(m.importance >= 9) return 'DEEP';
     return 'KEPT';
   }
@@ -1073,8 +1085,10 @@
         '<div class="mKind">' + kindLabel(m, archived) + '</div>' +
         '<div class="mIcons">' +
           '<div class="mPin' + (m.pinned ? ' did' : '') + '"><svg viewBox="0 0 24 24"><path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16h14v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1Z"/></svg></div>' +
-          '<div class="mEdit"><svg viewBox="0 0 24 24"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></div>' +
-          '<div class="mArc"><svg viewBox="0 0 24 24"><rect width="20" height="5" x="2" y="3" rx="1"/><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"/><path d="M10 12h4"/></svg></div>' +
+          '<div class="mEdit"><svg class="pen" viewBox="0 0 24 24"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg><svg class="ok" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></div>' +
+          (archived
+            ? '<div class="mRes"><svg viewBox="0 0 24 24"><rect width="20" height="5" x="2" y="3" rx="1"/><path d="M4 8v11a2 2 0 0 0 2 2h2"/><path d="M20 8v11a2 2 0 0 1-2 2h-2"/><path d="m9 15 3-3 3 3"/><path d="M12 12v9"/></svg></div>'
+            : '<div class="mArc"><svg viewBox="0 0 24 24"><rect width="20" height="5" x="2" y="3" rx="1"/><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"/><path d="M10 12h4"/></svg></div>') +
         '</div></div>' +
         '<div class="mBody"></div>' +
         '<div class="mMeta">' + metaDate(m.createdAt) + (m.name ? ' · ' + m.name.slice(0, 30) : '') + '</div>';
@@ -1088,7 +1102,7 @@
       var pinBtn = card.querySelector('.mPin');
       pinBtn.addEventListener('click', function(e){
         e.stopPropagation();
-        if(archived){ say('Bring it back first — ask him in chat'); return; }
+        if(archived){ say('Bring it back first'); return; }
         var on = !pinBtn.classList.contains('did');
         pinBtn.classList.toggle('did', on);
         m.pinned = on;
@@ -1105,30 +1119,39 @@
         e.stopPropagation();
         if(archived){ say('Archived — read only'); return; }
         if(editBtn.classList.contains('editing')){
+          if(card.dataset.busy === '1') return;
           var nc = body.innerText.trim();
           editBtn.classList.remove('editing');
           body.removeAttribute('contenteditable');
           if(!nc || nc === m.content){ body.textContent = m.content; say('Left as it was'); return; }
+          card.dataset.busy = '1';
           fetch(API + '/memory/revise', {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ bucket_id: m.id, content: nc })
           }).then(function(r){ return r.json(); })
             .then(function(d){
-              if(d.ok){ m.content = nc; say('Revised — carved over'); }
+              card.dataset.busy = '';
+              if(d.ok){ m.content = nc; say('Memory kept'); }
               else { body.textContent = m.content; say('Something slipped'); }
             })
-            .catch(function(){ body.textContent = m.content; say("Can't reach home"); });
+            .catch(function(){ card.dataset.busy = ''; body.textContent = m.content; say("Can't reach home"); });
         } else {
           card.classList.add('open');
           editBtn.classList.add('editing');
           body.setAttribute('contenteditable', 'true');
           body.focus();
-          say('Editing — tap the pen again to keep');
         }
       });
-      card.querySelector('.mArc').addEventListener('click', function(e){
+      var arcBtn = card.querySelector('.mArc');
+      if(arcBtn) arcBtn.addEventListener('click', function(e){
         e.stopPropagation();
-        if(archived){ say('Already in the vault'); return; }
+        if(arcBtn.dataset.arm !== '1'){
+          arcBtn.dataset.arm = '1';
+          arcBtn.querySelector('svg').style.stroke = 'var(--press)';
+          say('Tap again to archive');
+          setTimeout(function(){ arcBtn.dataset.arm = ''; arcBtn.querySelector('svg').style.stroke = ''; }, 2600);
+          return;
+        }
         fetch(API + '/memory/archive', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ bucket_id: m.id })
@@ -1141,6 +1164,22 @@
             } else say('Something slipped');
           })
           .catch(function(){ say("Can't reach home"); });
+      });
+      var resBtn = card.querySelector('.mRes');
+      if(resBtn) resBtn.addEventListener('click', function(e){
+        e.stopPropagation();
+        fetch(API + '/memory/restore', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ bucket_id: m.id })
+        }).then(function(r){ return r.json(); })
+          .then(function(d){
+            if(d.ok){
+              memArch = memArch.filter(function(x){ return x.id !== m.id; });
+              card.remove(); say('Back from the vault');
+              loadMems();
+            } else say('Not yet — his door is still being built');
+          })
+          .catch(function(){ say('Not yet — his door is still being built'); });
       });
     });
     applyFilter();
@@ -1157,7 +1196,9 @@
       var okF = archived || curF === 'all' ||
         (curF === 'pinned' && m.pinned) ||
         (curF === 'deep' && m.importance >= 9) ||
-        (curF === 'fragment' && isFrag(m));
+        (curF === 'fragment' && isFrag(m)) ||
+        (curF === 'summary' && isSum(m)) ||
+        (curF === 'plan' && isPlan(m));
       var okQ = !q || ((m.name + ' ' + (m.content || '') + ' ' + (m.preview || '')).toLowerCase().indexOf(q) !== -1);
       c.classList.toggle('hid', !(okF && okQ));
     });
