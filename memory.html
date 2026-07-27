@@ -269,9 +269,12 @@
   .mBody[contenteditable="true"]{outline:none;border-radius:10px;padding:6px 8px;
     background:rgba(107,79,216,.12);border:1px solid rgba(185,163,255,.3)}
   .mMeta{margin-top:10px;font-size:8.5px;letter-spacing:.14em;color:rgba(237,232,247,.35)}
-  .mTagsLine{margin-top:8px;font-size:9.5px;letter-spacing:.12em;color:var(--lavdim)}
-  .mTagsLine[contenteditable="true"]{outline:none;border-radius:8px;padding:4px 8px;background:rgba(107,79,216,.12);border:1px solid rgba(185,163,255,.3);user-select:text;-webkit-user-select:text}
   .mTag:active svg{stroke:var(--lav)}
+  .mKind span{margin-right:7px}
+  .mKind i{font-style:normal;cursor:pointer}
+  .mKind i.kx{margin-left:4px;color:var(--press);font-size:11px}
+  .mKind i.kAdd{display:none;color:var(--lav);font-size:13px;padding:2px 4px}
+  .mCard.tagedit .mKind i.kAdd{display:inline}
   .mTag .ok{display:none}
   .mTag.editing .tg{display:none}
   .mTag.editing .ok{display:block}
@@ -465,6 +468,12 @@
     <img class="ehalo" src="https://kvegublibjsdyidmsjvy.supabase.co/storage/v1/object/public/chat-media/eye-purple.png" alt="">
     <img class="ecore" src="https://kvegublibjsdyidmsjvy.supabase.co/storage/v1/object/public/chat-media/eye-purple.png" alt="">
   </div>
+</div>
+  
+<div class="pop" id="popLbl">
+  <div class="popItem" data-k="plan">Plan</div>
+  <div class="popItem" data-k="每日总结">Summary</div>
+  <div class="popItem" data-k="当日碎片">Fragment</div>
 </div>
 
 <div class="pop" id="popKind">
@@ -1059,28 +1068,71 @@
     return MONTHS[d.getMonth()] + ' ' + d.getDate();
   }
   function hay(m){
-    return m.name + ' ' + m.domains + ' ' + (m.tags || '') + ' ' + (m.preview || '').slice(0, 40) + ' ' + (m.content || '').slice(0, 40);
+    return m.name + ' ' + m.domains + ' ' + (m.preview || '').slice(0, 40) + ' ' + (m.content || '').slice(0, 40);
   }
   function isFrag(m){ return hay(m).indexOf('当日碎片') !== -1; }
   function isSum(m){ return hay(m).indexOf('每日总结') !== -1 || hay(m).indexOf('当日总结') !== -1; }
   function isPlan(m){ return String(m.domains || '').toLowerCase().indexOf('plan') !== -1 || hay(m).indexOf('建家·') !== -1; }
-  function kindLabel(m, archived){
-    if(archived) return 'ARCHIVED';
-    if(m.pinned) return 'PINNED';
-    if(isFrag(m)) return 'FRAGMENT';
-    if(isSum(m)) return 'SUMMARY';
-    if(isPlan(m)) return 'PLAN';
-    if(m.importance >= 9) return 'DEEP';
-    return 'KEPT';
+  var LBL = { '当日碎片': 'FRAGMENT', '每日总结': 'SUMMARY', 'plan': 'PLAN' };
+  function tagList(m){ return String(m.tags || '').split(',').map(function(s){ return s.trim(); }).filter(Boolean); }
+  function explLabels(m){ return tagList(m).filter(function(t){ return LBL[t]; }); }
+  function hasL(m, k){
+    if(tagList(m).indexOf(k) !== -1) return true;
+    return k === '当日碎片' ? isFrag(m) : k === '每日总结' ? isSum(m) : isPlan(m);
   }
+  function renderKinds(card, m, archived){
+    var box = card.querySelector('.mKind');
+    var editing = card.classList.contains('tagedit');
+    var expl = card._expl || explLabels(m);
+    box.innerHTML = '';
+    function plain(t){ var s = document.createElement('span'); s.textContent = t; box.appendChild(s); }
+    var any = false;
+    if(archived){ plain('ARCHIVED'); any = true; }
+    if(m.pinned){ plain('PINNED'); any = true; }
+    ['当日碎片','每日总结','plan'].forEach(function(k){
+      var isX = expl.indexOf(k) !== -1;
+      var inf = k === '当日碎片' ? isFrag(m) : k === '每日总结' ? isSum(m) : isPlan(m);
+      if(!isX && !inf) return;
+      any = true;
+      var s = document.createElement('span');
+      s.textContent = LBL[k];
+      if(isX && editing){
+        var x = document.createElement('i');
+        x.className = 'kx'; x.textContent = '✕'; x.dataset.k = k;
+        s.appendChild(x);
+      }
+      box.appendChild(s);
+    });
+    if(!any) plain(m.importance >= 9 ? 'DEEP' : 'KEPT');
+    var add = document.createElement('i');
+    add.className = 'kAdd'; add.textContent = '＋';
+    box.appendChild(add);
+  }
+  var popLbl = document.getElementById('popLbl'), lblTarget = null;
+  popLbl.querySelectorAll('.popItem').forEach(function(p){
+    p.addEventListener('click', function(e){
+      e.stopPropagation();
+      if(lblTarget){
+        var k = p.dataset.k, T = lblTarget;
+        var ex = T.card._expl || explLabels(T.m);
+        var inf = k === '当日碎片' ? isFrag(T.m) : k === '每日总结' ? isSum(T.m) : isPlan(T.m);
+        if(ex.indexOf(k) === -1 && !inf){ ex.push(k); T.card._expl = ex; renderKinds(T.card, T.m, T.archived); }
+        else say('Already wears it');
+      }
+      popLbl.classList.remove('on');
+    });
+  });
+  document.addEventListener('click', function(e){
+    if(popLbl.classList.contains('on') && !popLbl.contains(e.target)) popLbl.classList.remove('on');
+  });
   function chipCounts(){
     var cnt = { all: memAll.length, pinned: 0, deep: 0, fragment: 0, summary: 0, plan: 0, archived: archLoaded ? memArch.length : null };
     memAll.forEach(function(m){
       if(m.pinned) cnt.pinned++;
       if(m.importance >= 9) cnt.deep++;
-      if(isFrag(m)) cnt.fragment++;
-      if(isSum(m)) cnt.summary++;
-      if(isPlan(m)) cnt.plan++;
+      if(hasL(m, '当日碎片')) cnt.fragment++;
+      if(hasL(m, '每日总结')) cnt.summary++;
+      if(hasL(m, 'plan')) cnt.plan++;
     });
     document.querySelectorAll('.chip').forEach(function(ch){
       if(!ch.dataset.base) ch.dataset.base = ch.textContent.trim();
@@ -1098,7 +1150,7 @@
       card.dataset.id = m.id;
       card.innerHTML =
         '<div class="mTop"><div class="mImp">' + m.importance + '</div>' +
-        '<div class="mKind">' + kindLabel(m, archived) + '</div>' +
+        '<div class="mKind"></div>' +
         '<div class="mIcons">' +
           '<div class="mPin' + (m.pinned ? ' did' : '') + '"><svg viewBox="0 0 24 24"><path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16h14v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1Z"/></svg></div>' +
           '<div class="mTag"><svg class="tg" viewBox="0 0 24 24"><path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z"/><circle cx="7.5" cy="7.5" r=".5"/></svg><svg class="ok" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></div>' +
@@ -1108,10 +1160,26 @@
             : '<div class="mArc"><svg viewBox="0 0 24 24"><rect width="20" height="5" x="2" y="3" rx="1"/><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"/><path d="M10 12h4"/></svg></div>') +
         '</div></div>' +
         '<div class="mBody"></div>' +
-        '<div class="mTagsLine"></div>' +
         '<div class="mMeta">' + metaDate(m.createdAt) + (m.name ? ' · ' + m.name.slice(0, 30) : '') + '</div>';
       card.querySelector('.mBody').textContent = m.content || m.preview;
-      card.querySelector('.mTagsLine').textContent = m.tags || '';
+      card._expl = null;
+      renderKinds(card, m, archived);
+      card.querySelector('.mKind').addEventListener('click', function(e){
+        if(e.target.classList.contains('kx')){
+          e.stopPropagation();
+          card._expl = (card._expl || explLabels(m)).filter(function(t){ return t !== e.target.dataset.k; });
+          renderKinds(card, m, archived);
+          return;
+        }
+        if(e.target.classList.contains('kAdd')){
+          e.stopPropagation();
+          lblTarget = { card: card, m: m, archived: archived };
+          var rc = e.target.getBoundingClientRect();
+          popLbl.style.left = Math.min(rc.left, window.innerWidth - 170) + 'px';
+          popLbl.style.top = Math.min(rc.bottom + 8, window.innerHeight - 190) + 'px';
+          popLbl.classList.add('on');
+        }
+      });
       memList.appendChild(card);
 
       card.addEventListener('click', function(){
@@ -1144,16 +1212,18 @@
           .catch(function(){ say("Can't reach home"); });
       });
       var tagBtn = card.querySelector('.mTag');
-      var tagLine = card.querySelector('.mTagsLine');
       tagBtn.addEventListener('click', function(e){
         e.stopPropagation();
         if(archived){ say('Bring it back first'); return; }
         if(tagBtn.classList.contains('editing')){
           if(card.dataset.tbusy === '1') return;
-          var nt = tagLine.innerText.replace(/\s+/g, ' ').trim();
-          tagBtn.classList.remove('editing');
-          tagLine.removeAttribute('contenteditable');
-          if(nt === (m.tags || '')){ say('Left as it was'); return; }
+          var expl = card._expl || explLabels(m);
+          var nt = tagList(m).filter(function(t){ return !LBL[t]; }).concat(expl).join(',');
+          if(nt === tagList(m).join(',')){
+            tagBtn.classList.remove('editing'); card.classList.remove('tagedit');
+            card._expl = null; renderKinds(card, m, archived);
+            say('Left as it was'); return;
+          }
           card.dataset.tbusy = '1';
           fetch(API + '/memory/revise', {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -1161,15 +1231,22 @@
           }).then(function(r){ return r.json(); })
             .then(function(d){
               card.dataset.tbusy = '';
+              tagBtn.classList.remove('editing'); card.classList.remove('tagedit');
               if(d.ok){ m.tags = nt; say('Tags kept'); }
-              else { tagLine.textContent = m.tags || ''; say('Something slipped'); }
+              else say('Something slipped');
+              card._expl = null; renderKinds(card, m, archived); chipCounts();
             })
-            .catch(function(){ card.dataset.tbusy = ''; tagLine.textContent = m.tags || ''; say("Can't reach home"); });
+            .catch(function(){
+              card.dataset.tbusy = '';
+              tagBtn.classList.remove('editing'); card.classList.remove('tagedit');
+              card._expl = null; renderKinds(card, m, archived);
+              say("Can't reach home");
+            });
         } else {
-          card.classList.add('open');
           tagBtn.classList.add('editing');
-          tagLine.setAttribute('contenteditable', 'true');
-          tagLine.focus();
+          card.classList.add('tagedit');
+          card._expl = explLabels(m);
+          renderKinds(card, m, archived);
         }
       });
       var editBtn = card.querySelector('.mEdit');
@@ -1256,10 +1333,10 @@
       var okF = archived || curF === 'all' ||
         (curF === 'pinned' && m.pinned) ||
         (curF === 'deep' && m.importance >= 9) ||
-        (curF === 'fragment' && isFrag(m)) ||
-        (curF === 'summary' && isSum(m)) ||
-        (curF === 'plan' && isPlan(m));
-      var okQ = !q || ((m.name + ' ' + (m.content || '') + ' ' + (m.preview || '')).toLowerCase().indexOf(q) !== -1);
+        (curF === 'fragment' && hasL(m, '当日碎片')) ||
+        (curF === 'summary' && hasL(m, '每日总结')) ||
+        (curF === 'plan' && hasL(m, 'plan'));
+      var okQ = !q || ((m.name + ' ' + (m.tags || '') + ' ' + (m.content || '') + ' ' + (m.preview || '')).toLowerCase().indexOf(q) !== -1);
       c.classList.toggle('hid', !(okF && okQ));
     });
   }
