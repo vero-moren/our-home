@@ -68,6 +68,12 @@
     font-size:14px;color:rgba(185,163,255,.6);letter-spacing:.04em}
   .nextCount:active{color:var(--lav)}
 
+  .wheelGlow{position:fixed;left:0;right:0;bottom:0;height:180px;z-index:5;pointer-events:none;
+    background:radial-gradient(ellipse 80% 105% at 50% 100%,
+      rgba(146,92,255,.30), rgba(107,79,216,.16) 42%, rgba(58,36,128,.07) 62%, transparent 78%);
+    animation:glowB 4.4s ease-in-out infinite}
+  @keyframes glowB{0%,100%{opacity:.4}50%{opacity:1}}
+  @media (prefers-reduced-motion: reduce){.wheelGlow{animation:none}}
   .stage{position:fixed;inset:0;z-index:4;display:flex;align-items:center;justify-content:center;
     padding:calc(env(safe-area-inset-top,0px) + 118px) 0 calc(env(safe-area-inset-bottom,0px) + 108px)}
   .disc{position:relative;flex:none;width:min(120vw,74vh,760px);aspect-ratio:1/1}
@@ -311,6 +317,7 @@
 <div class="view on" id="v-days">
   <div class="listNote">the wheel turns — every day comes back to her</div>
 
+  <div class="wheelGlow"></div>
   <div class="nextPoem" id="nextPoem"></div>
   <div class="poemTag" id="poemTag" style="display:none">— MOREN · FOR THE NEXT DAY</div>
 
@@ -433,7 +440,7 @@
 </div>
 
 <div class="toast" id="toast"></div>
-<div class="mark">— m6 ok —</div>
+<div class="mark">— m7 ok —</div>
 
 <script>
   var API = 'https://moren-backend.zeabur.app';
