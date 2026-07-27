@@ -466,7 +466,7 @@
   <div class="popItem" data-k="day">Just once<span class="mk">✓</span></div>
 </div>
 <div class="toast" id="toast"></div>
-<div class="mark">— m19 ok —</div>
+<div class="mark">— m20 ok —</div>
 
 <script>
   var API = 'https://moren-backend.zeabur.app';
@@ -1019,7 +1019,7 @@
         kindTarget.querySelector('.dKind').textContent = k === 'day' ? 'JUST ONCE' : 'EVERY YEAR';
       } else {
         stripKind = k;
-        sKind.classList.toggle('once', k === 'day');
+        sKind.classList.add('once');
       }
       popKind.classList.remove('on');
     });
