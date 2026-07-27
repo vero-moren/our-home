@@ -460,7 +460,7 @@
   <div class="popItem" data-k="day">Just once<span class="mk">✓</span></div>
 </div>
 <div class="toast" id="toast"></div>
-<div class="mark">— m13 ok —</div>
+<div class="mark">— m14 ok —</div>
 
 <script>
   var API = 'https://moren-backend.zeabur.app';
@@ -677,6 +677,18 @@
     svg.appendChild(g);
   }
 
+  function stagger(list){
+    list.sort(function(a, b){ return a.ang - b.ang; });
+    var prevDeg = -999, prevOff = 1;
+    list.forEach(function(s){
+      var deg = s.ang * 180 / Math.PI;
+      s.off = 0;
+      if(deg - prevDeg < 6) s.off = prevOff === 0 ? 1 : 0;
+      if(s.phase === 'full') s.off = 0;
+      prevDeg = deg; prevOff = s.off;
+    });
+    return list;
+  }
   function renderStars(items){
     var pinsOut = document.getElementById('pins');
     var pinsMid = document.getElementById('pinsMid');
@@ -685,34 +697,41 @@
     pinsMid.querySelectorAll('g.dayStar').forEach(function(g){ g.remove(); });
     pinsIn.querySelectorAll('g.dayStar').forEach(function(g){ g.remove(); });
     var td = todayStr();
+    var outStars = [], midStars = [], inStars = [];
 
     items.forEach(function(it){
       var ang = angleFor(it.day);
       if(it.kind === 'day'){
-        var r1 = ringR(R_IN, ang);
-        mkStar(pinsIn, { x: Math.round((200 + r1 * Math.sin(ang)) * 10) / 10,
-          y: Math.round((200 - r1 * Math.cos(ang)) * 10) / 10, phase: 'new', f: 'glowIn' });
+        inStars.push({ ang: ang });
       } else {
         var od = occDelta(it.day);
         if(od >= -30 && od <= 30){
-          var x2 = Math.round((200 + R_OUT * Math.sin(ang)) * 10) / 10;
-          var y2 = Math.round((200 - R_OUT * Math.cos(ang)) * 10) / 10;
-          var phase = od === 0 ? 'full' : od < 0 ? 'wane' : 'wax';
-          mkStar(pinsOut, { x: x2, y: y2, isToday: phase === 'full', phase: phase });
+          outStars.push({ ang: ang, phase: od === 0 ? 'full' : od < 0 ? 'wane' : 'wax' });
         } else {
-          var r3 = ringR(R_MID, ang);
-          mkStar(pinsMid, { x: Math.round((200 + r3 * Math.sin(ang)) * 10) / 10,
-            y: Math.round((200 - r3 * Math.cos(ang)) * 10) / 10, phase: 'new', f: 'glowMid' });
+          midStars.push({ ang: ang });
         }
       }
     });
 
-    var hasTodayAnniv = items.some(function(it){ return it.kind !== 'day' && occDelta(it.day) === 0; });
-    if(!hasTodayAnniv){
-      var angT = angleFor(td);
-      mkStar(pinsOut, { x: Math.round((200 + R_OUT * Math.sin(angT)) * 10) / 10,
-        y: Math.round((200 - R_OUT * Math.cos(angT)) * 10) / 10, isToday: true });
-    }
+    var hasFull = outStars.some(function(s){ return s.phase === 'full'; });
+    if(!hasFull) outStars.push({ ang: angleFor(td), phase: 'full' });
+
+    stagger(outStars).forEach(function(s){
+      var r = R_OUT + s.off * 9;
+      mkStar(pinsOut, { x: Math.round((200 + r * Math.sin(s.ang)) * 10) / 10,
+        y: Math.round((200 - r * Math.cos(s.ang)) * 10) / 10,
+        isToday: s.phase === 'full', phase: s.phase });
+    });
+    stagger(midStars).forEach(function(s){
+      var r = ringR(R_MID, s.ang) + s.off * 8;
+      mkStar(pinsMid, { x: Math.round((200 + r * Math.sin(s.ang)) * 10) / 10,
+        y: Math.round((200 - r * Math.cos(s.ang)) * 10) / 10, phase: 'new', f: 'glowMid' });
+    });
+    stagger(inStars).forEach(function(s){
+      var r = ringR(R_IN, s.ang) + s.off * 8;
+      mkStar(pinsIn, { x: Math.round((200 + r * Math.sin(s.ang)) * 10) / 10,
+        y: Math.round((200 - r * Math.cos(s.ang)) * 10) / 10, phase: 'new', f: 'glowIn' });
+    });
 
     if(CAL){
       var cs = document.getElementById('calRings');
