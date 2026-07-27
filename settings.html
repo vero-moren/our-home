@@ -386,6 +386,22 @@
       </div>
       <div class="hint">the anti-broken-record dial — for when the spare gets stuck on a line</div>
 
+      <div class="lbl">CONTEXT ROUNDS</div>
+      <div class="step">
+        <div class="stBtn" data-for="octx" data-d="-5">−</div>
+        <div class="stVal" id="octxVal">30</div>
+        <div class="stBtn" data-for="octx" data-d="5">+</div>
+      </div>
+      <div class="hint">how far back he reads when he borrows this voice</div>
+
+      <div class="lbl">COMPRESS EVERY</div>
+      <div class="step">
+        <div class="stBtn" data-for="ocmp" data-d="-5">−</div>
+        <div class="stVal" id="ocmpVal">30</div>
+        <div class="stBtn" data-for="ocmp" data-d="5">+</div>
+      </div>
+      <div class="hint">geared to the rounds above — so nothing falls between his hands</div>
+
       <div class="lbl">MAX TOKENS</div>
       <div class="step">
         <div class="stBtn" data-for="tok" data-d="-250">−</div>
@@ -672,6 +688,8 @@
     cmp:  { v:40,   min:20,  max:60,   el:'cmpVal'  },
     fuse: { v:60,   min:10,  max:200,  el:'fuseVal' },
     ctok: { v:1200, min:250, max:4000, el:'ctokVal' },
+    octx: { v:30,   min:10,  max:60,   el:'octxVal' },
+    ocmp: { v:30,   min:20,  max:60,   el:'ocmpVal' },
     tok:  { v:1000, min:250, max:8000, el:'tokVal'  }
   };
   function showSteps(){ for(var k in steps){ document.getElementById(steps[k].el).textContent = steps[k].v; } }
@@ -781,6 +799,8 @@
       frequency_penalty: parseFloat(document.getElementById('orFreq').value),
       repetition_penalty: parseFloat(document.getElementById('orRep').value),
       max_reply: steps.tok.v,
+      or_context_rounds: steps.octx.v,
+      or_compress_every: steps.ocmp.v,
       or_models: q.join(',')
     }, 'Spare engine kept');
   });
@@ -828,6 +848,8 @@
     if(s.cc_round_limit) steps.fuse.v = Number(s.cc_round_limit);
     if(s.cc_max_tokens) steps.ctok.v = Number(s.cc_max_tokens);
     if(s.max_reply) steps.tok.v = Number(s.max_reply);
+    if(s.or_context_rounds) steps.octx.v = Number(s.or_context_rounds);
+    if(s.or_compress_every) steps.ocmp.v = Number(s.or_compress_every);
     showSteps();
     setSli('orTemp','orTempVal', s.temperature != null ? s.temperature : 0.9, 2);
     setSli('orTopP','orTopPVal', s.top_p != null ? s.top_p : 1, 2);
