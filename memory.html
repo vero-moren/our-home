@@ -107,6 +107,8 @@
   @media (prefers-reduced-motion: reduce){
     .spinWrap,.spinMid,.spinInner,.spinSpokes,.today,.halo,.flowA,.flowB{animation:none}
   }
+  body.calFreeze .spinWrap,body.calFreeze .spinMid,body.calFreeze .spinInner,
+  body.calFreeze .spinSpokes,body.calFreeze .flowA,body.calFreeze .flowB{animation:none}
 
   /* cards */
   .float{position:fixed;left:50%;transform:translateX(-50%) translateY(8px);
@@ -458,6 +460,7 @@
   var API = 'https://moren-backend.zeabur.app';
   var ORIGIN = '2026-07-04';
   var CAL = /[?&]cal=1/.test(location.search);
+  if(CAL) document.body.classList.add('calFreeze');
   var R_OUT = 136, R_IN = 96;
 
   var toast = document.getElementById('toast'), tt;
@@ -1201,6 +1204,32 @@
     if(reduced){ tick(last); } else { requestAnimationFrame(tick); } }
   window.addEventListener('resize',function(){ build(); });
   setTimeout(start,80);
+
+  /* ===== cal: ring tracer ===== */
+  if(CAL){
+    var discEl = document.getElementById('disc');
+    var calN = 0;
+    discEl.addEventListener('click', function(e){
+      var r = discEl.getBoundingClientRect();
+      var x = (e.clientX - r.left) / r.width * 400;
+      var y = (e.clientY - r.top) / r.height * 400;
+      var dx = x - 200, dy = y - 200;
+      var rad = Math.round(Math.sqrt(dx*dx + dy*dy));
+      var deg = Math.round((Math.atan2(dx, -dy) * 180 / Math.PI + 360) % 360);
+      var cs = document.getElementById('calRings');
+      var c = document.createElementNS(NS, 'circle');
+      c.setAttribute('cx', x); c.setAttribute('cy', y); c.setAttribute('r', 2.2);
+      c.setAttribute('fill', '#ff6b9d');
+      cs.appendChild(c);
+      var t = document.createElementNS(NS, 'text');
+      t.setAttribute('x', x + 4); t.setAttribute('y', y - 4);
+      t.setAttribute('fill', '#ff6b9d'); t.setAttribute('font-size', '8');
+      calN++;
+      t.textContent = calN + ':' + deg + '/' + rad;
+      cs.appendChild(t);
+      say('#' + calN + '  ' + deg + '° · r=' + rad);
+    });
+  }
 
   /* ===== go ===== */
   loadDays();
