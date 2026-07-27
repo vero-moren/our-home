@@ -785,10 +785,10 @@
     });
     var nc = document.getElementById('nextCount');
     nc.innerHTML = '';
-    if(!next){ nc.textContent = 'all days ›'; }
+    if(!next){ nc.textContent = 'all days'; }
     else {
       var t1 = document.createElement('span');
-      t1.textContent = next.it.label + '  ›';
+      t1.textContent = next.it.label;
       var t2 = document.createElement('i');
       t2.textContent = next.d === 0 ? 'today' : 'in ' + next.d + ' days';
       nc.appendChild(t1); nc.appendChild(t2);
