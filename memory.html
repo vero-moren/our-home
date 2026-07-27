@@ -457,7 +457,7 @@
 <script>
   var API = 'https://moren-backend.zeabur.app';
   var ORIGIN = '2026-07-04';
-  var CAL = false;
+  var CAL = /[?&]cal=1/.test(location.search);
   var R_OUT = 136, R_IN = 96;
 
   var toast = document.getElementById('toast'), tt;
