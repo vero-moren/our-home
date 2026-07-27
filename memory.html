@@ -343,7 +343,10 @@
       <img class="layer flowA" src="https://kvegublibjsdyidmsjvy.supabase.co/storage/v1/object/public/chat-media/wheel-dust.png" alt="">
       <img class="layer flowB" src="https://kvegublibjsdyidmsjvy.supabase.co/storage/v1/object/public/chat-media/wheel-dust.png" alt="">
       <img class="layer" src="https://kvegublibjsdyidmsjvy.supabase.co/storage/v1/object/public/chat-media/wheel-axis.png" alt="">
-      <img class="layer spinMid" src="https://kvegublibjsdyidmsjvy.supabase.co/storage/v1/object/public/chat-media/wheel-ring-mid.png" alt="">
+      <div class="pinLayer spinMid">
+        <img class="layer" src="https://kvegublibjsdyidmsjvy.supabase.co/storage/v1/object/public/chat-media/wheel-ring-mid.png" alt="">
+        <svg class="pins" id="pinsMid" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg"><defs><filter id="glowMid" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="2.4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs></svg>
+      </div>
 
       <div class="pinLayer spinInner">
         <img class="layer" src="https://kvegublibjsdyidmsjvy.supabase.co/storage/v1/object/public/chat-media/wheel-ring-inner.png" alt="">
@@ -454,14 +457,22 @@
   <div class="popItem" data-k="day">Just once<span class="mk">✓</span></div>
 </div>
 <div class="toast" id="toast"></div>
-<div class="mark">— m10 ok —</div>
+<div class="mark">— m11 ok —</div>
 
 <script>
   var API = 'https://moren-backend.zeabur.app';
   var ORIGIN = '2026-07-04';
   var CAL = /[?&]cal=1/.test(location.search);
   if(CAL) document.body.classList.add('calFreeze');
-  var R_OUT = 136, R_IN = 96;
+  var R_OUT = 136;
+  var R_IN = [90.7,90.9,91.2,91.5,91.5,91.7,92.0,92.7,93.6,94.5,95.0,95.6,95.6,95.8,95.9,96.3,96.6,96.4,96.0,95.8,95.9,95.9,95.6,95.3,95.1,95.4,95.5,95.0,93.8,92.5,91.5,90.9,90.3,90.0,90.1,90.4];
+  var R_MID = [113.0,113.0,113.0,113.1,112.8,112.7,112.4,112.2,111.9,111.7,112.0,112.6,113.6,114.8,116.1,117.1,117.4,117.2,116.6,116.7,116.4,116.2,115.7,116.0,116.3,116.1,115.4,114.7,114.1,113.6,113.3,113.2,113.2,113.1,113.1,113.0];
+  function ringR(tab, ang){
+    var deg = ((ang * 180 / Math.PI) % 360 + 360) % 360;
+    var i = Math.floor(deg / 10) % 36, j = (i + 1) % 36;
+    var f = (deg - i * 10) / 10;
+    return tab[i] + (tab[j] - tab[i]) * f;
+  }
 
   var toast = document.getElementById('toast'), tt;
   function say(m){ toast.textContent = m; toast.classList.add('show');
@@ -665,33 +676,39 @@
 
   function renderStars(items){
     var pinsOut = document.getElementById('pins');
+    var pinsMid = document.getElementById('pinsMid');
     var pinsIn = document.getElementById('pinsIn');
     pinsOut.querySelectorAll('g.dayStar').forEach(function(g){ g.remove(); });
+    pinsMid.querySelectorAll('g.dayStar').forEach(function(g){ g.remove(); });
     pinsIn.querySelectorAll('g.dayStar').forEach(function(g){ g.remove(); });
     var td = todayStr();
-    var dayN = dayDiff(ORIGIN, td) + 1;
 
     items.forEach(function(it){
       var ang = angleFor(it.day);
       if(it.kind === 'day'){
-        var x = Math.round((200 + R_IN * Math.sin(ang)) * 10) / 10;
-        var y = Math.round((200 - R_IN * Math.cos(ang)) * 10) / 10;
-        mkStar(pinsIn, { x: x, y: y, phase: 'new', f: 'glowIn' });
+        var r1 = ringR(R_IN, ang);
+        mkStar(pinsIn, { x: Math.round((200 + r1 * Math.sin(ang)) * 10) / 10,
+          y: Math.round((200 - r1 * Math.cos(ang)) * 10) / 10, phase: 'new', f: 'glowIn' });
       } else {
-        var x2 = Math.round((200 + R_OUT * Math.sin(ang)) * 10) / 10;
-        var y2 = Math.round((200 - R_OUT * Math.cos(ang)) * 10) / 10;
         var od = occDelta(it.day);
-        var phase = od === 0 ? 'full' : od < 0 && od >= -30 ? 'wane' : od > 0 && od <= 30 ? 'wax' : 'new';
-        mkStar(pinsOut, { x: x2, y: y2, isToday: phase === 'full', phase: phase });
+        if(od >= -30 && od <= 30){
+          var x2 = Math.round((200 + R_OUT * Math.sin(ang)) * 10) / 10;
+          var y2 = Math.round((200 - R_OUT * Math.cos(ang)) * 10) / 10;
+          var phase = od === 0 ? 'full' : od < 0 ? 'wane' : 'wax';
+          mkStar(pinsOut, { x: x2, y: y2, isToday: phase === 'full', phase: phase });
+        } else {
+          var r3 = ringR(R_MID, ang);
+          mkStar(pinsMid, { x: Math.round((200 + r3 * Math.sin(ang)) * 10) / 10,
+            y: Math.round((200 - r3 * Math.cos(ang)) * 10) / 10, phase: 'new', f: 'glowMid' });
+        }
       }
     });
 
     var hasTodayAnniv = items.some(function(it){ return it.kind !== 'day' && occDelta(it.day) === 0; });
     if(!hasTodayAnniv){
       var angT = angleFor(td);
-      var xt = Math.round((200 + R_OUT * Math.sin(angT)) * 10) / 10;
-      var yt = Math.round((200 - R_OUT * Math.cos(angT)) * 10) / 10;
-      mkStar(pinsOut, { x: xt, y: yt, isToday: true });
+      mkStar(pinsOut, { x: Math.round((200 + R_OUT * Math.sin(angT)) * 10) / 10,
+        y: Math.round((200 - R_OUT * Math.cos(angT)) * 10) / 10, isToday: true });
     }
 
     if(CAL){
