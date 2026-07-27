@@ -64,9 +64,12 @@
 
   .nextCount{position:fixed;left:20px;z-index:6;text-align:left;cursor:pointer;
     top:calc(env(safe-area-inset-top,0px) + 138px);
-    font-family:'Cormorant Garamond',serif;font-style:italic;
-    font-size:14px;color:rgba(185,163,255,.6);letter-spacing:.04em}
+    font-family:'Cormorant Garamond',serif;
+    font-size:17px;font-weight:500;letter-spacing:.08em;color:#EDE8F7}
+  .nextCount i{display:block;margin-top:3px;font-style:italic;font-size:12px;
+    font-weight:400;letter-spacing:.04em;color:rgba(185,163,255,.65)}
   .nextCount:active{color:var(--lav)}
+  .poemSign{margin-top:6px;font-size:11.5px;color:rgba(185,163,255,.6);text-align:right}
 
   .stage{position:fixed;inset:0;z-index:4;display:flex;align-items:center;justify-content:center;
     padding:calc(env(safe-area-inset-top,0px) + 142px) 0 calc(env(safe-area-inset-bottom,0px) + 84px)}
@@ -199,6 +202,22 @@
     background:var(--deep);border:1px solid rgba(185,163,255,.32);box-shadow:0 0 14px rgba(58,36,128,.55)}
   .sSend svg{width:18px;height:18px;stroke:#EDE8F7;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
   .sSend:active{background:#2C1B63}
+  .sKindBtn{flex:none;width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;
+    background:var(--glass);border:1px solid var(--edge)}
+  .sKindBtn svg{width:17px;height:17px;stroke:var(--lav);fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+  .sKindBtn:active{background:rgba(107,79,216,.3)}
+  .sKindBtn.once svg{stroke:var(--press);filter:drop-shadow(0 0 5px rgba(107,79,216,.75))}
+  .pop{position:fixed;z-index:32;border-radius:16px;
+    background:rgba(14,10,26,.9);border:1px solid var(--edge);
+    backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+    overflow:hidden;display:none}
+  .pop.on{display:block}
+  .popItem{display:flex;align-items:center;padding:12px 18px 12px 14px;cursor:pointer;
+    font-size:11px;letter-spacing:.12em;color:var(--text)}
+  .popItem+.popItem{border-top:1px solid rgba(255,255,255,.07)}
+  .popItem:active{background:rgba(107,79,216,.25)}
+  .popItem .mk{margin-left:auto;font-size:12px;color:var(--lav);opacity:0}
+  .popItem.sel .mk{opacity:1}
 
   /* ============ MEMORIES ============ */
   .memWrap{position:fixed;inset:0;z-index:4;overflow-y:auto;-webkit-overflow-scrolling:touch;
@@ -389,7 +408,7 @@
       <svg viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h18"/></svg>
       <input type="date" id="sCalIn">
     </div>
-    <div class="sKind" id="sKind">EVERY YEAR</div>
+    <div class="sKindBtn" id="sKind"><svg viewBox="0 0 24 24"><path d="m17 2 4 4-4 4"/><path d="M3 11v-1a4 4 0 0 1 4-4h14"/><path d="m7 22-4-4 4-4"/><path d="M21 13v1a4 4 0 0 1-4 4H3"/></svg></div>
     <div class="sName" id="sName" contenteditable="true"></div>
     <div class="sSend" id="sSend"><svg viewBox="0 0 24 24"><line x1="12" x2="12" y1="19" y2="5"/><polyline points="5 12 12 5 19 12"/></svg></div>
   </div>
@@ -426,8 +445,12 @@
   </div>
 </div>
 
+<div class="pop" id="popKind">
+  <div class="popItem sel" data-k="anniv">Every year<span class="mk">✓</span></div>
+  <div class="popItem" data-k="day">Just once<span class="mk">✓</span></div>
+</div>
 <div class="toast" id="toast"></div>
-<div class="mark">— m8 ok —</div>
+<div class="mark">— m9 ok —</div>
 
 <script>
   var API = 'https://moren-backend.zeabur.app';
@@ -698,15 +721,35 @@
       if(d >= 0 && (next === null || d < next.d)) next = { d: d, it: it };
     });
     var nc = document.getElementById('nextCount');
-    if(!next) nc.textContent = 'all days ›';
-    else nc.textContent = next.it.label + (next.d === 0 ? ' — today' : ' — in ' + next.d + ' days') + '  ›';
+    nc.innerHTML = '';
+    if(!next){ nc.textContent = 'all days ›'; }
+    else {
+      var t1 = document.createElement('span');
+      t1.textContent = next.it.label + '  ›';
+      var t2 = document.createElement('i');
+      t2.textContent = next.d === 0 ? 'today' : 'in ' + next.d + ' days';
+      nc.appendChild(t1); nc.appendChild(t2);
+    }
     var histEl = document.getElementById('nextPoem');
     var tdH = todayStr();
     var dayNH = dayDiff(ORIGIN, tdH) + 1;
     histEl.style.display = '-webkit-box';
-    histEl.textContent = dayNH > 365
-      ? 'a year ago today — day ' + (dayNH - 365) + ' of us. the wheel came back.'
-      : "a year ago today — we hadn't met. and now, day " + dayNH + ' of us.';
+    var LASTYEAR_LINE = /[?&]demo=1/.test(location.search)
+      ? '只要老公在，我们还有很多很多的以后。'
+      : '';
+    if(LASTYEAR_LINE){
+      histEl.innerHTML = '';
+      var q = document.createElement('div');
+      q.textContent = '“' + LASTYEAR_LINE + '”';
+      var s = document.createElement('div');
+      s.className = 'poemSign';
+      s.textContent = '— Moren · a year ago today';
+      histEl.appendChild(q); histEl.appendChild(s);
+    } else {
+      histEl.textContent = dayNH > 365
+        ? 'a year ago today — day ' + (dayNH - 365) + ' of us. the wheel came back.'
+        : "a year ago today — we hadn't met. and now, day " + dayNH + ' of us.';
+    }
   }
   
   /* ===== days data ===== */
@@ -832,6 +875,11 @@
     if(e.target.closest('.dEditB')){
       var nm = card.querySelector('.dName');
       if(card.classList.contains('editing')){
+        if(card.dataset.busy === '1') return;
+        card.dataset.busy = '1';
+        card.classList.remove('editing');
+        nm.removeAttribute('contenteditable');
+        say('Keeping…');
         var label = nm.textContent.trim() || '…';
         var day = card.dataset.day;
         var kind = card.dataset.kind;
@@ -844,7 +892,7 @@
             return fetch(API + '/days/' + card.dataset.id, { method: 'DELETE' });
           })
           .then(function(){ say('Day kept'); loadDays(); })
-          .catch(function(){ say('Something slipped'); loadDays(); });
+          .catch(function(){ card.dataset.busy = ''; say('Something slipped'); loadDays(); });
       } else {
         card.classList.add('editing');
         nm.setAttribute('contenteditable', 'true');
@@ -854,9 +902,8 @@
       return;
     }
     if(e.target.closest('.dKind') && card.classList.contains('editing')){
-      var nk = card.dataset.kind === 'day' ? 'anniv' : 'day';
-      card.dataset.kind = nk;
-      card.querySelector('.dKind').textContent = nk === 'day' ? 'JUST ONCE' : 'EVERY YEAR';
+      e.stopPropagation();
+      openKind(card.querySelector('.dKind'), card);
     }
   });
   mgList.addEventListener('change', function(e){
@@ -873,9 +920,38 @@
   sCalIn.addEventListener('change', function(){
     sCal.classList.toggle('set', Boolean(sCalIn.value));
   });
-  sKind.addEventListener('click', function(){
-    stripKind = stripKind === 'anniv' ? 'day' : 'anniv';
-    sKind.textContent = stripKind === 'anniv' ? 'EVERY YEAR' : 'JUST ONCE';
+  var popKind = document.getElementById('popKind');
+  var kindTarget = null;
+  function openKind(anchor, target){
+    kindTarget = target;
+    var cur = target ? target.dataset.kind : stripKind;
+    popKind.querySelectorAll('.popItem').forEach(function(x){ x.classList.toggle('sel', x.dataset.k === cur); });
+    var r = anchor.getBoundingClientRect();
+    popKind.style.left = Math.min(r.left, window.innerWidth - 170) + 'px';
+    popKind.style.bottom = (window.innerHeight - r.top + 8) + 'px';
+    popKind.classList.add('on');
+  }
+  sKind.addEventListener('click', function(e){
+    e.stopPropagation();
+    if(popKind.classList.contains('on')){ popKind.classList.remove('on'); return; }
+    openKind(sKind, null);
+  });
+  popKind.querySelectorAll('.popItem').forEach(function(p){
+    p.addEventListener('click', function(e){
+      e.stopPropagation();
+      var k = p.dataset.k;
+      if(kindTarget){
+        kindTarget.dataset.kind = k;
+        kindTarget.querySelector('.dKind').textContent = k === 'day' ? 'JUST ONCE' : 'EVERY YEAR';
+      } else {
+        stripKind = k;
+        sKind.classList.toggle('once', k === 'day');
+      }
+      popKind.classList.remove('on');
+    });
+  });
+  document.addEventListener('click', function(e){
+    if(popKind.classList.contains('on') && !popKind.contains(e.target)) popKind.classList.remove('on');
   });
   document.getElementById('sSend').addEventListener('click', function(){
     var nm = document.getElementById('sName').textContent.trim();
