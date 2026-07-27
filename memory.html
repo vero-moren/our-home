@@ -708,6 +708,19 @@
       ? 'a year ago today — day ' + (dayNH - 365) + ' of us. the wheel came back.'
       : "a year ago today — we hadn't met. and now, day " + dayNH + ' of us.';
   }
+  
+  /* ===== days data ===== */
+  function loadDays(){
+    fetch(API + '/days?t=' + Date.now())
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        daysAll = d.items || [];
+        renderStars(daysAll);
+        updCount();
+        if(document.getElementById('manage').classList.contains('on')) renderManage();
+      })
+      .catch(function(){ say("Can't reach home"); });
+  }
 
   /* ===== 轮心 = 此刻:日子滚轮 ===== */
   var scRoll = document.getElementById('scRoll');
